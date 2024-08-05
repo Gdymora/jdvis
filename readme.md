@@ -17,6 +17,8 @@ gulp or npx gulp
 ````Bash 
 gulp
 ````
+### Brouser test
+localhost:4000 
 ## Build comand
 
 ````Bash 
