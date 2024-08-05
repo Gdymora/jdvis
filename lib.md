@@ -31,3 +31,13 @@ $('.active').click(sayHello);
 function sayHello(){
 console.log('Hello')
 }
+
+# effects
+/**/
+animateOverTime
+/**/
+fadeIn
+/**/
+fadeOut
+/**/
+fadeToggle
