@@ -39,8 +39,22 @@ $.prototype.init = function (selector) {
   this.length = document.querySelectorAll(selector).length;
   return this;
 };
-$.prototype.init.prototype = $.prototype;
 
-window.$ = $;
+$.prototype.init.prototype = $.prototype;
+// Додайте цей рядок для підтримки плагінів
+$.fn = $.prototype;
+
+// Додаємо метод forEach
+$.prototype.each = function(callback) {
+  for (let i = 0; i < this.length; i++) {
+    callback.call(this[i], this[i], i, this);
+  }
+  return this;
+};
+
+// Експортуємо як глобальний об'єкт
+if (typeof window !== 'undefined') {
+  window.$ = $;
+}
 
 export default $;
