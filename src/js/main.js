@@ -1,4 +1,4 @@
-import $ from "./lib/lib";
+import $ from "./lib/lib";/* 
 
 $(".active").on("click", sayHello);
 $(".active").off("click", sayHello);
@@ -18,4 +18,4 @@ console.log($('.more').eq(0).siblings())
 console.log($('.findme').siblings())
 function sayHello() {
   console.log('Click');
-}
+} */
