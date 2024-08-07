@@ -78,3 +78,22 @@
         right: 0;
     }
 }
+
+#footerCarousel {
+    position: relative;
+    overflow: hidden;
+}
+
+#footerCarousel .flex {
+    transition: transform 0.3s ease-in-out;
+}
+
+#footerCarousel img {
+    flex-shrink: 0;
+    width: calc(100% / 6);
+}
+
+#footerCarousel button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

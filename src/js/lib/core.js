@@ -1,27 +1,23 @@
-/* (() => {
-  const $ = function (selector) {
-    const elements = document.querySelectorAll(selector);
-    const obj = {};
-    obj.hide = () => {
-      elements.forEach((elem) => {
-        elem.style.display = "none";
-      });
-      return obj;
-    };
-    obj.show = () => {
-      elements.forEach((elem) => {
-        elem.style.display = "";
-      });
-      return obj;
-    };
-    return obj;
-  };
-  window.$ = $;
-})(); */
+/**
+ * @file core.js
+ * @description Core functionality of the ModernLib library.
+ * @module core
+ */
 
+/**
+ * Creates a new ModernLib object.
+ * @param {string|Element} selector - A CSS selector string or DOM Element.
+ * @returns {Object} ModernLib object.
+ */
 const $ = function (selector) {
   return new $.prototype.init(selector);
 };
+
+/**
+ * Initializes a new ModernLib object.
+ * @constructor
+ * @param {string|Element} selector - A CSS selector string or DOM Element.
+ */
 
 $.prototype.init = function (selector) {
   if (!selector) {
@@ -44,7 +40,12 @@ $.prototype.init.prototype = $.prototype;
 // Додайте цей рядок для підтримки плагінів
 $.fn = $.prototype;
 
-// Додаємо метод forEach
+/**
+ * Iterates over each element in the collection and executes a callback function.
+ * @param {Function} callback - Function to execute for each element.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
 $.prototype.each = function(callback) {
   for (let i = 0; i < this.length; i++) {
     callback.call(this[i], this[i], i, this);

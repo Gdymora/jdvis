@@ -30,14 +30,22 @@ $('.active').off('click', sayHello);
 $('.active').click(sayHello);
 function sayHello(){
 console.log('Hello')
-}
+} 
 
-# effects
-/**/
-animateOverTime
-/**/
-fadeIn
-/**/
-fadeOut
-/**/
-fadeToggle
+# method
+$('.carousel').carousel();
+$('.accordion-head').accordion();
+$('.dropdown-toggle').dropdown();
+$('[data-toggle="modal"]').modal();
+$('[data-tabpanel] .tab-item').tab();
+
+
+
+              
+
+$('.carousel').carousel();
+$('.dropdown-toggle').dropdown();
+$('[data-toggle="modal"]').modal();
+$('.accordion-head').accordion();
+$('[data-tabpanel] .tab-item').tab();
+$('.dropdown-toggle').dropdown();

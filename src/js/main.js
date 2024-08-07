@@ -19,3 +19,14 @@ console.log($('.findme').siblings())
 function sayHello() {
   console.log('Click');
 } */
+
+/* function sayHello() {
+  console.log('Click');
+}
+
+$(".active").on("click", sayHello);
+ 
+
+$("div").on("click", function () { 
+  console.log($(this).index()); 
+}); */

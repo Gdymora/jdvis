@@ -1,4 +1,14 @@
+/**
+ * @file display.js
+ * @description Display manipulation methods for ModernLib.
+ * @module display
+ */
 import $ from "../core";
+
+/**
+ * Shows the selected elements by setting their display property to an empty string.
+ * @returns {Object} The ModernLib object for chaining.
+ */
 
 $.prototype.show = function () {
   for (let i = 0; i < this.length; i++) {
@@ -10,6 +20,11 @@ $.prototype.show = function () {
   return this;
 };
 
+/**
+ * Hides the selected elements by setting their display property to 'none'.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
 $.prototype.hide = function () {
   for (let i = 0; i < this.length; i++) {
     if (!this[i].style) {
@@ -19,6 +34,11 @@ $.prototype.hide = function () {
   }
   return this;
 };
+
+/**
+ * Toggles the visibility of the selected elements.
+ * @returns {Object} The ModernLib object for chaining.
+ */
 
 $.prototype.toggle = function () {
   for (let i = 0; i < this.length; i++) {

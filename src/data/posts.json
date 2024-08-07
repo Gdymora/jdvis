@@ -1,0 +1,20 @@
+[
+    {
+      "image": "https://cdn.pixabay.com/photo/2024/06/21/15/56/nature-8844604_1280.jpg",
+      "category": "Technology",
+      "title": "Exciting New Tech Trends for 2023",
+      "author": "John Doe",
+      "date": "August 1, 2023",
+      "excerpt": "Discover the latest technology trends that are shaping our future...",
+      "link": "#"
+    },
+    {
+      "image": "https://cdn.pixabay.com/photo/2024/06/21/15/56/nature-8844604_1280.jpg",
+      "category": "Business",
+      "title": "How to Start a Successful Startup",
+      "author": "Jane Smith",
+      "date": "July 28, 2023",
+      "excerpt": "Learn the key steps to launching your own successful startup...",
+      "link": "#"
+    }
+  ]
