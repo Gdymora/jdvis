@@ -42,7 +42,7 @@ $.prototype.postGenerator = function(url) {
     this.get(url)
         .then(data => {
             let posts = '';
-            data.forEach(item => {
+            JSON.parse(data.data).forEach(item => {
                 posts += createPost(item);
             });
             this.html(posts);

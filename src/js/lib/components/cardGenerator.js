@@ -35,7 +35,7 @@ $.prototype.cardGenerator = function(url) {
     this.get(url)
         .then(data => {
             let cards = '';
-            data.forEach(item => {
+            JSON.parse(data.data).forEach(item => {
                 cards += createCard(item);
             });
             this.html(cards);

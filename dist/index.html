@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Library</title>
-     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -224,12 +224,12 @@
       </div>
 
       <div class="goods d-flex f-space-around" id="cardContainer"></div>
-      
+
       <div class="container mx-auto flex flex-wrap py-6">
         <!-- Posts Section -->
         <section id="postsContainer" class="w-full md:w-2/3 flex flex-col items-center px-3">
           <!-- Posts will be loaded here -->
-        </section>        
+        </section>
       </div>
 
       <!-- Pagination -->
@@ -287,7 +287,8 @@
         $("#pagination").pagination(5, 1); // Припустимо, що у нас 5 сторінок, і ми на першій
         $("#footerCarousel").carouselBlog();
         // Використовуємо локальні JSON файли для тестування
-        $("#postsContainer").loadPostsLocal("data/posts.json", true);
+       // $("#postsContainer").loadPostsLocal("data/posts.json", true);
+        $("#postsContainer").postGenerator("http://127.0.0.1:8005/api/data-tables/view/2");
       </script>
     </div>
   </body>
