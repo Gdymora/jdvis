@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/carouselBlog.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/carouselBlog.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file carouselBlog.js
+ * @description Image carousel functionality for ModernLib.
+ * @module components/carouselBlog
+ */
+
+import $ from "../core";
+
+/**
+ * Initializes a simple image carousel.
+ * @memberof $.prototype
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // HTML structure
+ * // &lt;div id="imageCarousel" class="carousel">
+ * //   &lt;button id="prev">Previous&lt;/button>
+ * //   &lt;div class="flex">
+ * //     &lt;img src="image1.jpg" alt="Image 1">
+ * //     &lt;img src="image2.jpg" alt="Image 2">
+ * //     &lt;!-- Add more images as needed -->
+ * //   &lt;/div>
+ * //   &lt;button id="next">Next&lt;/button>
+ * // &lt;/div>
+ * 
+ * // Initialize the carousel
+ * $('#imageCarousel').carouselBlog();
+ */
+$.prototype.carouselBlog = function() {
+    for (let i = 0; i &lt; this.length; i++) {
+        const carousel = this[i];
+        const slides = carousel.querySelectorAll('img');
+        const slidesField = carousel.querySelector('.flex');
+        const prevButton = carousel.querySelector('#prev');
+        const nextButton = carousel.querySelector('#next');
+
+        // Перевірка наявності необхідних елементів
+        if (!slidesField || !prevButton || !nextButton || slides.length === 0) {
+            console.error('Carousel is missing required elements');
+            continue;
+        }
+
+        const slideWidth = 100 / 6; // Ширина одного слайду у відсотках
+        const totalSlides = slides.length;
+
+        // Налаштування ширини контейнера слайдів
+        slidesField.style.width = `${slideWidth * totalSlides}%`;
+
+        // Налаштування ширини кожного слайду
+        slides.forEach(slide => {
+            slide.style.width = `${slideWidth}%`;
+        });
+
+        let offset = 0;
+        let slideIndex = 0;
+
+        const updateButtons = () => {
+            prevButton.disabled = slideIndex === 0;
+            nextButton.disabled = slideIndex >= totalSlides - 6;
+        };
+
+        const moveSlide = () => {
+            slidesField.style.transform = `translateX(-${offset}%)`;
+            updateButtons();
+        };
+
+        $(nextButton).click((e) => {
+            e.preventDefault();
+            if (slideIndex &lt; totalSlides - 6) {
+                offset += slideWidth;
+                slideIndex++;
+                moveSlide();
+            }
+        });
+
+        $(prevButton).click((e) => {
+            e.preventDefault();
+            if (slideIndex > 0) {
+                offset -= slideWidth;
+                slideIndex--;
+                moveSlide();
+            }
+        });
+
+        // Початкова ініціалізація
+        updateButtons();
+    }
+
+    return this;
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

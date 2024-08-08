@@ -1,17 +1,30 @@
 /**
  * @file carouselBlog.js
  * @description Image carousel functionality for ModernLib.
+ * @module components/carouselBlog
  */
 
+import $ from "../core";
 
 /**
  * Initializes a simple image carousel.
  * @memberof $.prototype
  * @returns {Object} The ModernLib object for chaining.
  * @example
+ * // HTML structure
+ * // <div id="imageCarousel" class="carousel">
+ * //   <button id="prev">Previous</button>
+ * //   <div class="flex">
+ * //     <img src="image1.jpg" alt="Image 1">
+ * //     <img src="image2.jpg" alt="Image 2">
+ * //     <!-- Add more images as needed -->
+ * //   </div>
+ * //   <button id="next">Next</button>
+ * // </div>
+ * 
+ * // Initialize the carousel
  * $('#imageCarousel').carouselBlog();
  */
-
 $.prototype.carouselBlog = function() {
     for (let i = 0; i < this.length; i++) {
         const carousel = this[i];

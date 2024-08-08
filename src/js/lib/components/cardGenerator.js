@@ -4,23 +4,22 @@
  * @module components/cardGenerator
  */
 
-import $ from '../core';
+import $ from "../core";
 
-$.prototype.cardGenerator = function(url) {
-    /**
-     * Generates cards based on data fetched from a server.
-     * @param {string} url - The URL to fetch card data from.
-     * @returns {Object} The ModernLib object for chaining.
-     * @example
-     * // HTML structure
-     * // <div class="goods d-flex f-space-around" id="cardContainer"></div>
-     * 
-     * // Initialize card generator
-     * $('#cardContainer').cardGenerator('https://api.example.com/cards');
-     */
-    
-    const createCard = ({imgSrc, title, text, link}) => {
-        return `
+/**
+ * Generates cards based on data fetched from a server.
+ * @param {string} url - The URL to fetch card data from.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // HTML structure
+ * // <div class="goods d-flex f-space-around" id="cardContainer"></div>
+ *
+ * // Initialize card generator
+ * $('#cardContainer').cardGenerator('https://api.example.com/cards');
+ */
+$.prototype.cardGenerator = function (url) {
+  const createCard = ({ imgSrc, title, text, link }) => {
+    return `
             <div class="card">
                 <img class="card-img" src="${imgSrc}" alt="${title}"/>
                 <div class="card-body">
@@ -30,19 +29,19 @@ $.prototype.cardGenerator = function(url) {
                 </div>
             </div>
         `;
-    };
+  };
 
-    this.get(url)
-        .then(data => {
-            let cards = '';
-            JSON.parse(data.data).forEach(item => {
-                cards += createCard(item);
-            });
-            this.html(cards);
-        })
-        .catch(error => console.error('Error fetching card data:', error));
+  this.get(url)
+    .then((data) => {
+      let cards = "";
+      JSON.parse(data.data).forEach((item) => {
+        cards += createCard(item);
+      });
+      this.html(cards);
+    })
+    .catch((error) => console.error("Error fetching card data:", error));
 
-    return this;
+  return this;
 };
 
 // Приклад використання:
@@ -61,10 +60,10 @@ $.prototype.cardGenerator = function(url) {
  * $('#cardContainer').cardGeneratorLocal('data/cards.json', true);
  */
 
-$.prototype.cardGeneratorLocal = function(source, isLocal = false) {
-    const fetchMethod = isLocal ? this.fetchLocalJson : this.get;
-    
-    const createCard = ({imgSrc, title, text, link}) => `
+$.prototype.cardGeneratorLocal = function (source, isLocal = false) {
+  const fetchMethod = isLocal ? this.fetchLocalJson : this.get;
+
+  const createCard = ({ imgSrc, title, text, link }) => `
         <div class="card">
             <img class="card-img" src="${imgSrc}" alt="${title}"/>
             <div class="card-body">
@@ -75,14 +74,15 @@ $.prototype.cardGeneratorLocal = function(source, isLocal = false) {
         </div>
     `;
 
-    fetchMethod.call(this, source)
-        .then(data => {
-            let cards = data.map(createCard).join('');
-            this.html(cards);
-        })
-        .catch(error => console.error('Error generating cards:', error));
+  fetchMethod
+    .call(this, source)
+    .then((data) => {
+      let cards = data.map(createCard).join("");
+      this.html(cards);
+    })
+    .catch((error) => console.error("Error generating cards:", error));
 
-    return this;
+  return this;
 };
 
 // Приклад використання:

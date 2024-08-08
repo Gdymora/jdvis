@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/modal.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/modal.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file modal.js
+ * @description Modal functionality for ModernLib.
+ * @module components/modal
+ */
+
+import $ from "../core";
+
+/**
+ * Initializes modal functionality for selected elements.
+ * @param {boolean} created - Indicates if the modal was dynamically created.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // HTML structure
+ * // &lt;button data-toggle="modal" data-target="#exampleModal">Open Modal&lt;/button>
+ * // &lt;div id="exampleModal" class="modal">...&lt;/div>
+ *
+ * // Initialize modal
+ * $('[data-toggle="modal"]').modal();
+ */
+
+$.prototype.modal = function (created) {
+  for (let i = 0; i &lt; this.length; i++) {
+    const target = this[i].getAttribute("data-target");
+    $(this[i]).click((e) => {
+      e.preventDefault();
+      $(target).fadeIn(500);
+      document.body.style.overflow = "hidden";
+    });
+
+    const closeElements = document.querySelectorAll(`${target} [data-close]`);
+    closeElements.forEach((elem) => {
+      $(elem).click(() => {
+        $(target).fadeOut(500);
+        document.body.style.overflow = "";
+        if (created) {
+          document.querySelector(target).remove();
+        }
+      });
+    });
+
+    $(target).click((e) => {
+      if (e.target.classList.contains("modal")) {
+        $(target).fadeOut(500);
+        document.body.style.overflow = "";
+        if (created) {
+          document.querySelector(target).remove();
+        }
+      }
+    });
+  }
+};
+
+// Auto-initialize modals
+$('[data-toggle="modal"]').modal();
+
+/**
+ * Creates a modal dynamically and attaches it to the selected element.
+ * @param {Object} options - Modal configuration options.
+ * @param {Object} options.text - Modal text content.
+ * @param {string} options.text.title - Modal title.
+ * @param {string} options.text.body - Modal body content.
+ * @param {Object} options.btns - Modal buttons configuration.
+ * @param {number} options.btns.count - Number of buttons.
+ * @param {Array} options.btns.settings - Button settings array.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $('#dynamicModalTrigger').createModal({
+ *     text: {
+ *         title: 'Dynamic Modal',
+ *         body: 'This is a dynamically created modal.'
+ *     },
+ *     btns: {
+ *         count: 2,
+ *         settings: [
+ *             ['OK', ['btn-primary'], true, () => console.log('OK clicked')],
+ *             ['Cancel', ['btn-secondary'], true]
+ *         ]
+ *     }
+ * });
+ */
+
+$.prototype.createModal = function ({ text, btns } = {}) {
+  for (let i = 0; i &lt; this.length; i++) {
+    let modal = document.createElement("div");
+    modal.classList.add("modal");
+    modal.setAttribute("id", this[i].getAttribute("data-target").slice(1));
+
+    // btns = {count: num, settings: [[text, classNames=[], close, cb]]}
+    const buttons = [];
+    for (let j = 0; j &lt; btns.count; j++) {
+      let btn = document.createElement("button");
+      btn.classList.add("btn", ...btns.settings[j][1]);
+      btn.textContent = btns.settings[j][0];
+      if (btns.settings[j][2]) {
+        btn.setAttribute("data-close", "true");
+      }
+      if (btns.settings[j][3] &amp;&amp; typeof btns.settings[j][3] === "function") {
+        btn.addEventListener("click", btns.settings[j][3]);
+      }
+
+      buttons.push(btn);
+    }
+
+    modal.innerHTML = `
+        &lt;div class="modal-dialog">
+            &lt;div class="modal-content">
+                &lt;button class="close" data-close>
+                    &lt;span>&amp;times;&lt;/span>
+                &lt;/button>
+                &lt;div class="modal-header">
+                    &lt;div class="modal-title">
+                        ${text.title}
+                    &lt;/div>
+                &lt;/div>
+                &lt;div class="modal-body">
+                    ${text.body}
+                &lt;/div>
+                &lt;div class="modal-footer">
+                    
+                &lt;/div>
+            &lt;/div>
+        &lt;/div>
+        `;
+
+    modal.querySelector(".modal-footer").append(...buttons);
+    document.body.appendChild(modal);
+    $(this[i]).modal(true);
+    $(this[i].getAttribute("data-target")).fadeIn(500);
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

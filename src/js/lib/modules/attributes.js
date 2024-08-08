@@ -1,7 +1,7 @@
 /**
  * @file attributes.js
  * @description Attribute manipulation methods for ModernLib.
- * @module attributes
+ * @module modules/attributes
  */
 import $ from "../core";
 

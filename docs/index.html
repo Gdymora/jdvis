@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+    <section class="package">
+        <h3> </h3>		
+    </section>
+
+
+
+
+
+
+
+
+
+    
+
+
+
+    <section class="readme usertext">
+        <article><p>ModernDOM Library
+ModernDOM is a lightweight and flexible JavaScript library designed to simplify DOM manipulation and provide a set of utility functions for modern web development. It offers a jQuery-like syntax for ease of use while maintaining a small footprint and optimal performance.
+Key Features</p>
+<p>Lightweight: Minimalistic core with essential DOM manipulation methods.
+Chainable Methods: Allows for concise and readable code through method chaining.
+Selector Engine: Efficient element selection using CSS-style selectors.
+Event Handling: Simplified event binding and management.
+Ajax Support: Easy-to-use AJAX functionality for server communication.
+Cross-browser Compatibility: Works consistently across modern browsers.
+Extensible: Robust plugin architecture for adding custom functionality.</p>
+<p>Core Functionality</p>
+<p>Element selection and traversal
+DOM manipulation (adding, removing, and modifying elements)
+Event handling (binding, unbinding, and triggering events)
+Ajax requests (GET, POST, etc.)
+Basic animations and effects
+Utility functions for common tasks</p>
+<p>Plugin System
+ModernDOM features a powerful plugin system that allows developers to extend its functionality easily. Plugins can add new methods to the ModernDOM prototype, enhancing the library's capabilities without modifying the core code.
+Creating Plugins
+To create a plugin for ModernDOM, developers can use the following pattern:</p>
+<pre class="prettyprint source lang-javascript"><code>(function (global) {
+  function initPlugin($) {
+    if (typeof $ === &quot;undefined&quot;) {
+      console.error(&quot;ModernDOM is not defined&quot;);
+      return;
+    }
+
+    $.prototype.newMethod = function () {
+      // Plugin functionality here
+    };
+
+    console.log(&quot;Plugin loaded successfully&quot;);
+  }
+
+  function waitForDependencies() {
+    return new Promise((resolve) => {
+      function check() {
+        if (typeof global.$ !== &quot;undefined&quot;) {
+          resolve();
+        } else {
+          setTimeout(check, 50);
+        }
+      }
+      check();
+    });
+  }
+
+  function init() {
+    waitForDependencies()
+      .then(() => {
+        initPlugin(global.$);
+      })
+      .catch((error) => {
+        console.error(&quot;Error initializing plugin:&quot;, error);
+      });
+  }
+
+  if (document.readyState === &quot;loading&quot;) {
+    document.addEventListener(&quot;DOMContentLoaded&quot;, init);
+  } else {
+    init();
+  }
+})(typeof window !== &quot;undefined&quot; ? window : this);
+</code></pre>
+<p>This pattern ensures that the plugin is initialized only when ModernDOM is available, making it safe to use in various loading scenarios.
+Examples of Plugins
+ModernDOM supports a wide range of plugins, including but not limited to:</p>
+<p>Form Validation: Add custom form validation functionality.
+Rich Text Editors: Integrate WYSIWYG editors like CKEditor.
+Data Visualization: Create charts and graphs using library data.
+Infinite Scrolling: Implement endless scrolling for content lists.
+Image Galleries: Build responsive image galleries and sliders.
+Date Pickers: Add customizable date selection widgets.</p>
+<p>Benefits of the Plugin System</p>
+<p>Modularity: Developers can add only the functionality they need.
+Maintainability: Plugins can be updated independently of the core library.
+Customization: Easy to tailor ModernDOM to specific project requirements.</p>
+<p>Conclusion
+ModernDOM combines the ease of use reminiscent of jQuery with modern JavaScript practices, providing a powerful yet lightweight solution for DOM manipulation and web development. Its plugin system offers unlimited potential for extension, making it a versatile choice for projects of all sizes.</p></article>
+    </section>
+
+
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

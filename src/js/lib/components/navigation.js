@@ -1,6 +1,7 @@
 /**
  * @file navigation.js
  * @description Mobile navigation functionality for ModernLib.
+ * @module components/navigation
  */
 
 import $ from "../core";
@@ -11,7 +12,17 @@ import $ from "../core";
  * @memberof $.prototype
  * @returns {Object} The ModernLib object for chaining.
  * @example
- * // HTML: <button id="menuToggle" data-target="#menu">Menu</button>
+ * // HTML structure
+ * // <button id="menuToggle" data-target="#mobileMenu">Menu</button>
+ * // <nav id="mobileMenu" class="hidden">
+ * //   <ul>
+ * //     <li><a href="#">Home</a></li>
+ * //     <li><a href="#">About</a></li>
+ * //     <li><a href="#">Contact</a></li>
+ * //   </ul>
+ * // </nav>
+ * 
+ * // Initialize mobile navigation
  * $('#menuToggle').mobileNav();
  */
 $.prototype.mobileNav = function () {

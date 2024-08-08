@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/carousel.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/carousel.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file carousel.js
+ * @description Carousel functionality for ModernLib.
+ * @module components/carousel
+ */
+
+import $ from "../core";
+
+/**
+ * Initializes carousel functionality for selected elements.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // HTML structure
+ * // &lt;div id="exampleCarousel" class="carousel">
+ * //   &lt;div class="carousel-inner">
+ * //     &lt;div class="carousel-slides">
+ * //       &lt;div class="carousel-item">Slide 1&lt;/div>
+ * //       &lt;div class="carousel-item">Slide 2&lt;/div>
+ * //     &lt;/div>
+ * //   &lt;/div>
+ * //   &lt;button data-slide="prev">Previous&lt;/button>
+ * //   &lt;button data-slide="next">Next&lt;/button>
+ * //   &lt;ol class="carousel-indicators">
+ * //     &lt;li data-slide-to="0">&lt;/li>
+ * //     &lt;li data-slide-to="1">&lt;/li>
+ * //   &lt;/ol>
+ * // &lt;/div>
+ * 
+ * // Initialize carousel
+ * $('.carousel').carousel();
+ */
+$.prototype.carousel = function () {
+  for (let i = 0; i &lt; this.length; i++) {
+    const width = window.getComputedStyle(this[i].querySelector(".carousel-inner")).width;
+    const slides = this[i].querySelectorAll(".carousel-item");
+    const slidesField = this[i].querySelector(".carousel-slides");
+    const dots = this[i].querySelectorAll(".carousel-indicators li");
+
+    slidesField.style.width = 100 * slides.length + "%";
+    slides.forEach((slide) => {
+      slide.style.width = width;
+    });
+
+    let offset = 0;
+    let slideIndex = 0;
+
+    $(this[i].querySelector('[data-slide="next"]')).click((e) => {
+      e.preventDefault();
+      if (offset == +width.replace(/\D/g, "") * (slides.length - 1)) {
+        offset = 0;
+      } else {
+        offset += +width.replace(/\D/g, "");
+      }
+
+      slidesField.style.transform = `translateX(-${offset}px)`;
+
+      if (slideIndex == slides.length - 1) {
+        slideIndex = 0;
+      } else {
+        slideIndex++;
+      }
+      dots.forEach((dot) => dot.classList.remove("active"));
+      dots[slideIndex].classList.add("active");
+    });
+
+    $(this[i].querySelector('[data-slide="prev"]')).click((e) => {
+      e.preventDefault();
+      if (offset == 0) {
+        offset = +width.replace(/\D/g, "") * (slides.length - 1);
+      } else {
+        offset -= +width.replace(/\D/g, "");
+      }
+
+      slidesField.style.transform = `translateX(-${offset}px)`;
+
+      if (slideIndex == 0) {
+        slideIndex = slides.length - 1;
+      } else {
+        slideIndex--;
+      }
+      dots.forEach((dot) => dot.classList.remove("active"));
+      dots[slideIndex].classList.add("active");
+    });
+
+    const sliderId = this[i].getAttribute("id");
+    $(`#${sliderId} .carousel-indicators li`).click((e) => {
+      const slideTo = e.target.getAttribute("data-slide-to");
+
+      slideIndex = slideTo;
+      offset = +width.replace(/\D/g, "") * slideTo;
+
+      slidesField.style.transform = `translateX(-${offset}px)`;
+      dots.forEach((dot) => dot.classList.remove("active"));
+      dots[slideIndex].classList.add("active");
+    });
+  }
+};
+
+$(".carousel").carousel();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

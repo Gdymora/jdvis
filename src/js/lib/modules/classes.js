@@ -1,7 +1,7 @@
 /**
  * @file classes.js
  * @description CSS class manipulation methods for ModernLib.
- * @module classes
+ * @module modules/classes
  */
 import $ from "../core";
 // https://www.w3schools.com/jsref/prop_element_classlist.asp

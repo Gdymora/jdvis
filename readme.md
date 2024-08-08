@@ -1,4 +1,4 @@
-# Jdymora Vision library
+# ModernDOM Jdymora Vision library
 
 ## Install the gulp command line utility#
 ````Bash
@@ -26,6 +26,17 @@ gulp prod
 ````
 ## gulp website documentation
 https://gulpjs.com/docs/en/getting-started/quick-start
+
+## JSDoc
+https://medium.com/@martink_rsa/js-docs-a-quickstart-guide-da6ce5df4a73
+````Bash 
+npm run doc 
+````
+## gulpтре доналаштувати
+OR gulp doc
+
+post-process.js
+
 
 
 

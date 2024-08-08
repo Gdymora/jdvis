@@ -1,7 +1,7 @@
 /**
  * @file handlers.js
  * @description Event handling methods for ModernLib.
- * @module handlers
+ * @module modules/handlers
  */
 
 import $ from "../core";

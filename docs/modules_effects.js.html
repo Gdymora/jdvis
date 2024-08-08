@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>modules/effects.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/effects.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file effects.js
+ * @description Animation and visual effects methods for ModernLib.
+ * @module modules/effects
+ */
+
+import $ from "../core";
+
+/**
+ * Creates an animation function that runs over a specified duration.
+ * @param {number} dur - The duration of the animation in milliseconds.
+ * @param {Function} cb - The callback function to run on each animation frame.
+ * @param {Function} [fin] - The function to run when the animation is complete.
+ * @returns {Function} The animation function.
+ */
+
+$.prototype.animateOverTime = function (dur, cb, fin) {
+  let timeStart;
+
+  function _animateOverTime(time) {
+    if (!timeStart) {
+      timeStart = time;
+    }
+
+    let timeElapsed = time - timeStart;
+    let complection = Math.min(timeElapsed / dur, 1);
+
+    cb(complection);
+
+    if (timeElapsed &lt; dur) {
+      requestAnimationFrame(_animateOverTime);
+    } else {
+      if (typeof fin === "function") {
+        fin();
+      }
+    }
+  }
+
+  return _animateOverTime;
+};
+
+/**
+ * Fades in the selected elements.
+ * @param {number} dur - The duration of the fade in milliseconds.
+ * @param {string} [display='block'] - The display property to set when fading in.
+ * @param {Function} [fin] - The function to run when the fade is complete.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
+$.prototype.fadeIn = function (dur, display, fin) {
+  for (let i = 0; i &lt; this.length; i++) {
+    this[i].style.display = display || "block";
+
+    const _fadeIn = (complection) => {
+      this[i].style.opacity = complection;
+    };
+
+    const ani = this.animateOverTime(dur, _fadeIn, fin);
+    requestAnimationFrame(ani);
+  }
+
+  return this;
+};
+
+/**
+ * Fades out the selected elements.
+ * @param {number} dur - The duration of the fade in milliseconds.
+ * @param {Function} [fin] - The function to run when the fade is complete.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
+$.prototype.fadeOut = function (dur, fin) {
+  for (let i = 0; i &lt; this.length; i++) {
+    const _fadeOut = (complection) => {
+      this[i].style.opacity = 1 - complection;
+      if (complection === 1) {
+        this[i].style.display = "none";
+      }
+    };
+
+    const ani = this.animateOverTime(dur, _fadeOut, fin);
+    requestAnimationFrame(ani);
+  }
+
+  return this;
+};
+
+/**
+ * Toggles the visibility of the selected elements with a fade effect.
+ * @param {number} dur - The duration of the fade in milliseconds.
+ * @param {string} [display='block'] - The display property to set when fading in.
+ * @param {Function} [fin] - The function to run when the fade is complete.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
+$.prototype.fadeToggle = function (dur, display, fin) {
+  for (let i = 0; i &lt; this.length; i++) {
+    if (window.getComputedStyle(this[i]).display === "none") {
+      this[i].style.display = display || "block";
+
+      const _fadeIn = (complection) => {
+        this[i].style.opacity = complection;
+      };
+
+      const ani = this.animateOverTime(dur, _fadeIn, fin);
+      requestAnimationFrame(ani);
+    } else {
+      const _fadeOut = (complection) => {
+        this[i].style.opacity = 1 - complection;
+        if (complection === 1) {
+          this[i].style.display = "none";
+        }
+      };
+
+      const ani = this.animateOverTime(dur, _fadeOut, fin);
+      requestAnimationFrame(ani);
+    }
+  }
+
+  return this;
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

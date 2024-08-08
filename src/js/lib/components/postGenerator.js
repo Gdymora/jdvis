@@ -6,20 +6,33 @@
 
 import $ from '../core';
 
-$.prototype.postGenerator = function(url) {
+$.prototype.postGenerator = function(url, customTemplate) {
     /**
      * Generates posts based on data fetched from a server.
      * @param {string} url - The URL to fetch post data from.
-     * @returns {Object} The ModernLib object for chaining.
+     * @param {function} [customTemplate] - Optional custom template function.
+     * @returns {Promise} A promise that resolves with the fetched data and the ModernLib object.
      * @example
      * // HTML structure
      * // <section id="postsContainer" class="w-full md:w-2/3 flex flex-col items-center px-3"></section>
-     * 
-     * // Initialize post generator
      * $('#postsContainer').postGenerator('https://api.example.com/posts');
+     * // Initialize post generator with default template
+     * $('#postsContainer').postGenerator('https://api.example.com/posts')
+     *     .then(({data, $el}) => {
+     *         console.log('Fetched data:', data);
+     *         console.log('ModernLib element:', $el);
+     *     });
+     * 
+     * // Initialize post generator with custom template
+     * $('#postsContainer').postGenerator('https://api.example.com/posts', 
+     *     (post) => `<div>${post.title}</div>`)
+     *     .then(({data, $el}) => {
+     *         console.log('Fetched data:', data);
+     *         console.log('ModernLib element:', $el);
+     *     });
      */
-    
-    const createPost = ({image, category, title, author, date, excerpt, link}) => {
+
+    const defaultTemplate = ({image, category, title, author, date, excerpt, link}) => {
         return `
             <article class="flex flex-col shadow my-4">
                 <a href="${link}" class="hover:opacity-75">
@@ -39,18 +52,22 @@ $.prototype.postGenerator = function(url) {
         `;
     };
 
-    this.get(url)
-        .then(data => {
-            let posts = '';
-            JSON.parse(data.data).forEach(item => {
-                posts += createPost(item);
+    const createPost = customTemplate || defaultTemplate;
+
+    return new Promise((resolve, reject) => {
+        this.get(url)
+            .then(data => {
+                let posts = '';
+                const parsedData = JSON.parse(data.data);
+                parsedData.forEach(item => {
+                    posts += createPost(item);
+                });
+                this.html(posts);
+                resolve({data: parsedData, $el: this});
+            })
+            .catch(error => {
+                console.error('Error fetching post data:', error);
+                reject(error);
             });
-            this.html(posts);
-        })
-        .catch(error => console.error('Error fetching post data:', error));
-
-    return this;
+    });
 };
-
-// Приклад використання:
-// $('#postsContainer').postGenerator('https://api.example.com/posts');

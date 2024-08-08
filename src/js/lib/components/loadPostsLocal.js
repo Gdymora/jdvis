@@ -1,6 +1,7 @@
 /**
  * @file loadPostsLocal.js
  * @description Post loading functionality for ModernLib.
+ * @module components/loadPostsLocal
  */
 import $ from "../core";
 
@@ -11,12 +12,29 @@ import $ from "../core";
  * @param {boolean} [isLocal=false] - Whether the source is a local file.
  * @returns {Object} The ModernLib object for chaining.
  * @example
+ * // HTML structure
+ * // <div id="postsContainer"></div>
+ * 
  * // Load from API
- * $('#postsContainer').loadPosts('https://api.example.com/posts');
- * // Load from local JSON
+ * $('#postsContainer').loadPostsLocal('https://api.example.com/posts');
+ * 
+ * // Load from local JSON file
  * $('#postsContainer').loadPostsLocal('data/posts.json', true);
+ * 
+ * // The JSON file or API should return an array of post objects with the following structure:
+ * // [
+ * //   {
+ * //     link: "https://example.com/post1",
+ * //     image: "https://example.com/image1.jpg",
+ * //     category: "Technology",
+ * //     title: "New Tech Trends",
+ * //     author: "John Doe",
+ * //     date: "2023-08-15",
+ * //     excerpt: "A brief overview of the latest tech trends..."
+ * //   },
+ * //   // More post objects...
+ * // ]
  */
-
 $.prototype.loadPostsLocal = function (source, isLocal = false) {
   const fetchMethod = isLocal ? this.fetchLocalJson : this.get;
 

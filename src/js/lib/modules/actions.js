@@ -1,7 +1,7 @@
 /**
  * @file actions.js
  * @description DOM manipulation and traversal methods for ModernLib.
- * @module actions
+ * @module modules/actions 
  */
 
 import $ from "../core";

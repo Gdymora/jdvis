@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/cardGenerator.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/cardGenerator.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file cardGenerator.js
+ * @description Card generation functionality for ModernLib.
+ * @module components/cardGenerator
+ */
+
+import $ from "../core";
+
+/**
+ * Generates cards based on data fetched from a server.
+ * @param {string} url - The URL to fetch card data from.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // HTML structure
+ * // &lt;div class="goods d-flex f-space-around" id="cardContainer">&lt;/div>
+ *
+ * // Initialize card generator
+ * $('#cardContainer').cardGenerator('https://api.example.com/cards');
+ */
+$.prototype.cardGenerator = function (url) {
+  const createCard = ({ imgSrc, title, text, link }) => {
+    return `
+            &lt;div class="card">
+                &lt;img class="card-img" src="${imgSrc}" alt="${title}"/>
+                &lt;div class="card-body">
+                    &lt;div class="card-title">${title}&lt;/div>
+                    &lt;p class="card-text">${text}&lt;/p>
+                    &lt;a href="${link}" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Link to&lt;/a>
+                &lt;/div>
+            &lt;/div>
+        `;
+  };
+
+  this.get(url)
+    .then((data) => {
+      let cards = "";
+      JSON.parse(data.data).forEach((item) => {
+        cards += createCard(item);
+      });
+      this.html(cards);
+    })
+    .catch((error) => console.error("Error fetching card data:", error));
+
+  return this;
+};
+
+// Приклад використання:
+// $('#cardContainer').cardGenerator('https://api.example.com/cards');
+
+/**
+ * Generates cards based on data fetched from a URL or local JSON file.
+ * @memberof $.prototype
+ * @param {string} source - The URL or file path to fetch card data from.
+ * @param {boolean} [isLocal=false] - Whether the source is a local file.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Generate cards from API
+ * $('#cardContainer').cardGenerator('https://api.example.com/cards');
+ * // Generate cards from local JSON
+ * $('#cardContainer').cardGeneratorLocal('data/cards.json', true);
+ */
+
+$.prototype.cardGeneratorLocal = function (source, isLocal = false) {
+  const fetchMethod = isLocal ? this.fetchLocalJson : this.get;
+
+  const createCard = ({ imgSrc, title, text, link }) => `
+        &lt;div class="card">
+            &lt;img class="card-img" src="${imgSrc}" alt="${title}"/>
+            &lt;div class="card-body">
+                &lt;div class="card-title">${title}&lt;/div>
+                &lt;p class="card-text">${text}&lt;/p>
+                &lt;a href="${link}" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Link to&lt;/a>
+            &lt;/div>
+        &lt;/div>
+    `;
+
+  fetchMethod
+    .call(this, source)
+    .then((data) => {
+      let cards = data.map(createCard).join("");
+      this.html(cards);
+    })
+    .catch((error) => console.error("Error generating cards:", error));
+
+  return this;
+};
+
+// Приклад використання:
+//$('#cardContainer').cardGeneratorLocal('data/cards.json', true);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

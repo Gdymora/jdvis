@@ -1,7 +1,7 @@
 /**
  * @file display.js
  * @description Display manipulation methods for ModernLib.
- * @module display
+ * @module modules/display
  */
 import $ from "../core";
 

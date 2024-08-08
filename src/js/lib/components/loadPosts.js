@@ -1,8 +1,9 @@
 /**
  * @file loadPosts.js
  * @description Post loading functionality for ModernLib.
+ * @module components/loadPosts
  */
-import $ from '../core';
+import $ from "../core";
 
 /**
  * Loads and displays blog posts from a given URL.
@@ -10,11 +11,28 @@ import $ from '../core';
  * @param {string} url - The URL to fetch post data from.
  * @returns {Object} The ModernLib object for chaining.
  * @example
+ * // HTML structure
+ * // <div id="postsContainer"></div>
+ *
+ * // Load posts from an API
  * $('#postsContainer').loadPosts('https://api.example.com/posts');
+ *
+ * // The API should return an array of post objects with the following structure:
+ * // [
+ * //   {
+ * //     link: "https://example.com/post1",
+ * //     image: "https://example.com/image1.jpg",
+ * //     category: "Technology",
+ * //     title: "New Tech Trends",
+ * //     author: "John Doe",
+ * //     date: "2023-08-15",
+ * //     excerpt: "A brief overview of the latest tech trends..."
+ * //   },
+ * //   // More post objects...
+ * // ]
  */
-
-$.prototype.loadPosts = function(url) {
-    const createPost = (post) => `
+$.prototype.loadPosts = function (url) {
+  const createPost = (post) => `
         <article class="flex flex-col shadow my-4">
             <a href="${post.link}" class="hover:opacity-75">
                 <img src="${post.image}" />
@@ -31,12 +49,12 @@ $.prototype.loadPosts = function(url) {
         </article>
     `;
 
-    this.get(url)
-        .then(data => {
-            let postsHTML = data.map(createPost).join('');
-            this.html(postsHTML);
-        })
-        .catch(error => console.error('Error loading posts:', error));
+  this.get(url)
+    .then((data) => {
+      let postsHTML = data.map(createPost).join("");
+      this.html(postsHTML);
+    })
+    .catch((error) => console.error("Error loading posts:", error));
 
-    return this;
+  return this;
 };

@@ -1,7 +1,7 @@
 /**
  * @file effects.js
  * @description Animation and visual effects methods for ModernLib.
- * @module effects
+ * @module modules/effects
  */
 
 import $ from "../core";

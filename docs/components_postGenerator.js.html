@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/postGenerator.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/postGenerator.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file postGenerator.js
+ * @description Post generation functionality for ModernLib.
+ * @module components/postGenerator
+ */
+
+import $ from '../core';
+
+$.prototype.postGenerator = function(url, customTemplate) {
+    /**
+     * Generates posts based on data fetched from a server.
+     * @param {string} url - The URL to fetch post data from.
+     * @param {function} [customTemplate] - Optional custom template function.
+     * @returns {Promise} A promise that resolves with the fetched data and the ModernLib object.
+     * @example
+     * // HTML structure
+     * // &lt;section id="postsContainer" class="w-full md:w-2/3 flex flex-col items-center px-3">&lt;/section>
+     * $('#postsContainer').postGenerator('https://api.example.com/posts');
+     * // Initialize post generator with default template
+     * $('#postsContainer').postGenerator('https://api.example.com/posts')
+     *     .then(({data, $el}) => {
+     *         console.log('Fetched data:', data);
+     *         console.log('ModernLib element:', $el);
+     *     });
+     * 
+     * // Initialize post generator with custom template
+     * $('#postsContainer').postGenerator('https://api.example.com/posts', 
+     *     (post) => `&lt;div>${post.title}&lt;/div>`)
+     *     .then(({data, $el}) => {
+     *         console.log('Fetched data:', data);
+     *         console.log('ModernLib element:', $el);
+     *     });
+     */
+
+    const defaultTemplate = ({image, category, title, author, date, excerpt, link}) => {
+        return `
+            &lt;article class="flex flex-col shadow my-4">
+                &lt;a href="${link}" class="hover:opacity-75">
+                    &lt;img src="${image}" alt="${title}" />
+                &lt;/a>
+                &lt;div class="bg-white flex flex-col justify-start p-6">
+                    &lt;a href="#" class="text-blue-700 text-sm font-bold uppercase pb-4">${category}&lt;/a>
+                    &lt;a href="${link}" class="text-3xl font-bold hover:text-gray-700 pb-4">${title}&lt;/a>
+                    &lt;p class="text-sm pb-3">
+                        By
+                        &lt;a href="#" class="font-semibold hover:text-gray-800">${author}&lt;/a>, Published on ${date}
+                    &lt;/p>
+                    &lt;a href="${link}" class="pb-6">${excerpt}&lt;/a>
+                    &lt;a href="${link}" class="uppercase text-gray-800 hover:text-black">Continue Reading &lt;i class="fas fa-arrow-right">&lt;/i>&lt;/a>
+                &lt;/div>
+            &lt;/article>
+        `;
+    };
+
+    const createPost = customTemplate || defaultTemplate;
+
+    return new Promise((resolve, reject) => {
+        this.get(url)
+            .then(data => {
+                let posts = '';
+                const parsedData = JSON.parse(data.data);
+                parsedData.forEach(item => {
+                    posts += createPost(item);
+                });
+                this.html(posts);
+                resolve({data: parsedData, $el: this});
+            })
+            .catch(error => {
+                console.error('Error fetching post data:', error);
+                reject(error);
+            });
+    });
+};</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
