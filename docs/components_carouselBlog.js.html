@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
     
 </nav>
 
@@ -54,86 +54,116 @@
 import $ from "../core";
 
 /**
- * Initializes a simple image carousel.
+ * Initializes a customizable image carousel.
  * @memberof $.prototype
+ * @param {Object} [options] - Customization options for the carousel.
+ * @param {string} [options.prevButtonSelector='#prev'] - Selector for the previous button.
+ * @param {string} [options.nextButtonSelector='#next'] - Selector for the next button.
+ * @param {string} [options.slideSelector='img'] - Selector for the slide elements.
+ * @param {string} [options.slidesContainerSelector='.flex'] - Selector for the slides container.
+ * @param {number} [options.visibleSlides=6] - Number of slides visible at once.
+ * @param {number} [options.slideWidth=16.66] - Width of each slide in percentage.
  * @returns {Object} The ModernLib object for chaining.
  * @example
  * // HTML structure
  * // &lt;div id="imageCarousel" class="carousel">
- * //   &lt;button id="prev">Previous&lt;/button>
- * //   &lt;div class="flex">
+ * //   &lt;button id="prevBtn">Previous&lt;/button>
+ * //   &lt;div class="slides-container">
  * //     &lt;img src="image1.jpg" alt="Image 1">
  * //     &lt;img src="image2.jpg" alt="Image 2">
  * //     &lt;!-- Add more images as needed -->
  * //   &lt;/div>
- * //   &lt;button id="next">Next&lt;/button>
+ * //   &lt;button id="nextBtn">Next&lt;/button>
  * // &lt;/div>
- * 
- * // Initialize the carousel
- * $('#imageCarousel').carouselBlog();
+ *
+ * // Initialize the carousel with custom options
+ * $('#imageCarousel').carouselBlogNew({
+ *   prevButtonSelector: '#prevBtn',
+ *   nextButtonSelector: '#nextBtn',
+ *   slidesContainerSelector: '.slides-container',
+ *   visibleSlides: 4,
+ *   slideWidth: 25
+ * });
  */
-$.prototype.carouselBlog = function() {
-    for (let i = 0; i &lt; this.length; i++) {
-        const carousel = this[i];
-        const slides = carousel.querySelectorAll('img');
-        const slidesField = carousel.querySelector('.flex');
-        const prevButton = carousel.querySelector('#prev');
-        const nextButton = carousel.querySelector('#next');
+$.prototype.carouselBlog = function (options) {
+  const settings = {
+    prevButtonSelector: "#prev",
+    nextButtonSelector: "#next",
+    slideSelector: "img",
+    slidesContainerSelector: ".flex",
+    visibleSlides: 6,
+    slideWidth: 100 / 6, // Default width for 6 visible slides
+  };
 
-        // Перевірка наявності необхідних елементів
-        if (!slidesField || !prevButton || !nextButton || slides.length === 0) {
-            console.error('Carousel is missing required elements');
-            continue;
-        }
-
-        const slideWidth = 100 / 6; // Ширина одного слайду у відсотках
-        const totalSlides = slides.length;
-
-        // Налаштування ширини контейнера слайдів
-        slidesField.style.width = `${slideWidth * totalSlides}%`;
-
-        // Налаштування ширини кожного слайду
-        slides.forEach(slide => {
-            slide.style.width = `${slideWidth}%`;
-        });
-
-        let offset = 0;
-        let slideIndex = 0;
-
-        const updateButtons = () => {
-            prevButton.disabled = slideIndex === 0;
-            nextButton.disabled = slideIndex >= totalSlides - 6;
-        };
-
-        const moveSlide = () => {
-            slidesField.style.transform = `translateX(-${offset}%)`;
-            updateButtons();
-        };
-
-        $(nextButton).click((e) => {
-            e.preventDefault();
-            if (slideIndex &lt; totalSlides - 6) {
-                offset += slideWidth;
-                slideIndex++;
-                moveSlide();
-            }
-        });
-
-        $(prevButton).click((e) => {
-            e.preventDefault();
-            if (slideIndex > 0) {
-                offset -= slideWidth;
-                slideIndex--;
-                moveSlide();
-            }
-        });
-
-        // Початкова ініціалізація
-        updateButtons();
+  // Merge options with defaults
+  if (options) {
+    Object.keys(options).forEach((key) => {
+      if (options[key] !== undefined) {
+        settings[key] = options[key];
+      }
+    });
+  }
+  for (let i = 0; i &lt; this.length; i++) {
+    const carousel = this[i];
+    const slides = carousel.querySelectorAll(settings.slideSelector);
+    const slidesField = carousel.querySelector(settings.slidesContainerSelector);
+    const prevButton = carousel.querySelector(settings.prevButtonSelector);
+    const nextButton = carousel.querySelector(settings.nextButtonSelector);
+    // Перевірка наявності необхідних елементів
+    if (!slidesField || !prevButton || !nextButton || slides.length === 0) {
+      console.error("Carousel is missing required elements");
+      continue;
     }
 
-    return this;
-};</code></pre>
+    const slideWidth = settings.slideWidth;
+    const totalSlides = slides.length;
+
+    // Налаштування ширини контейнера слайдів
+    slidesField.style.width = `${slideWidth * totalSlides}%`;
+
+    // Налаштування ширини кожного слайду
+    slides.forEach((slide) => {
+      slide.style.width = `${slideWidth}%`;
+    });
+
+    let offset = 0;
+    let slideIndex = 0;
+
+    const updateButtons = () => {
+      prevButton.disabled = slideIndex === 0;
+      nextButton.disabled = slideIndex >= totalSlides - settings.visibleSlides;
+    };
+
+    const moveSlide = () => {
+      slidesField.style.transform = `translateX(-${offset}%)`;
+      updateButtons();
+    };
+
+    $(nextButton).click((e) => {
+      e.preventDefault();
+      if (slideIndex &lt; totalSlides - 6) {
+        offset += slideWidth;
+        slideIndex++;
+        moveSlide();
+      }
+    });
+
+    $(prevButton).click((e) => {
+      e.preventDefault();
+      if (slideIndex > 0) {
+        offset -= slideWidth;
+        slideIndex--;
+        moveSlide();
+      }
+    });
+
+    // Початкова ініціалізація
+    updateButtons();
+  }
+
+  return this;
+};
+</code></pre>
         </article>
     </section>
 
@@ -147,7 +177,7 @@ $.prototype.carouselBlog = function() {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Fri Aug 09 2024 16:04:33 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

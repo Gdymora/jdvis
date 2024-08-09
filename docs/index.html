@@ -29,7 +29,7 @@
 <nav >
     
     
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
     
 </nav>
 
@@ -139,7 +139,327 @@ Date Pickers: Add customizable date selection widgets.</p>
 Maintainability: Plugins can be updated independently of the core library.
 Customization: Easy to tailor ModernDOM to specific project requirements.</p>
 <p>Conclusion
-ModernDOM combines the ease of use reminiscent of jQuery with modern JavaScript practices, providing a powerful yet lightweight solution for DOM manipulation and web development. Its plugin system offers unlimited potential for extension, making it a versatile choice for projects of all sizes.</p></article>
+ModernDOM combines the ease of use reminiscent of jQuery with modern JavaScript practices, providing a powerful yet lightweight solution for DOM manipulation and web development. Its plugin system offers unlimited potential for extension, making it a versatile choice for projects of all sizes.</p>
+<pre class="prettyprint source lang-javascript"><code>// Маніпулювання url
+// Припустимо, поточний URL: http://localhost:8013/4/post/123?page=2&category=tech
+
+// Отримати повну інформацію про URL
+const urlInfo = $().parsePostUrl();
+console.log(urlInfo);
+
+// Перевірити, чи це URL посту
+if ($().isPostUrl()) {
+  console.log(&quot;Це URL посту&quot;);
+} else {
+  console.log(&quot;Це не URL посту&quot;);
+}
+
+// Отримати конкретний компонент
+const postNumber = $().getUrlComponent(&quot;postNumber&quot;);
+console.log(`Номер поточного посту: ${postNumber}`);
+
+// Отримати параметри запиту
+const queryParams = $().getUrlComponent(&quot;queryParams&quot;);
+console.log(`Параметри запиту:`, queryParams);
+</code></pre>
+<pre class="prettyprint source lang-html"><code>&lt;!-- Topic Nav -->
+&lt;nav class=&quot;w-full py-4 border-t border-b bg-gray-100&quot;>
+  &lt;div class=&quot;block sm:hidden&quot;>
+    &lt;a href=&quot;#&quot; id=&quot;mobileMenuToggle-2&quot; class=&quot;block md:hidden text-base font-bold uppercase text-center flex justify-center items-center&quot;>
+      Topics &lt;i class=&quot;fas ml-2 fa-chevron-down&quot;> &lt;/i
+    >&lt;/a>
+  &lt;/div>
+  &lt;div id=&quot;topicMenu-2&quot; class=&quot;w-full flex-grow sm:flex sm:items-center sm:w-auto hidden&quot;>
+    &lt;div class=&quot;w-full container mx-auto flex flex-col sm:flex-row items-center justify-center text-sm font-bold uppercase mt-0 px-6 py-2&quot;>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Technology&lt;/a>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Automotive&lt;/a>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Finance&lt;/a>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Politics&lt;/a>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Culture&lt;/a>
+      &lt;a href=&quot;#&quot; class=&quot;hover:bg-gray-400 rounded py-2 px-4 mx-2&quot;>Sports&lt;/a>
+    &lt;/div>
+  &lt;/div>
+&lt;/nav>
+&lt;script>
+  $(&quot;#mobileMenuToggle&quot;).mobileNav();
+&lt;/script>
+</code></pre>
+<pre class="prettyprint source lang-html"><code>&lt;!-- caruselBlog -->
+&lt;footer id=&quot;imdn0p&quot; class=&quot;w-full border-t bg-white pb-12&quot;>
+  &lt;div id=&quot;footerCarousel-2&quot; class=&quot;relative w-full flex items-center invisible md:visible md:pb-12&quot;>
+    &lt;button
+      type=&quot;button&quot;
+      id=&quot;prev-2&quot;
+      class=&quot;absolute z-10 left-0 bg-blue-800 hover:bg-blue-700 text-white text-2xl font-bold hover:shadow rounded-full w-16 h-16 ml-12&quot;
+    >
+      ←
+    &lt;/button>
+    &lt;div class=&quot;flex transition-transform duration-300 ease-in-out&quot;>
+      &lt;img src=&quot;https://cdn.pixabay.com/photo/2024/06/21/15/56/nature-8844604_1280.jpg&quot; class=&quot;w-1/6 hover:opacity-75&quot; />
+      &lt;img src=&quot;https://cdn.pixabay.com/photo/2023/09/14/08/30/agriculture-8252527_1280.jpg&quot; class=&quot;w-1/6 hover:opacity-75&quot; />
+      &lt;img src=&quot;https://cdn.pixabay.com/photo/2022/05/19/01/34/bird-7206444_1280.jpg&quot; class=&quot;w-1/6 hover:opacity-75&quot; />
+    &lt;/div>
+    &lt;button
+      type=&quot;button&quot;
+      id=&quot;next-2&quot;
+      class=&quot;absolute z-10 right-0 bg-blue-800 hover:bg-blue-700 text-white text-2xl font-bold hover:shadow rounded-full w-16 h-16 mr-12&quot;
+    >
+      →
+    &lt;/button>
+  &lt;/div>
+&lt;/footer>
+;
+&lt;script>
+  $(&quot;#footerCarousel-2&quot;).carouselBlog({
+    prevButtonSelector: &quot;#prev-2&quot;,
+    nextButtonSelector: &quot;#next-2&quot;,
+    slidesContainerSelector: &quot;.flex&quot;,
+    visibleSlides: 4,
+    slideWidth: 25,
+  });
+&lt;/script>
+</code></pre>
+<pre class="prettyprint source lang-HTML"><code>&lt;!-- post section -->
+&lt;section id=&quot;postsContainer&quot; class=&quot;w-full md:w-2/3 flex flex-col items-center px-3&quot;>&lt;/section>;
+&lt;script>
+$(&quot;#postsContainer&quot;)
+  .postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/2&quot;)
+  .then(({ data, $el }) => {
+    console.log(&quot;Fetched data:&quot;, data);
+    console.log(&quot;ModernLib element:&quot;, $el);
+  });
+  &lt;/script>
+</code></pre>
+<pre class="prettyprint source lang-html"><code>&lt;!-- pagination -->
+
+&lt;div id=&quot;pagination&quot; class=&quot;flex items-center py-8&quot;>&lt;/div>
+;
+
+&lt;script>
+  $(&quot;#pagination&quot;).pagination(5, 1);
+&lt;/script>
+</code></pre>
+<pre class="prettyprint source lang-html"><code>&lt;!-- aboutMe -->
+&lt;div id=&quot;i8bwl&quot; class=&quot;w-full bg-white shadow flex flex-col my-4 p-6&quot;>
+  &lt;p class=&quot;text-xl font-semibold pb-5&quot;>About Us&lt;/p>
+  &lt;p id=&quot;aboutMe&quot; class=&quot;pb-2&quot;>
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas mattis est eu odio sagittis tristique. Vestibulum ut finibus leo. In hac habitasse platea
+    dictumst.
+  &lt;/p>
+  &lt;a href=&quot;#&quot; class=&quot;w-full bg-blue-800 text-white font-bold text-sm uppercase rounded hover:bg-blue-700 flex items-center justify-center px-2 py-3 mt-4&quot;>
+    Get to know us
+  &lt;/a>
+&lt;/div>
+;
+
+&lt;script>
+  $(&quot;#aboutMe&quot;).postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/4&quot;, (post) => `&lt;span>${post.biography}&lt;/span>`);
+&lt;/script>
+</code></pre>
+<pre class="prettyprint source lang-javascript"><code>// fetch
+$()
+  .get(&quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;)
+  .then((data) => {
+    console.log(&quot;Received data:&quot;, data);
+  })
+  .catch((error) => {
+    console.error(&quot;Error:&quot;, error);
+  });
+</code></pre>
+<h2>objectUtils</h2>
+<pre class="prettyprint source lang-javascript"><code>// Використання extend
+const obj1 = { a: 1 };
+const obj2 = { b: 2 };
+$.extend(obj1, obj2); // { a: 1, b: 2 }
+
+// Глибоке клонування
+const originalObj = { a: { b: 1 } };
+const clonedObj = $.deepClone(originalObj);
+
+// Перевірка на простий об'єкт
+$.isPlainObject({}); // true
+$.isPlainObject([]); // false
+
+// Сплющення об'єкта
+const nestedObj = { a: { b: { c: 1 } } };
+$.flattenObject(nestedObj); // { 'a.b.c': 1 }
+
+// Використання extend
+const merged = $.extend(true, {}, { a: 1 }, { b: { c: 2 } });
+
+// Перевірка на простий об'єкт
+const isPlain = $.isPlainObject({});
+
+// Глибоке клонування
+const clone = $.deepClone({ a: { b: 1 } });
+
+// Сплющення об'єкта
+const flat = $.flattenObject({ a: { b: { c: 1 } } });
+
+// Або використовуючи $.extend безпосередньо
+$.extend(true, {}, obj1, obj2);
+</code></pre>
+<h2>Home Posts</h2>
+<pre class="prettyprint source lang-html"><code>&lt;script>
+  /*document.getElementById(this.id) == this*/ let el = this;
+  $(&quot;#mobileMenuToggle&quot;).mobileNav();
+  // $(&quot;#postsContainer&quot;).loadPosts(&quot;https://api.example.com/posts&quot;);
+  $(&quot;#pagination&quot;).pagination(5, 1);
+  // Припустимо, що у нас 5 сторінок, і ми на першій
+  $(&quot;#footerCarousel&quot;).carouselBlog();
+  // Використовуємо локальні JSON файли для тестування
+  //$(&quot;#postsContainer&quot;).postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/2&quot;);
+  $(&quot;#postsContainer&quot;)
+    .postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/2&quot;)
+    .then(({ data, $el }) => {
+      console.log(&quot;Fetched data:&quot;, data);
+      console.log(&quot;ModernLib element:&quot;, $el);
+    });
+  $(&quot;#aboutMe&quot;)
+    .postGenerator(
+      &quot;http://127.0.0.1:8005/api/data-tables/view/4&quot;,
+      (post) => `&lt;span>${post.biography}
+&lt;/span>`
+    )
+    .then(({ data, $el }) => {
+      console.log(&quot;Fetched data:&quot;, data);
+      console.log(&quot;ModernLib element:&quot;, $el);
+    });
+  $(&quot;#instagram-2&quot;).postGenerator(
+    &quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;,
+    (post) => `&lt;img src=&quot;${post.imageUrl}
+&quot; src=&quot;${post.alt}
+&quot; class=&quot;hover:opacity-75&quot;/>`
+  );
+  $()
+    .get(&quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;)
+    .then((data) => {
+      console.log(&quot;Received data:&quot;, data);
+    })
+    .catch((error) => {
+      console.error(&quot;Error:&quot;, error);
+    });
+&lt;/script>
+</code></pre>
+<h2>Post Home</h2>
+<pre class="prettyprint source lang-html"><code>&lt;script>
+  // Ініціалізація мобільного меню
+  $(&quot;#mobileMenuToggle&quot;).mobileNav();
+
+  // Ініціалізація пагінації (припускаємо, що у нас 5 сторінок і ми на першій)
+  $(&quot;#pagination&quot;).pagination(5, 1);
+
+  // Ініціалізація каруселі футера
+  $(&quot;#footerCarousel&quot;).carouselBlog();
+
+  // Завантаження постів у контейнер
+  $(&quot;#postsContainer&quot;)
+    .postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/2&quot;)
+    .then(({ data, $el }) => {
+      console.log(&quot;Fetched data:&quot;, data);
+      console.log(&quot;ModernLib element:&quot;, $el);
+    })
+    .catch((error) => {
+      console.error(&quot;Error loading posts:&quot;, error);
+    });
+
+  // Завантаження даних про мене
+  $(&quot;#aboutMe&quot;)
+    .postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/4&quot;, (post) => `&lt;span>${post.biography}&lt;/span>`)
+    .then(({ data, $el }) => {
+      console.log(&quot;Fetched data:&quot;, data);
+      console.log(&quot;ModernLib element:&quot;, $el);
+    })
+    .catch((error) => {
+      console.error(&quot;Error loading about me data:&quot;, error);
+    });
+
+  // Завантаження зображень Instagram
+  $(&quot;#instagram-2&quot;)
+    .postGenerator(&quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;, (post) => `&lt;img src=&quot;${post.imageUrl}&quot; alt=&quot;${post.alt}&quot; class=&quot;hover:opacity-75&quot;/>`)
+    .catch((error) => {
+      console.error(&quot;Error loading Instagram data:&quot;, error);
+    });
+
+  // Запит до API та обробка результатів
+  $()
+    .get(&quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;)
+    .then((data) => {
+      console.log(&quot;Received data:&quot;, data);
+    })
+    .catch((error) => {
+      console.error(&quot;Error fetching data:&quot;, error);
+    });
+&lt;/script>
+</code></pre>
+<h2>Post one</h2>
+<pre class="prettyprint source lang-javascript"><code>$(&quot;#aboutMe-2&quot;).postGenerator(
+  &quot;http://127.0.0.1:8005/api/data-tables/view/4&quot;,
+  (post) => `&lt;span>${post.biography}
+&lt;/span>`
+);
+$(&quot;#instagram&quot;).postGenerator(
+  &quot;http://127.0.0.1:8005/api/data-tables/view/3&quot;,
+  (post) => `&lt;img src=&quot;${post.imageUrl}
+&quot; src=&quot;${post.alt}
+&quot; class=&quot;hover:opacity-75&quot;/>`
+);
+$(&quot;#footerCarousel-2&quot;).carouselBlog({
+  prevButtonSelector: &quot;#prev-2&quot;,
+  nextButtonSelector: &quot;#next-2&quot;,
+  slidesContainerSelector: &quot;.flex&quot;,
+  visibleSlides: 4,
+  slideWidth: 25,
+});
+let queryParams = $().getUrlComponent(&quot;queryParams&quot;);
+console.log(&quot;Параметри запиту:&quot;, queryParams);
+
+async function loadPosts() {
+  try {
+    const queryParams = await $().getUrlComponent(&quot;queryParams&quot;);
+    const url = &quot;http://127.0.0.1:8005/api/data-tables/view/2&quot;; // Замініть на ваш актуальний URL
+
+    // Отримання даних
+    const response = await $().get(url);
+    const posts = JSON.parse(response.data);
+
+    // Використання параметра з запиту або значення за замовчуванням
+    const postId = queryParams.id || 1;
+    const postData = posts.find((item) => item.id == postId);
+
+    if (!postData) {
+      console.error(`Post with ID ${postId} not found.`);
+      $(&quot;#postone&quot;).html(&quot;&lt;p>Post not found.&lt;/p>&quot;);
+      return;
+    }
+
+    // Формування HTML контенту
+    const post = `
+      &lt;article class=&quot;flex flex-col shadow my-4&quot;>
+        &lt;a href=&quot;${postData.link}&quot; class=&quot;hover:opacity-75&quot;>
+          &lt;img src=&quot;${postData.image}&quot; alt=&quot;${postData.title}&quot; />
+        &lt;/a>
+        &lt;div class=&quot;bg-white flex flex-col justify-start p-6&quot;>
+          &lt;a href=&quot;#&quot; class=&quot;text-blue-700 text-sm font-bold uppercase pb-4&quot;>${postData.category}&lt;/a>
+          &lt;a href=&quot;${postData.link}&quot; class=&quot;text-3xl font-bold hover:text-gray-700 pb-4&quot;>${postData.title}&lt;/a>
+          &lt;p class=&quot;text-sm pb-3&quot;>
+            By &lt;a href=&quot;#&quot; class=&quot;font-semibold hover:text-gray-800&quot;>${postData.author}&lt;/a>, Published on ${postData.date}
+          &lt;/p>
+          &lt;p class=&quot;pb-3&quot;>${postData.text}&lt;/p>
+        &lt;/div>
+      &lt;/article>`;
+
+    // Виведення даних
+    console.log(&quot;post&quot;, postData);
+    $(&quot;#postone&quot;).html(post);
+  } catch (error) {
+    console.error(&quot;Error fetching post data:&quot;, error);
+    $(&quot;#postone&quot;).html(&quot;&lt;p>Error loading post data.&lt;/p>&quot;);
+  }
+}
+
+loadPosts();
+</code></pre></article>
     </section>
 
 
@@ -154,7 +474,7 @@ ModernDOM combines the ease of use reminiscent of jQuery with modern JavaScript 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Thu Aug 08 2024 17:01:57 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Fri Aug 09 2024 16:04:33 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>

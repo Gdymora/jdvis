@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>modules/url.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-core-$_init.html">init</a></li></ul><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/url.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file url.js
+ * @description URL manipulation and parsing utilities for ModernDOM library. Provides methods for working with post URLs and their components.
+ * @module modules/url
+ */
+
+import $ from "../core";
+
+/**
+ * Parses the current URL and extracts various components.
+ * @memberof $.prototype
+ * @returns {Object} An object containing parsed URL components.
+ * @property {string} fullUrl - The full URL.
+ * @property {string} protocol - The protocol (e.g., 'http:' or 'https:').
+ * @property {string} host - The host (e.g., 'localhost:8013').
+ * @property {string} pathname - The pathname (e.g., '/4/post/123').
+ * @property {string} projectNumber - The project number (e.g., '4').
+ * @property {string} postType - The post type (e.g., 'post').
+ * @property {string} postNumber - The post number (e.g., '123').
+ * @property {Object} queryParams - An object containing query parameters.
+ * @example
+ * // Assuming the current URL is: http://localhost:8013/4/post/123?page=2&amp;category=tech
+ * const urlInfo = $().parsePostUrl();
+ * console.log(urlInfo);
+ * // Output:
+ * // {
+ * //   fullUrl: "http://localhost:8013/4/post/123?page=2&amp;category=tech",
+ * //   protocol: "http:",
+ * //   host: "localhost:8013",
+ * //   pathname: "/4/post/123",
+ * //   projectNumber: "4",
+ * //   postType: "post",
+ * //   postNumber: "123",
+ * //   queryParams: {
+ * //     page: "2",
+ * //     category: "tech"
+ * //   }
+ * // }
+ */
+$.prototype.parsePostUrl = function() {
+    const url = new URL(window.location.href);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+
+    const result = {
+        fullUrl: url.href,
+        protocol: url.protocol,
+        host: url.host,
+        pathname: url.pathname,
+        projectNumber: pathParts[0] || '',
+        postType: pathParts[1] || '',
+        postNumber: pathParts[2] || '',
+        queryParams: {}
+    };
+
+    // Parse query parameters
+    for (const [key, value] of url.searchParams) {
+        result.queryParams[key] = value;
+    }
+
+    return result;
+};
+
+/**
+ * Checks if the current URL matches the post structure.
+ * @memberof $.prototype
+ * @returns {boolean} True if the URL matches the post structure, false otherwise.
+ * @example
+ * if ($().isPostUrl()) {
+ *   console.log("This is a post URL");
+ * } else {
+ *   console.log("This is not a post URL");
+ * }
+ */
+$.prototype.isPostUrl = function() {
+    const urlInfo = this.parsePostUrl();
+    return urlInfo.pathname.match(/^\/\d+\/post\/\d+$/) !== null;
+};
+
+/**
+ * Gets a specific component from the parsed URL.
+ * @memberof $.prototype
+ * @param {string} component - The name of the component to retrieve.
+ * @returns {string|Object} The requested component value.
+ * @example
+ * const postNumber = $().getUrlComponent('postNumber');
+ * console.log(`Current post number: ${postNumber}`);
+ */
+$.prototype.getUrlComponent = function(component) {
+    const urlInfo = this.parsePostUrl();
+    return urlInfo[component];
+};
+
+/**
+ * Opens a new tab and transfers data.
+ * @memberof $.prototype
+ * @param {string} url - The URL to open in the new tab.
+ * @param {Object} data - The data to transfer.
+ * @param {Object} [options] - Additional options.
+ * @param {string} [options.target='_blank'] - The target for window.open().
+ * @param {string} [options.storageKey='transferredData'] - The key to use in localStorage.
+ * @returns {Window} The newly opened window object.
+ * @example
+ * $().openInNewTabWithData('/post.html', { postId: 123, title: 'My Post' }, { storageKey: 'postData' });
+ */
+$.prototype.openInNewTabWithData = function(url, data, options = {}) {
+    const { target = '_blank', storageKey = 'transferredData' } = options;
+    const dataId = Date.now().toString();
+    const fullUrl = `${url}${url.includes('?') ? '&amp;' : '?'}dataId=${dataId}`;
+
+    localStorage.setItem(`${storageKey}_${dataId}`, JSON.stringify(data));
+
+    const newWindow = window.open(fullUrl, target);
+
+    // Очистка даних через 1 хвилину
+    setTimeout(() => {
+        localStorage.removeItem(`${storageKey}_${dataId}`);
+    }, 60000);
+
+    return newWindow;
+};
+
+/**
+ * Retrieves transferred data from localStorage based on URL parameter.
+ * @memberof $.prototype
+ * @param {Object} [options] - Additional options.
+ * @param {string} [options.storageKey='transferredData'] - The key used in localStorage.
+ * @returns {Object|null} The retrieved data or null if not found.
+ * @example
+ * const data = $().getTransferredData({ storageKey: 'postData' });
+ * if (data) {
+ *   console.log('Received data:', data);
+ * } else {
+ *   console.log('No data found');
+ * }
+ */
+$.prototype.getTransferredData = function(options = {}) {
+    const { storageKey = 'transferredData' } = options;
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataId = urlParams.get('dataId');
+
+    if (!dataId) {
+        console.error('No dataId provided in URL');
+        return null;
+    }
+
+    const data = localStorage.getItem(`${storageKey}_${dataId}`);
+    if (!data) {
+        console.error('No transferred data found in localStorage');
+        return null;
+    }
+
+    // Видаляємо дані після отримання
+    localStorage.removeItem(`${storageKey}_${dataId}`);
+
+    try {
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error parsing transferred data:', error);
+        return null;
+    }
+};
+
+
+export default $;</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Fri Aug 09 2024 16:04:33 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

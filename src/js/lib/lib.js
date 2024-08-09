@@ -17,6 +17,7 @@ import "./modules/handlers";
 import "./modules/attributes";
 import "./modules/actions";
 import "./modules/effects";
+import "./modules/url";
 
 import "./components/dropdown";
 import "./components/modal";
