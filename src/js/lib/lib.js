@@ -18,6 +18,7 @@ import "./modules/attributes";
 import "./modules/actions";
 import "./modules/effects";
 import "./modules/url";
+import "./modules/jqueryLikeMethods";
 
 import "./components/dropdown";
 import "./components/modal";
@@ -31,6 +32,12 @@ import "./components/loadPostsLocal";
 import "./components/pagination";
 import "./components/carouselBlog";
 import "./components/cardGenerator";
+// import "./components/projectAuthComponent";
+// import "./components/projectUserComponent";
+// import "./components/projectRoleComponent";
+// import "./components/projectPermissionComponent";
+// import "./components/projectTableStructureComponent";
+import "./components/adminPanel";
 
 import "./services/request";
 

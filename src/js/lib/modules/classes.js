@@ -46,3 +46,16 @@ $.prototype.toggleClass = function (classNames) {
   }
   return this;
 };
+
+/**
+ * Checks if the element has the specified class.
+ * @param {string} className - The name of the class to check.
+ * @returns {boolean} true if the element has the specified class, false otherwise.
+ * @example
+ * if ($('#myElement').hasClass('active')) {
+ *   console.log('Element has class "active"');
+ * }
+ */
+$.prototype.hasClass = function (className) {
+  return this[0].classList.contains(className);
+};

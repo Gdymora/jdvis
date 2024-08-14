@@ -277,10 +277,11 @@
           <div class="uppercase pb-6">© myblog.com</div>
         </div>
       </footer>
-
+      <div id="adminPanelContainer"></div>
       <script src="script.js"></script>
+
       <script>
-       // $("#cardContainer").cardGeneratorLocal("data/cards.json", true);
+        // $("#cardContainer").cardGeneratorLocal("data/cards.json", true);
         $("#cardContainer").cardGenerator("http://127.0.0.1:8005/api/data-tables/view/1");
       </script>
 
@@ -288,8 +289,108 @@
         $("#pagination").pagination(5, 1); // Припустимо, що у нас 5 сторінок, і ми на першій
         $("#footerCarousel").carouselBlog();
         // Використовуємо локальні JSON файли для тестування
-       // $("#postsContainer").loadPostsLocal("data/posts.json", true);
+        // $("#postsContainer").loadPostsLocal("data/posts.json", true);
         $("#postsContainer").postGenerator("http://127.0.0.1:8005/api/data-tables/view/2");
+      </script>
+      <script>
+        $("#adminPanelContainer").html('<p>Hello</p>');
+        // Спочатку налаштуємо глобальні параметри (опціонально)
+        $.adminSettings.apiBaseUrl = "http://127.0.0.1:8005/api";
+        $.adminSettings.defaultItemsPerPage = 15;
+
+        // Ініціалізація адмін-панелі
+        $("#adminPanelContainer").adminPanel({
+          projectId: "1",
+          apiBaseUrl: "http://127.0.0.1:8005/api", // Це перевизначить глобальне налаштування, якщо потрібно
+          itemsPerPage: 20, // Це перевизначить глобальне налаштування
+          onMenuItemClick: function (menuItem) {
+            console.log("Clicked menu item:", menuItem);
+            // Тут можна додати додаткову логіку при кліку на пункт меню
+          },
+          components: {
+            // Якщо у вас є власні реалізації компонентів, ви можете передати їх тут
+            // auth: customAuthComponent,
+            // user: customUserComponent,
+            // і т.д.
+          },
+          menuItems: [
+            { id: "dashboard", label: "Dashboard" },
+            { id: "users", label: "Users" },
+            { id: "roles", label: "Roles" },
+            { id: "permissions", label: "Permissions" },
+            { id: "tables", label: "Tables" },
+            { id: "settings", label: "Settings" }, // Додатковий пункт меню
+          ],
+          additionalComponents: {
+            tabs: $().tab, // Якщо ви хочете використовувати компонент вкладок
+            modal: $().modal, // Якщо ви хочете використовувати модальні вікна
+          },
+        });
+
+        // Якщо ви хочете додати додаткову функціональність або обробники подій після ініціалізації
+        $("#adminPanelContainer").on("userCreated", function (event, userData) {
+          console.log("New user created:", userData);
+          // Додаткова логіка після створення користувача
+        });
+
+        $("#adminPanelContainer").on("tableDeleted", function (event, tableId) {
+          console.log("Table deleted:", tableId);
+          // Додаткова логіка після видалення таблиці
+        });
+
+        // Приклад додавання користувацької дії до меню користувачів
+        $("#adminPanelContainer").on("usersLoaded", function () {
+          $(".user-list-container").append('<button id="exportUsersBtn" class="bg-green-500 text-white px-4 py-2 rounded">Export Users</button>');
+          $("#exportUsersBtn").click(function () {
+            // Логіка для експорту користувачів
+            console.log("Exporting users...");
+            // Тут можна додати реальну логіку експорту
+          });
+        });
+
+        // Приклад кастомізації форми створення ролі
+        $("#adminPanelContainer").on("beforeShowRoleForm", function (event, formHtml) {
+          // Модифікуємо HTML форми перед відображенням
+          return formHtml + '<div class="mt-4"><label>Custom Field: <input type="text" id="customRoleField"></label></div>';
+        });
+
+        $("#adminPanelContainer").on("roleFormSubmit", function (event, roleData) {
+          // Додаємо кастомне поле до даних ролі перед відправкою
+          roleData.customField = $("#customRoleField").val();
+          return roleData;
+        });
+
+        // Приклад додавання кастомної сторінки налаштувань
+        $("#adminPanelContainer").on("menuItemClick", function (event, menuItem) {
+          if (menuItem === "settings") {
+            const settingsHtml = `
+      <h2 class="text-xl mb-4">Settings</h2>
+      <form id="settingsForm">
+        <label class="block mb-2">
+          Site Name:
+          <input type="text" id="siteName" class="w-full p-2 border rounded">
+        </label>
+        <label class="block mb-2">
+          Footer Text:
+          <input type="text" id="footerText" class="w-full p-2 border rounded">
+        </label>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Settings</button>
+      </form>
+    `;
+            $("#contentArea").html(settingsHtml);
+
+            $("#settingsForm").submit(function (e) {
+              e.preventDefault();
+              const settings = {
+                siteName: $("#siteName").val(),
+                footerText: $("#footerText").val(),
+              };
+              console.log("Saving settings:", settings);
+              // Тут можна додати логіку збереження налаштувань
+              showNotification("Settings saved successfully", "success");
+            });
+          }
+        });
       </script>
     </div>
   </body>
