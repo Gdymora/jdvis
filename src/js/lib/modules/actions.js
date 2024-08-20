@@ -1,7 +1,7 @@
 /**
  * @file actions.js
  * @description DOM manipulation and traversal methods for ModernLib.
- * @module modules/actions 
+ * @module modules/actions
  */
 
 import $ from "../core";
@@ -10,6 +10,14 @@ import $ from "../core";
  * Gets or sets the HTML content of the selected elements.
  * @param {string} [content] - The HTML content to set. If not provided, returns the HTML content of the first element.
  * @returns {(Object|string)} The ModernLib object for chaining when setting, or the HTML content when getting.
+ * @example
+ * // Getting HTML content
+ * const content = $('#myElement').html();
+ * console.log(content); // Outputs the HTML content of the first matched element
+ *
+ * // Setting HTML content
+ * $('#myElement').html('<p>New content</p>');
+ * // Sets the HTML content for all matched elements and returns the ModernLib object for chaining
  */
 
 $.prototype.html = function (content) {
@@ -24,11 +32,14 @@ $.prototype.html = function (content) {
   return this;
 };
 
-/*отримати елемент за номером*/
 /**
  * Reduces the set of matched elements to the one at the specified index.
  * @param {number} i - The index of the element to select.
  * @returns {Object} A new ModernLib object containing the selected element.
+ * @example
+ * // Selecting the second element in a set
+ * const secondElement = $('li').eq(1);
+ * console.log(secondElement.html()); // Outputs the HTML content of the second <li> element
  */
 
 $.prototype.eq = function (i) {
@@ -44,10 +55,13 @@ $.prototype.eq = function (i) {
   return this;
 };
 
-/*отримати елемент за індексом*/
 /**
  * Gets the index of the first element within its parent.
  * @returns {number} The index of the element.
+ * @example
+ * // Getting the index of an element
+ * const index = $('#myElement').index();
+ * console.log(index); // Outputs the index of #myElement among its siblings
  */
 
 $.prototype.index = function () {
@@ -65,6 +79,10 @@ $.prototype.index = function () {
  * Finds descendants of the selected elements that match the selector.
  * @param {string} selector - A CSS selector to match elements against.
  * @returns {Object} The ModernLib object containing the matched elements.
+ * @example
+ * // Finding all paragraphs within a div
+ * const paragraphs = $('div').find('p');
+ * console.log(paragraphs.length); // Outputs the number of paragraphs found
  */
 
 $.prototype.find = function (selector) {
@@ -90,6 +108,7 @@ $.prototype.find = function (selector) {
   this.length = numberOfItems;
 
   const objLength = Object.keys(this).length;
+  
   for (; numberOfItems < objLength; numberOfItems++) {
     delete this[numberOfItems];
   }
@@ -101,6 +120,10 @@ $.prototype.find = function (selector) {
  * Gets the first ancestor of each element that matches the selector.
  * @param {string} selector - A CSS selector to match elements against.
  * @returns {Object} The ModernLib object containing the matched ancestors.
+ * @example
+ * // Finding the closest div ancestor
+ * const closestDiv = $('#myElement').closest('div');
+ * console.log(closestDiv.html()); // Outputs the HTML content of the closest div ancestor
  */
 
 $.prototype.closest = function (selector) {
@@ -122,6 +145,12 @@ $.prototype.closest = function (selector) {
 /**
  * Gets the siblings of each element in the set of matched elements.
  * @returns {Object} The ModernLib object containing the sibling elements.
+ * @example
+ * // Getting all siblings of an element
+ * const siblings = $('#myElement').siblings();
+ * siblings.each(function() {
+ *   console.log(this.tagName); // Outputs the tag name of each sibling
+ * });
  */
 
 $.prototype.siblings = function () {

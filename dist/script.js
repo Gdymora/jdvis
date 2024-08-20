@@ -105,7 +105,7 @@ function showLoginForm(context, authComponent, projectId, initCallback) {
       password,
       project_id: projectId
     }).then(() => {
-      authComponent.getMe().then(user => initCallback(context, user, {
+      authComponent.getMe(projectId).then(user => initCallback(context, user, {
         projectId
       }));
     }).catch(() => alert("Login failed. Please try again."));
@@ -142,6 +142,25 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
+ * Checks if the current user has a specific permission
+ * @param {Object} services - The services object containing the userService
+ * @param {string} permission - The permission to check
+ * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise
+ */
+async function checkPermission(services, permission, projectId) {
+  try {
+    if (!services || !services.userService || typeof services.userService.hasPermission !== "function") {
+      console.error("User service or hasPermission method is not available");
+      return false;
+    }
+    return await services.userService.hasPermission(permission, projectId);
+  } catch (error) {
+    console.error("Error checking permission:", error);
+    return false;
+  }
+}
+
+/**
  * Initializes the admin panel
  * @param {Object} context - The ModernLib context
  * @param {Object} user - The authenticated user object
@@ -156,6 +175,10 @@ function initializeAdminPanel(context, user, options, services) {
     onMenuItemClick,
     menuItems = []
   } = options;
+  if (!context || context.length === 0) {
+    console.warn("Context is empty or undefined, initializing with document body");
+    context = $(document.body);
+  }
   const createMenuItem = item => `
     <a href="#" data-menu-id="${item.id}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">
       ${item.label}
@@ -190,9 +213,7 @@ function initializeAdminPanel(context, user, options, services) {
     </div>
   `;
   context.html(adminPanelHTML);
-
-  // Add event listeners
-  context.find("nav a").on("click", function (e) {
+  context.find("nav a").on("click", async function (e) {
     e.preventDefault();
     const menuId = this.getAttribute("data-menu-id");
     onMenuItemClick(menuId);
@@ -202,27 +223,62 @@ function initializeAdminPanel(context, user, options, services) {
     context.find(this).addClass("bg-blue-100");
 
     // Load content based on menu item
-    const contentArea = context.find("#contentArea");
+    const contentArea = $(document.querySelector("#contentArea"));
+    if (!contentArea || contentArea.length === 0) {
+      console.error("Content area not found");
+      return;
+    }
     switch (menuId) {
       case "dashboard":
+        console.log("Dashboard case");
         contentArea.html('<h2 class="text-xl mb-4">Dashboard</h2><p>Welcome to your dashboard.</p>');
         break;
       case "users":
-        (0,_adminPanelUsers__WEBPACK_IMPORTED_MODULE_0__.loadUsers)(contentArea, projectId, services.userService);
+        console.log("Users case");
+        if (await checkPermission(services, "view_users", projectId)) {
+          (0,_adminPanelUsers__WEBPACK_IMPORTED_MODULE_0__.loadUsers)(contentArea, projectId, services.userService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view users.</p>');
+        }
         break;
       case "roles":
-        (0,_adminPanelRoles__WEBPACK_IMPORTED_MODULE_1__.loadRoles)(contentArea, projectId, services.roleService);
+        console.log("Roles case");
+        if (await checkPermission(services, "view_roles", projectId)) {
+          (0,_adminPanelRoles__WEBPACK_IMPORTED_MODULE_1__.loadRoles)(contentArea, projectId, services.roleService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
+        }
         break;
       case "permissions":
-        (0,_adminPanelPermissions__WEBPACK_IMPORTED_MODULE_2__.loadPermissions)(contentArea, projectId, services.permissionService);
+        console.log("Permissions case");
+        if (await checkPermission(services, "view_permissions", projectId)) {
+          (0,_adminPanelPermissions__WEBPACK_IMPORTED_MODULE_2__.loadPermissions)(contentArea, projectId, services.permissionService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
+        }
         break;
       case "tables":
-        (0,_adminPanelTables__WEBPACK_IMPORTED_MODULE_3__.loadTables)(contentArea, projectId, services.tableStructureService);
+        console.log("Tables case");
+        if (await checkPermission(services, "view_tables", projectId)) {
+          (0,_adminPanelTables__WEBPACK_IMPORTED_MODULE_3__.loadTables)(contentArea, projectId, services.tableStructureService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
+        }
         break;
+      default:
+        console.log("Default case");
+        contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
     }
+    console.log("Exiting switch statement");
   });
-  context.find("#logoutBtn").on("click", function () {
-    services.authService.logout().then(() => (0,_adminPanelAuth__WEBPACK_IMPORTED_MODULE_4__.showLoginForm)(context, services.authService, projectId, initializeAdminPanel));
+  $(document.querySelector("#logoutBtn")).on("click", function (e) {
+    e.preventDefault();
+    services.authService.logout(projectId).then(() => {
+      window.location.reload();
+    }).catch(error => {
+      console.error("Logout failed:", error);
+      alert("Logout failed. Please try again.");
+    });
   });
 }
 
@@ -729,7 +785,7 @@ function loadUsers(contentArea, projectId, userComponent) {
               </tr>
             </thead>
             <tbody>
-              ${users.map(user => `
+              ${users.data.map(user => `
                 <tr>
                   <td>${user.name}</td>
                   <td>${user.email}</td>
@@ -889,7 +945,8 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.adminPanel = function (o
 
   // Rest of the adminPanel code...
   // Use services.authService, services.userService, etc. instead of separate variables
-
+  console.log("adminPanel this:", this);
+  console.log("adminPanel this methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
   return this;
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
@@ -956,13 +1013,23 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
-
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey = "project_user_token";
 /**
  * Creates a component for project user authentication.
  * @param {string} baseUrl - The base URL of the API.
  * @returns {Object} An object with methods for project user authentication.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
+  const setToken = token => {
+    localStorage.setItem(tokenKey, token);
+  };
+  const getToken = () => {
+    return localStorage.getItem(tokenKey);
+  };
+  const removeToken = () => {
+    localStorage.removeItem(tokenKey);
+  };
   return {
     /**
      * Registers a new project user.
@@ -976,18 +1043,23 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the registration result.
      * @throws {Error} If there's an error during registration.
      */
-    register: async function (userData) {
+    register: async function (userData, projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project/register`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project/register`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(userData)
         });
-        return await response.json();
+        const data = await response.json();
+        if (data.access_token) {
+          setToken(data.access_token);
+        }
+        return data;
       } catch (error) {
-        console.error('Registration error:', error);
+        console.error("Registration error:", error);
         throw error;
       }
     },
@@ -1003,16 +1075,21 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      */
     login: async function (credentials) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project/login`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project/login`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
+            "X-Project-ID": credentials.projectId
           },
           body: JSON.stringify(credentials)
         });
-        return await response.json();
+        const data = await response.json();
+        if (data.access_token) {
+          setToken(data.access_token);
+        }
+        return data;
       } catch (error) {
-        console.error('Login error:', error);
+        console.error("Login error:", error);
         throw error;
       }
     },
@@ -1022,17 +1099,22 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the logout result.
      * @throws {Error} If there's an error during logout.
      */
-    logout: async function () {
+    logout: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project/logout`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project/logout`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
+        removeToken();
+        if (!response.ok) {
+          throw new Error("Logout failed");
+        }
         return await response.json();
       } catch (error) {
-        console.error('Logout error:', error);
+        console.error("Logout error:", error);
         throw error;
       }
     },
@@ -1042,17 +1124,23 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the refresh result.
      * @throws {Error} If there's an error during token refresh.
      */
-    refreshToken: async function () {
+    refreshToken: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project/refresh`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project/refresh`, {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
-        return await response.json();
+        const data = await response.json();
+        if (data.access_token) {
+          setToken(data.access_token);
+        }
+        return data;
       } catch (error) {
-        console.error('Token refresh error:', error);
+        console.error("Token refresh error:", error);
         throw error;
       }
     },
@@ -1062,16 +1150,17 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the user's information.
      * @throws {Error} If there's an error fetching the user's information.
      */
-    getMe: async function () {
+    getMe: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project/me`, {
+        const response = await fetch(`${baseUrl}/project/me`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Get user info error:', error);
+        console.error("Get user info error:", error);
         throw error;
       }
     }
@@ -1105,6 +1194,7 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {Object} An object with methods for project permission operations.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
     /**
      * Retrieves all permissions.
@@ -1115,15 +1205,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      */
     getAll: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-permissions`, {
+        const response = await fetch(`${baseUrl}/project-permissions`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching permissions:', error);
+        console.error("Error fetching permissions:", error);
         throw error;
       }
     },
@@ -1137,18 +1227,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      */
     create: async function (projectId, permissionData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-permissions`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project-permissions`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(permissionData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error creating permission:', error);
+        console.error("Error creating permission:", error);
         throw error;
       }
     },
@@ -1162,15 +1252,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      */
     getById: async function (projectId, permissionId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-permissions/${permissionId}`, {
+        const response = await fetch(`${baseUrl}/project-permissions/${permissionId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching permission:', error);
+        console.error("Error fetching permission:", error);
         throw error;
       }
     },
@@ -1185,18 +1275,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      */
     update: async function (projectId, permissionId, permissionData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-permissions/${permissionId}`, {
-          method: 'PUT',
+        const response = await fetch(`${baseUrl}/project-permissions/${permissionId}`, {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(permissionData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error updating permission:', error);
+        console.error("Error updating permission:", error);
         throw error;
       }
     },
@@ -1210,15 +1300,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      */
     delete: async function (projectId, permissionId) {
       try {
-        await fetch(`${baseUrl}/v1/project-permissions/${permissionId}`, {
-          method: 'DELETE',
+        await fetch(`${baseUrl}/project-permissions/${permissionId}`, {
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
       } catch (error) {
-        console.error('Error deleting permission:', error);
+        console.error("Error deleting permission:", error);
         throw error;
       }
     }
@@ -1252,6 +1342,7 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {Object} An object with methods for project role operations.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
     /**
      * Retrieves all roles for a project.
@@ -1262,15 +1353,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     getAll: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles`, {
+        const response = await fetch(`${baseUrl}/project-roles`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching roles:', error);
+        console.error("Error fetching roles:", error);
         throw error;
       }
     },
@@ -1284,18 +1375,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     create: async function (projectId, roleData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project-roles`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(roleData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error creating role:', error);
+        console.error("Error creating role:", error);
         throw error;
       }
     },
@@ -1309,15 +1400,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     getById: async function (projectId, roleId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles/${roleId}`, {
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching role:', error);
+        console.error("Error fetching role:", error);
         throw error;
       }
     },
@@ -1332,18 +1423,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     update: async function (projectId, roleId, roleData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles/${roleId}`, {
-          method: 'PUT',
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}`, {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(roleData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error updating role:', error);
+        console.error("Error updating role:", error);
         throw error;
       }
     },
@@ -1357,15 +1448,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     delete: async function (projectId, roleId) {
       try {
-        await fetch(`${baseUrl}/v1/project-roles/${roleId}`, {
-          method: 'DELETE',
+        await fetch(`${baseUrl}/project-roles/${roleId}`, {
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
       } catch (error) {
-        console.error('Error deleting role:', error);
+        console.error("Error deleting role:", error);
         throw error;
       }
     },
@@ -1380,12 +1471,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     assignPermission: async function (projectId, roleId, permissionId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles/${roleId}/permissions`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}/permissions`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify({
             permission_id: permissionId
@@ -1393,7 +1484,7 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
         });
         return await response.json();
       } catch (error) {
-        console.error('Error assigning permission:', error);
+        console.error("Error assigning permission:", error);
         throw error;
       }
     },
@@ -1408,16 +1499,16 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      */
     removePermission: async function (projectId, roleId, permissionId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-roles/${roleId}/permissions/${permissionId}`, {
-          method: 'DELETE',
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}/permissions/${permissionId}`, {
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error removing permission:', error);
+        console.error("Error removing permission:", error);
         throw error;
       }
     }
@@ -1451,6 +1542,7 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {Object} An object with methods for project table data operations.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
     /**
      * Retrieves all table data for a project.
@@ -1461,9 +1553,9 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      */
     getAll: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           }
         });
@@ -1483,11 +1575,11 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      */
     create: async function (projectId, tableData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           },
           body: JSON.stringify(tableData)
@@ -1508,9 +1600,9 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      */
     getById: async function (projectId, dataId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        const response = await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           }
         });
@@ -1531,11 +1623,11 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      */
     update: async function (projectId, dataId, tableData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        const response = await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           },
           body: JSON.stringify(tableData)
@@ -1556,10 +1648,10 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      */
     delete: async function (projectId, dataId) {
       try {
-        await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           }
         });
@@ -1598,6 +1690,7 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {Object} An object with methods for project table structure operations.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
     /**
      * Retrieves all table structures for a project.
@@ -1608,15 +1701,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      */
     getAll: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-structures`, {
+        const response = await fetch(`${baseUrl}/project-table-structures`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching table structures:', error);
+        console.error("Error fetching table structures:", error);
         throw error;
       }
     },
@@ -1630,18 +1723,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      */
     create: async function (projectId, structureData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-structures`, {
-          method: 'POST',
+        const response = await fetch(`${baseUrl}/project-table-structures`, {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(structureData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error creating table structure:', error);
+        console.error("Error creating table structure:", error);
         throw error;
       }
     },
@@ -1655,15 +1748,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      */
     getById: async function (projectId, structureId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-structures/${structureId}`, {
+        const response = await fetch(`${baseUrl}/project-table-structures/${structureId}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         return await response.json();
       } catch (error) {
-        console.error('Error fetching table structure:', error);
+        console.error("Error fetching table structure:", error);
         throw error;
       }
     },
@@ -1678,18 +1771,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      */
     update: async function (projectId, structureId, structureData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-structures/${structureId}`, {
-          method: 'PUT',
+        const response = await fetch(`${baseUrl}/project-table-structures/${structureId}`, {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(structureData)
         });
         return await response.json();
       } catch (error) {
-        console.error('Error updating table structure:', error);
+        console.error("Error updating table structure:", error);
         throw error;
       }
     },
@@ -1703,15 +1796,15 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      */
     delete: async function (projectId, structureId) {
       try {
-        await fetch(`${baseUrl}/v1/project-table-structures/${structureId}`, {
-          method: 'DELETE',
+        await fetch(`${baseUrl}/project-table-structures/${structureId}`, {
+          method: "DELETE",
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'X-Project-ID': projectId
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
       } catch (error) {
-        console.error('Error deleting table structure:', error);
+        console.error("Error deleting table structure:", error);
         throw error;
       }
     }
@@ -1745,110 +1838,8 @@ __webpack_require__.r(__webpack_exports__);
  * @returns {Object} An object with methods for project user operations.
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl) {
+  const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
-    /**
-     * Registers a new project user.
-     * @async
-     * @param {number} projectId - The ID of the project.
-     * @param {Object} userData - The data for the new user.
-     * @param {string} userData.name - The name of the user.
-     * @param {string} userData.email - The email of the user.
-     * @param {string} userData.password - The password of the user.
-     * @param {string} userData.password_confirmation - The password confirmation.
-     * @returns {Promise<Object>} A promise that resolves to the registration result.
-     * @throws {Error} If there's an error during registration.
-     * @example
-     * const user = $().user('http://api.example.com');
-     * const newUser = {
-     *   name: 'John Doe',
-     *   email: 'john@example.com',
-     *   password: 'password123',
-     *   password_confirmation: 'password123'
-     * };
-     * user.register(1, newUser)
-     *   .then(result => console.log(result))
-     *   .catch(error => console.error(error));
-     */
-    register: async function (projectId, userData) {
-      try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(userData)
-        });
-        return await response.json();
-      } catch (error) {
-        console.error('Error registering user:', error);
-        throw error;
-      }
-    },
-    /**
-     * Logs in a project user.
-     * @async
-     * @param {number} projectId - The ID of the project.
-     * @param {Object} credentials - The user's credentials.
-     * @param {string} credentials.email - The user's email.
-     * @param {string} credentials.password - The user's password.
-     * @returns {Promise<Object>} A promise that resolves to the login result, including the token.
-     * @throws {Error} If there's an error during login.
-     * @example
-     * const userComponent = $().projectUserComponent('http://api.example.com');
-     * const credentials = {
-     *   email: 'john@example.com',
-     *   password: 'password123'
-     * };
-     * userComponent.login(1, credentials)
-     *   .then(result => console.log(result))
-     *   .catch(error => console.error(error));
-     */
-    login: async function (projectId, credentials) {
-      try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/login`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(credentials)
-        });
-        const data = await response.json();
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-        }
-        return data;
-      } catch (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
-    },
-    /**
-     * Logs out a project user.
-     * @async
-     * @param {number} projectId - The ID of the project.
-     * @returns {Promise<Object>} A promise that resolves to the logout result.
-     * @throws {Error} If there's an error during logout.
-     * @example
-     * const userComponent = $().projectUserComponent('http://api.example.com');
-     * userComponent.logout(1)
-     *   .then(result => console.log(result))
-     *   .catch(error => console.error(error));
-     */
-    logout: async function (projectId) {
-      try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/logout`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        localStorage.removeItem('token');
-        return await response.json();
-      } catch (error) {
-        console.error('Logout error:', error);
-        throw error;
-      }
-    },
     /**
      * Retrieves information about the current project user.
      * @async
@@ -1863,15 +1854,194 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
      */
     getCurrentUser: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/me`, {
+        const response = await fetch(`${baseUrl}/project/me`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            /*  */
+            "X-Project-ID": projectId
           }
         });
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const userData = await response.json();
+        if (!userData.permissions) {
+          console.warn("User permissions not found in the response");
+        }
+        return userData;
+      } catch (error) {
+        console.error("Error fetching current user:", error);
+        throw error;
+      }
+    },
+    /**
+     * Retrieves all users for a specific project.
+     * @async
+     * @param {number} projectId - The ID of the project.
+     * @returns {Promise<Array>} A promise that resolves to an array of user objects.
+     * @throws {Error} If there's an error fetching the users.
+     * @example
+     * const userComponent = $().user('http://api.example.com');
+     * userComponent.getAll(1)
+     *   .then(users => console.log(users))
+     *   .catch(error => console.error(error));
+     */
+    getAll: async function (projectId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return await response.json();
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        console.error("Error fetching all users:", error);
         throw error;
+      }
+    },
+    /**
+     * Creates a new user for a specific project.
+     * @async
+     * @param {number} projectId - The ID of the project.
+     * @param {Object} userData - The user data to be created.
+     * @returns {Promise<Object>} A promise that resolves to the created user object.
+     * @throws {Error} If there's an error creating the user.
+     */
+    createUser: async function (projectId, userData) {
+      try {
+        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+          },
+          body: JSON.stringify(userData)
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error creating user:", error);
+        throw error;
+      }
+    },
+    /**
+     * Updates an existing user for a specific project.
+     * @async
+     * @param {number} projectId - The ID of the project.
+     * @param {number} userId - The ID of the user to update.
+     * @param {Object} userData - The updated user data.
+     * @returns {Promise<Object>} A promise that resolves to the updated user object.
+     * @throws {Error} If there's an error updating the user.
+     */
+    updateUser: async function (projectId, userId, userData) {
+      try {
+        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+          },
+          body: JSON.stringify(userData)
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error updating user:", error);
+        throw error;
+      }
+    },
+    /**
+     * Deletes a user from a specific project.
+     * @async
+     * @param {number} projectId - The ID of the project.
+     * @param {number} userId - The ID of the user to delete.
+     * @returns {Promise<void>} A promise that resolves when the user is successfully deleted.
+     * @throws {Error} If there's an error deleting the user.
+     */
+    deleteUser: async function (projectId, userId) {
+      try {
+        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        throw error;
+      }
+    },
+    /**
+       * Checks if the current user has a specific permission.
+       * @async
+       * @param {string} permissionName - The name of the permission to check.
+       * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise.
+       * @throws {Error} If there's an error checking the permission.
+       */
+    hasPermission: async function (permissionName, projectId) {
+      try {
+        const currentUser = await this.getCurrentUser(projectId);
+        if (!currentUser) {
+          console.warn('User is undefined');
+          return false;
+        }
+
+        // Перевірка для super_user
+        if (currentUser.user_type === 'super_user') {
+          return true; // super_user має всі дозволи
+        }
+
+        // Перевірка для project_user
+        if (!Array.isArray(currentUser.permissions)) {
+          console.warn('User permissions are undefined or not an array');
+          return false;
+        }
+        return currentUser.permissions.includes(permissionName);
+      } catch (error) {
+        console.error("Error checking permission:", error);
+        return false;
+      }
+    },
+    /**
+     * Checks if the current user has a specific role.
+     * @async
+     * @param {string} roleName - The name of the role to check.
+     * @returns {Promise<boolean>} A promise that resolves to true if the user has the role, false otherwise.
+     * @throws {Error} If there's an error checking the role.
+     */
+    hasRole: async function (roleName) {
+      try {
+        const currentUser = await this.getCurrentUser(projectId);
+        if (!currentUser) {
+          console.warn('User is undefined');
+          return false;
+        }
+
+        // Перевірка для super_user
+        if (currentUser.user_type === 'super_user') {
+          return true; // super_user має всі ролі
+        }
+
+        // Перевірка для project_user
+        if (!Array.isArray(currentUser.roles)) {
+          console.warn('User roles are undefined or not an array');
+          return false;
+        }
+        return currentUser.roles.includes(roleName);
+      } catch (error) {
+        console.error("Error checking role:", error);
+        return false;
       }
     }
   };
@@ -2921,7 +3091,7 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * @file actions.js
  * @description DOM manipulation and traversal methods for ModernLib.
- * @module modules/actions 
+ * @module modules/actions
  */
 
 
@@ -2930,6 +3100,14 @@ __webpack_require__.r(__webpack_exports__);
  * Gets or sets the HTML content of the selected elements.
  * @param {string} [content] - The HTML content to set. If not provided, returns the HTML content of the first element.
  * @returns {(Object|string)} The ModernLib object for chaining when setting, or the HTML content when getting.
+ * @example
+ * // Getting HTML content
+ * const content = $('#myElement').html();
+ * console.log(content); // Outputs the HTML content of the first matched element
+ *
+ * // Setting HTML content
+ * $('#myElement').html('<p>New content</p>');
+ * // Sets the HTML content for all matched elements and returns the ModernLib object for chaining
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.html = function (content) {
@@ -2943,11 +3121,14 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.html = function (content
   return this;
 };
 
-/*отримати елемент за номером*/
 /**
  * Reduces the set of matched elements to the one at the specified index.
  * @param {number} i - The index of the element to select.
  * @returns {Object} A new ModernLib object containing the selected element.
+ * @example
+ * // Selecting the second element in a set
+ * const secondElement = $('li').eq(1);
+ * console.log(secondElement.html()); // Outputs the HTML content of the second <li> element
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.eq = function (i) {
@@ -2961,10 +3142,13 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.eq = function (i) {
   return this;
 };
 
-/*отримати елемент за індексом*/
 /**
  * Gets the index of the first element within its parent.
  * @returns {number} The index of the element.
+ * @example
+ * // Getting the index of an element
+ * const index = $('#myElement').index();
+ * console.log(index); // Outputs the index of #myElement among its siblings
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.index = function () {
@@ -2980,6 +3164,10 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.index = function () {
  * Finds descendants of the selected elements that match the selector.
  * @param {string} selector - A CSS selector to match elements against.
  * @returns {Object} The ModernLib object containing the matched elements.
+ * @example
+ * // Finding all paragraphs within a div
+ * const paragraphs = $('div').find('p');
+ * console.log(paragraphs.length); // Outputs the number of paragraphs found
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.find = function (selector) {
@@ -3009,6 +3197,10 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.find = function (selecto
  * Gets the first ancestor of each element that matches the selector.
  * @param {string} selector - A CSS selector to match elements against.
  * @returns {Object} The ModernLib object containing the matched ancestors.
+ * @example
+ * // Finding the closest div ancestor
+ * const closestDiv = $('#myElement').closest('div');
+ * console.log(closestDiv.html()); // Outputs the HTML content of the closest div ancestor
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.closest = function (selector) {
@@ -3027,6 +3219,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.closest = function (sele
 /**
  * Gets the siblings of each element in the set of matched elements.
  * @returns {Object} The ModernLib object containing the sibling elements.
+ * @example
+ * // Getting all siblings of an element
+ * const siblings = $('#myElement').siblings();
+ * siblings.each(function() {
+ *   console.log(this.tagName); // Outputs the tag name of each sibling
+ * });
  */
 
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.siblings = function () {

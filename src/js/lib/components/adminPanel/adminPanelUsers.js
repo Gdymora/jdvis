@@ -28,7 +28,7 @@ export function loadUsers(contentArea, projectId, userComponent) {
               </tr>
             </thead>
             <tbody>
-              ${users
+              ${users.data
                 .map(
                   (user) => `
                 <tr>

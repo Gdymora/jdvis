@@ -65,7 +65,9 @@ $.prototype.adminPanel = function (options) {
 
   // Rest of the adminPanel code...
   // Use services.authService, services.userService, etc. instead of separate variables
-
+  console.log("adminPanel this:", this);
+  console.log("adminPanel this methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
+  
   return this;
 };
 

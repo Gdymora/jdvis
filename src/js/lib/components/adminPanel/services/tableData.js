@@ -3,7 +3,7 @@
  * @module components/tableData
  */
 
-import $ from '../../../core';
+import $ from "../../../core";
 
 /**
  * Creates a component for working with project table data.
@@ -11,6 +11,7 @@ import $ from '../../../core';
  * @returns {Object} An object with methods for project table data operations.
  */
 $.prototype.tableData = function (baseUrl) {
+  const tokenKey = $.prototype.tokenKey;
   return {
     /**
      * Retrieves all table data for a project.
@@ -21,9 +22,9 @@ $.prototype.tableData = function (baseUrl) {
      */
     getAll: async function (projectId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
         });
@@ -44,11 +45,11 @@ $.prototype.tableData = function (baseUrl) {
      */
     create: async function (projectId, tableData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
           body: JSON.stringify(tableData),
@@ -70,9 +71,9 @@ $.prototype.tableData = function (baseUrl) {
      */
     getById: async function (projectId, dataId) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        const response = await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
         });
@@ -94,11 +95,11 @@ $.prototype.tableData = function (baseUrl) {
      */
     update: async function (projectId, dataId, tableData) {
       try {
-        const response = await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        const response = await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
           body: JSON.stringify(tableData),
@@ -120,10 +121,10 @@ $.prototype.tableData = function (baseUrl) {
      */
     delete: async function (projectId, dataId) {
       try {
-        await fetch(`${baseUrl}/v1/project-table-data/${dataId}`, {
+        await fetch(`${baseUrl}/project-table-data/${dataId}`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
         });

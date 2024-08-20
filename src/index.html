@@ -295,13 +295,13 @@
       <script>
         $("#adminPanelContainer").html('<p>Hello</p>');
         // Спочатку налаштуємо глобальні параметри (опціонально)
-        $.adminSettings.apiBaseUrl = "http://127.0.0.1:8005/api";
-        $.adminSettings.defaultItemsPerPage = 15;
+        // $.adminSettings.apiBaseUrl = "http://127.0.0.1:8005/api";
+        // $.adminSettings.defaultItemsPerPage = 15;
 
         // Ініціалізація адмін-панелі
         $("#adminPanelContainer").adminPanel({
-          projectId: "1",
-          apiBaseUrl: "http://127.0.0.1:8005/api", // Це перевизначить глобальне налаштування, якщо потрібно
+          projectId: "10",
+          apiBaseUrl: "http://127.0.0.1:8005/api/v1", // Це перевизначить глобальне налаштування, якщо потрібно
           itemsPerPage: 20, // Це перевизначить глобальне налаштування
           onMenuItemClick: function (menuItem) {
             console.log("Clicked menu item:", menuItem);

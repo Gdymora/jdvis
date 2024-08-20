@@ -11,6 +11,25 @@ import { loadTables } from "./adminPanelTables";
 import { showLoginForm } from "./adminPanelAuth";
 
 /**
+ * Checks if the current user has a specific permission
+ * @param {Object} services - The services object containing the userService
+ * @param {string} permission - The permission to check
+ * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise
+ */
+async function checkPermission(services, permission, projectId) {
+  try {
+    if (!services || !services.userService || typeof services.userService.hasPermission !== "function") {
+      console.error("User service or hasPermission method is not available");
+      return false;
+    }
+    return await services.userService.hasPermission(permission, projectId);
+  } catch (error) {
+    console.error("Error checking permission:", error);
+    return false;
+  }
+}
+
+/**
  * Initializes the admin panel
  * @param {Object} context - The ModernLib context
  * @param {Object} user - The authenticated user object
@@ -21,6 +40,11 @@ import { showLoginForm } from "./adminPanelAuth";
  */
 export function initializeAdminPanel(context, user, options, services) {
   const { projectId, onMenuItemClick, menuItems = [] } = options;
+
+  if (!context || context.length === 0) {
+    console.warn("Context is empty or undefined, initializing with document body");
+    context = $(document.body);
+  }
 
   const createMenuItem = (item) => `
     <a href="#" data-menu-id="${item.id}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">
@@ -61,8 +85,7 @@ export function initializeAdminPanel(context, user, options, services) {
 
   context.html(adminPanelHTML);
 
-  // Add event listeners
-  context.find("nav a").on("click", function (e) {
+  context.find("nav a").on("click", async function (e) {
     e.preventDefault();
     const menuId = this.getAttribute("data-menu-id");
     onMenuItemClick(menuId);
@@ -72,27 +95,67 @@ export function initializeAdminPanel(context, user, options, services) {
     context.find(this).addClass("bg-blue-100");
 
     // Load content based on menu item
-    const contentArea = context.find("#contentArea");
+    const contentArea = $(document.querySelector("#contentArea"));
+
+    if (!contentArea || contentArea.length === 0) {
+      console.error("Content area not found");
+      return;
+    }
+
     switch (menuId) {
       case "dashboard":
+        console.log("Dashboard case");
         contentArea.html('<h2 class="text-xl mb-4">Dashboard</h2><p>Welcome to your dashboard.</p>');
         break;
       case "users":
-        loadUsers(contentArea, projectId, services.userService);
+        console.log("Users case");
+        if (await checkPermission(services, "view_users", projectId)) {
+          loadUsers(contentArea, projectId, services.userService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view users.</p>');
+        }
         break;
       case "roles":
-        loadRoles(contentArea, projectId, services.roleService);
+        console.log("Roles case");
+        if (await checkPermission(services, "view_roles", projectId)) {
+          loadRoles(contentArea, projectId, services.roleService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
+        }
         break;
       case "permissions":
-        loadPermissions(contentArea, projectId, services.permissionService);
+        console.log("Permissions case");
+        if (await checkPermission(services, "view_permissions", projectId)) {
+          loadPermissions(contentArea, projectId, services.permissionService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
+        }
         break;
       case "tables":
-        loadTables(contentArea, projectId, services.tableStructureService);
+        console.log("Tables case");
+        if (await checkPermission(services, "view_tables", projectId)) {
+          loadTables(contentArea, projectId, services.tableStructureService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
+        }
         break;
+      default:
+        console.log("Default case");
+        contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
     }
+    console.log("Exiting switch statement");
   });
 
-  context.find("#logoutBtn").on("click", function () {
-    services.authService.logout().then(() => showLoginForm(context, services.authService, projectId, initializeAdminPanel));
+  $(document.querySelector("#logoutBtn")).on("click", function (e) {
+    e.preventDefault();
+    services.authService
+      .logout(projectId)
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Logout failed:", error);
+        alert("Logout failed. Please try again.");
+      });
   });
 }

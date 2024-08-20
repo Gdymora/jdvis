@@ -35,7 +35,7 @@ export function showLoginForm(context, authComponent, projectId, initCallback) {
       authComponent
         .login({ email, password, project_id: projectId })
         .then(() => {
-          authComponent.getMe().then((user) => initCallback(context, user, { projectId }));
+          authComponent.getMe(projectId).then((user) => initCallback(context, user, { projectId }));
         })
         .catch(() => alert("Login failed. Please try again."));
     });
