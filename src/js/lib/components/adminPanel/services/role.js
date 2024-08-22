@@ -20,14 +20,17 @@ $.prototype.role = function (baseUrl) {
      * @returns {Promise<Array>} A promise that resolves to an array of roles.
      * @throws {Error} If there's an error fetching the roles.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
       try {
-        const response = await fetch(`${baseUrl}/project-roles`, {
+        const response = await fetch(`${baseUrl}/project-roles?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
         });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return await response.json();
       } catch (error) {
         console.error("Error fetching roles:", error);

@@ -82,33 +82,37 @@ __webpack_require__.r(__webpack_exports__);
  * @example
  * showLoginForm($, authComponent, '123', initializeAdminPanel);
  */
-function showLoginForm(context, authComponent, projectId, initCallback) {
+
+function showLoginForm(context, authService, projectId, onSuccessfulLogin) {
   const loginHTML = `
-      <div class="flex items-center justify-center h-screen bg-gray-100">
-        <div class="bg-white p-8 rounded shadow-md w-96">
-          <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
-          <form id="loginForm">
-            <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
-            <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
-          </form>
+        <div class="flex items-center justify-center h-screen bg-gray-100">
+          <div class="bg-white p-8 rounded shadow-md w-96">
+            <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+            <form id="loginForm">
+              <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
+              <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
+              <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login</button>
+            </form>
+          </div>
         </div>
-      </div>
-    `;
+      `;
   context.html(loginHTML);
-  $("#loginForm").on("submit", function (e) {
+  $("#loginForm").on("submit", async function (e) {
     e.preventDefault();
     const email = $("#email").val();
     const password = $("#password").val();
-    authComponent.login({
-      email,
-      password,
-      project_id: projectId
-    }).then(() => {
-      authComponent.getMe(projectId).then(user => initCallback(context, user, {
+    try {
+      await authService.login({
+        email,
+        password,
         projectId
-      }));
-    }).catch(() => alert("Login failed. Please try again."));
+      });
+      const user = await authService.getMe(projectId);
+      onSuccessfulLogin(user);
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Login failed. Please try again.");
+    }
   });
 }
 
@@ -128,12 +132,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _adminPanelRoles__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./adminPanelRoles */ "./src/js/lib/components/adminPanel/adminPanelRoles.js");
 /* harmony import */ var _adminPanelPermissions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./adminPanelPermissions */ "./src/js/lib/components/adminPanel/adminPanelPermissions.js");
 /* harmony import */ var _adminPanelTables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./adminPanelTables */ "./src/js/lib/components/adminPanel/adminPanelTables.js");
-/* harmony import */ var _adminPanelAuth__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./adminPanelAuth */ "./src/js/lib/components/adminPanel/adminPanelAuth.js");
+/* harmony import */ var _adminPanelPosts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./adminPanelPosts */ "./src/js/lib/components/adminPanel/adminPanelPosts.js");
+/* harmony import */ var _adminPanelAuth__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./adminPanelAuth */ "./src/js/lib/components/adminPanel/adminPanelAuth.js");
 /**
  * @file adminPanelInit.js
  * @description Initialization functions for the admin panel
  * @module components/adminPanel/init
  */
+
 
 
 
@@ -265,6 +271,14 @@ function initializeAdminPanel(context, user, options, services) {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
         }
         break;
+      case "posts":
+        console.log("Posts case");
+        if (await checkPermission(services, "view_posts", projectId)) {
+          (0,_adminPanelPosts__WEBPACK_IMPORTED_MODULE_4__.loadPosts)(contentArea, projectId, services.tableDataService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
+        }
+        break;
       default:
         console.log("Default case");
         contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
@@ -277,7 +291,7 @@ function initializeAdminPanel(context, user, options, services) {
       window.location.reload();
     }).catch(error => {
       console.error("Logout failed:", error);
-      alert("Logout failed. Please try again.");
+      window.location.reload();
     });
   });
 }
@@ -315,14 +329,16 @@ function loadPermissions(contentArea, projectId, permissionComponent, options = 
     page = 1,
     itemsPerPage = 10
   } = options;
+  const notification = $().notification({
+    position: "top-right",
+    duration: 3000
+  });
   permissionComponent.getAll(projectId, {
     page,
     itemsPerPage
   }).then(response => {
-    const {
-      permissions,
-      totalPages
-    } = response;
+    const permissions = response.data;
+    const totalPages = response.last_page;
     let permissionsHTML = `
           <h2 class="text-xl mb-4">Permissions</h2>
           <button id="addPermissionBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Permission</button>
@@ -361,16 +377,16 @@ function loadPermissions(contentArea, projectId, permissionComponent, options = 
       const permissionId = $(this).data("id");
       if (confirm("Are you sure you want to delete this permission?")) {
         permissionComponent.delete(projectId, permissionId).then(() => {
-          showNotification("Permission deleted successfully", "success");
+          notification.show("Permission deleted successfully", "success");
           loadPermissions(contentArea, projectId, permissionComponent, options);
         }).catch(error => {
-          showNotification("Error deleting permission: " + error.message, "error");
+          notification.show("Error deleting permission: " + error.message, "error");
         });
       }
     });
   }).catch(error => {
     contentArea.html("<p>Error loading permissions.</p>");
-    showNotification("Error loading permissions: " + error.message, "error");
+    notification.show("Error loading permissions: " + error.message, "error");
   });
 }
 
@@ -408,11 +424,112 @@ function showPermissionForm(contentArea, projectId, permissionComponent, permiss
     };
     const action = permissionId ? permissionComponent.update(projectId, permissionId, permissionData) : permissionComponent.create(projectId, permissionData);
     action.then(() => {
-      showNotification(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
+      notification.show(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
       loadPermissions(contentArea, projectId, permissionComponent);
     }).catch(error => {
-      showNotification(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
+      notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
     });
+  });
+}
+
+/***/ }),
+
+/***/ "./src/js/lib/components/adminPanel/adminPanelPosts.js":
+/*!*************************************************************!*\
+  !*** ./src/js/lib/components/adminPanel/adminPanelPosts.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   loadPosts: () => (/* binding */ loadPosts)
+/* harmony export */ });
+/**
+ * @file adminPanelPosts.js
+ * @description Post management functions for the admin panel
+ * @module components/adminPanelPosts
+ */
+
+/**
+ * Loads and displays the list of posts
+ * @param {Object} contentArea - The content area element
+ * @param {string} projectId - The ID of the current project
+ * @param {Object} postsComponent - The posts management component
+ * @param {Object} options - Additional options (e.g., pagination)
+ */
+function loadPosts(contentArea, projectId, postsComponent, options = {}) {
+  const {
+    page = 1,
+    itemsPerPage = 15
+  } = options;
+  const notification = $().notification({
+    position: "top-right",
+    duration: 3000
+  });
+  postsComponent.getAll(projectId, {
+    page,
+    itemsPerPage
+  }).then(response => {
+    const posts = response.data;
+    let postsHTML = `
+        <h2 class="text-lg font-semibold mb-4">Posts</h2>
+        <button id="addPostBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+          <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
+        </button>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <i class="fa-solid fa-wrench"></i>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            ${posts.map((post, index) => `
+              <tr class="text-black">
+                <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${post.title}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${post.created_at}</td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <button class="viewPostBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${post.id}">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                  <button class="editPostBtn bg-none rounded-md mx-2" data-id="${post.id}">
+                    <i class="fa-solid fa-pencil" style="color: #429424"></i>
+                  </button>
+                  <button class="deletePostBtn bg-none rounded-md mx-2" data-id="${post.id}">
+                    <i class="fa-regular fa-trash-can" style="color: #ea3f06"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    contentArea.html(postsHTML);
+
+    // Add event listeners
+    $("#addPostBtn").click(() => showPostForm(contentArea, projectId, postsComponent));
+    $(".viewPostBtn").click(function () {
+      const postId = $(this).data("id");
+      viewPost(contentArea, projectId, postsComponent, postId);
+    });
+    $(".editPostBtn").click(function () {
+      const postId = $(this).data("id");
+      showPostForm(contentArea, projectId, postsComponent, postId);
+    });
+    $(".deletePostBtn").click(function () {
+      const postId = $(this).data("id");
+      if (confirm("Are you sure you want to delete this post?")) {
+        deletePost(contentArea, projectId, postsComponent, postId);
+      }
+    });
+  }).catch(error => {
+    contentArea.html("<p>Error loading posts.</p>");
+    notification.show("Error loading posts: " + error.message, "error");
   });
 }
 
@@ -449,39 +566,41 @@ function loadRoles(contentArea, projectId, roleComponent, options = {}) {
     page = 1,
     itemsPerPage = 10
   } = options;
+  const notification = $().notification({
+    position: "top-right",
+    duration: 3000
+  });
   roleComponent.getAll(projectId, {
     page,
     itemsPerPage
   }).then(response => {
-    const {
-      roles,
-      totalPages
-    } = response;
+    const roles = response.data;
+    const totalPages = response.last_page;
     let rolesHTML = `
-          <h2 class="text-xl mb-4">Roles</h2>
-          <button id="addRoleBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Role</button>
-          <table class="w-full">
-            <thead>
+        <h2 class="text-xl mb-4">Roles</h2>
+        <button id="addRoleBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Role</button>
+        <table class="w-full">
+          <thead>
+            <tr>
+              <th class="text-left">Name</th>
+              <th class="text-left">Description</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${roles.map(role => `
               <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Description</th>
-                <th class="text-left">Actions</th>
+                <td>${role.name}</td>
+                <td>${role.description || ""}</td>
+                <td>
+                  <button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${role.id}">Edit</button>
+                  <button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete</button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              ${roles.map(role => `
-                <tr>
-                  <td>${role.name}</td>
-                  <td>${role.description}</td>
-                  <td>
-                    <button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${role.id}">Edit</button>
-                    <button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete</button>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        `;
+            `).join("")}
+          </tbody>
+        </table>
+      `;
     contentArea.html(rolesHTML);
 
     // Render pagination
@@ -495,16 +614,18 @@ function loadRoles(contentArea, projectId, roleComponent, options = {}) {
       const roleId = $(this).data("id");
       if (confirm("Are you sure you want to delete this role?")) {
         roleComponent.delete(projectId, roleId).then(() => {
-          showNotification("Role deleted successfully", "success");
+          // Обробка успішного завантаження
+          notification.show("Roles loaded successfully", "success");
           loadRoles(contentArea, projectId, roleComponent, options);
         }).catch(error => {
-          showNotification("Error deleting role: " + error.message, "error");
+          // Обробка помилки
+          notification.show(`Error loading roles: ${error.message}`, "error");
         });
       }
     });
   }).catch(error => {
     contentArea.html("<p>Error loading roles.</p>");
-    showNotification("Error loading roles: " + error.message, "error");
+    notification.show(`Error loading roles: ${error.message}`, "error");
   });
 }
 
@@ -542,10 +663,10 @@ function showRoleForm(contentArea, projectId, roleComponent, roleId = null) {
     };
     const action = roleId ? roleComponent.update(projectId, roleId, roleData) : roleComponent.create(projectId, roleData);
     action.then(() => {
-      showNotification(`Role ${roleId ? "updated" : "created"} successfully`, "success");
+      notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
       loadRoles(contentArea, projectId, roleComponent);
     }).catch(error => {
-      showNotification(`Error ${roleId ? "updating" : "creating"} role: ` + error.message, "error");
+      notification.show(`Error loading roles: ${error.message}`, "error");
     });
   });
 }
@@ -560,9 +681,7 @@ function showRoleForm(contentArea, projectId, roleComponent, roleId = null) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadTableData: () => (/* binding */ loadTableData),
-/* harmony export */   loadTables: () => (/* binding */ loadTables),
-/* harmony export */   showTableForm: () => (/* binding */ showTableForm)
+/* harmony export */   loadTables: () => (/* binding */ loadTables)
 /* harmony export */ });
 /**
  * @file adminPanelTables.js
@@ -576,172 +695,206 @@ __webpack_require__.r(__webpack_exports__);
  * @param {string} projectId - The ID of the current project
  * @param {Object} tableStructureComponent - The table structure management component
  * @param {Object} options - Additional options (e.g., pagination)
- * @example
- * loadTables($('#contentArea'), '123', tableStructureComponent, { page: 1, itemsPerPage: 10 });
  */
 function loadTables(contentArea, projectId, tableStructureComponent, options = {}) {
   const {
     page = 1,
-    itemsPerPage = 10
+    itemsPerPage = 15
   } = options;
+  const notification = $().notification({
+    position: "top-right",
+    duration: 3000
+  });
   tableStructureComponent.getAll(projectId, {
     page,
     itemsPerPage
   }).then(response => {
-    const {
-      tables,
-      totalPages
-    } = response;
+    const tables = response.data || [];
     let tablesHTML = `
-          <h2 class="text-xl mb-4">Tables</h2>
-          <button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Table</button>
-          <table class="w-full">
-            <thead>
+        <h2 class="text-lg font-semibold mb-4">User Tables</h2>
+        <button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+          <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
+        </button>
+        ${tables.length > 0 ? `
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
               <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Actions</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id number</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Template Data</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <i class="fa-solid fa-wrench"></i>
+                </th>
               </tr>
             </thead>
-            <tbody>
-              ${tables.map(table => `
-                <tr>
-                  <td>${table.table_name}</td>
-                  <td>
-                    <button class="editTableBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${table.id}">Edit</button>
-                    <button class="deleteTableBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${table.id}">Delete</button>
-                    <button class="viewTableDataBtn px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-id="${table.id}">View Data</button>
+            <tbody class="bg-white divide-y divide-gray-200">
+              ${tables.map((table, index) => `
+                <tr class="text-black">
+                  <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">data</td>
+                  <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    ${table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0 ? `
+                      <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                      <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                        <i class="fa-regular fa-square-plus fa-lg"></i>
+                      </button>
+                      <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                        <i class="fa-solid fa-file-excel fa-lg"></i>
+                      </button>
+                    ` : `
+                      <button class="viewTableBtn p-2 bg-gray-500 text-white rounded-md mr-2" data-id="${table.id}" disabled>
+                        <i class="fa-regular fa-eye"></i>
+                      </button>
+                      <button class="fillTableBtn px-2 py-3 bg-green-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
+                        <i class="fa-regular fa-square-plus fa-lg"></i>
+                      </button>
+                      <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
+                        <i class="fa-solid fa-file-excel fa-lg"></i>
+                      </button>
+                    `}
+                    <button class="cloneTableBtn bg-none rounded-md mx-2" data-id="${table.id}">clone</button>
+                    <button class="editTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
+                      <i class="fa-solid fa-pencil" style="color: #429424"></i>
+                    </button>
+                    <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
+                      <i class="fa-regular fa-trash-can" style="color: #ea3f06"></i>
+                    </button>
                   </td>
                 </tr>
               `).join("")}
             </tbody>
           </table>
-        `;
+        ` : '<p class="text-center">No tables found. Click the "+" button to create a new table.</p>'}
+      `;
     contentArea.html(tablesHTML);
 
-    // Render pagination
-    $("#paginationArea").pagination(totalPages, page);
-    $("#addTableBtn").click(() => showTableForm(contentArea, projectId, tableStructureComponent));
+    // Add event listeners
+    $("#addTableBtn").click(() => showTableStructureForm(contentArea, projectId, tableStructureComponent));
+    $(".viewTableBtn").click(function () {
+      const tableId = $(this).data("id");
+      viewTable(contentArea, projectId, tableStructureComponent, tableId);
+    });
+    $(".fillTableBtn").click(function () {
+      const tableId = $(this).data("id");
+      const action = $(this).data("action");
+      showFillTableForm(contentArea, projectId, tableStructureComponent, tableId, action);
+    });
+    $(".excelImportBtn").click(function () {
+      const tableId = $(this).data("id");
+      const action = $(this).data("action");
+      showExcelImportForm(contentArea, projectId, tableStructureComponent, tableId, action);
+    });
+    $(".cloneTableBtn").click(function () {
+      const tableId = $(this).data("id");
+      cloneTable(contentArea, projectId, tableStructureComponent, tableId);
+    });
     $(".editTableBtn").click(function () {
       const tableId = $(this).data("id");
-      showTableForm(contentArea, projectId, tableStructureComponent, tableId);
+      showTableStructureForm(contentArea, projectId, tableStructureComponent, tableId);
     });
     $(".deleteTableBtn").click(function () {
       const tableId = $(this).data("id");
       if (confirm("Are you sure you want to delete this table?")) {
-        tableStructureComponent.delete(projectId, tableId).then(() => {
-          showNotification("Table deleted successfully", "success");
-          loadTables(contentArea, projectId, tableStructureComponent, options);
-        }).catch(error => {
-          showNotification("Error deleting table: " + error.message, "error");
-        });
+        deleteTable(contentArea, projectId, tableStructureComponent, tableId);
       }
-    });
-    $(".viewTableDataBtn").click(function () {
-      const tableId = $(this).data("id");
-      loadTableData(contentArea, projectId, tableId, 1);
     });
   }).catch(error => {
     contentArea.html("<p>Error loading tables.</p>");
-    showNotification("Error loading tables: " + error.message, "error");
+    notification.show("Error loading tables: " + error.message, "error");
   });
 }
-
-/**
- * Shows the table form for adding or editing a table
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} tableStructureComponent - The table structure management component
- * @param {string} [tableId] - The ID of the table to edit (optional)
- * @example
- * showTableForm($('#contentArea'), '123', tableStructureComponent, '456');
- */
-function showTableForm(contentArea, projectId, tableStructureComponent, tableId = null) {
-  const title = tableId ? "Edit Table" : "Add Table";
+function showTableStructureForm(contentArea, projectId, tableStructureComponent, tableId = null) {
+  const title = tableId ? "Edit Table Structure" : "Create New Table Structure";
   const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="tableForm">
-        <input type="text" id="tableName" placeholder="Table Name" class="w-full p-2 mb-4 border rounded" required>
-        <div id="tableFields">
-          <!-- Fields will be dynamically added here -->
-        </div>
-        <button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field</button>
-        <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${title}</button>
-      </form>
-    `;
+    <h2 class="text-xl mb-4">${title}</h2>
+    <form id="tableStructureForm">
+      <input type="text" id="tableName" placeholder="Table Name" class="w-full p-2 mb-4 border rounded" required>
+      <div id="tableFields"></div>
+      <button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field</button>
+      <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${tableId ? "Update" : "Create"} Table</button>
+    </form>
+  `;
   contentArea.html(formHTML);
-  let fieldCount = 0;
-  function addField(name = "", type = "text", required = false) {
-    const fieldHTML = `
+  let fields = [{
+    name: "",
+    type: "text",
+    tag: "",
+    filter: null
+  }];
+  function renderFields() {
+    $("#tableFields").html(fields.map((field, index) => `
         <div class="field-row mb-2">
-          <input type="text" name="field_name[]" placeholder="Field Name" value="${name}" class="p-2 border rounded mr-2" required>
-          <select name="field_type[]" class="p-2 border rounded mr-2">
-            <option value="text" ${type === "text" ? "selected" : ""}>Text</option>
-            <option value="number" ${type === "number" ? "selected" : ""}>Number</option>
-            <option value="date" ${type === "date" ? "selected" : ""}>Date</option>
-            <option value="boolean" ${type === "boolean" ? "selected" : ""}>Boolean</option>
+          <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
+          <select name="fieldType" class="p-2 border rounded mr-2">
+            <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
+            <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
+            <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
           </select>
-          <label>
-            <input type="checkbox" name="field_required[]" ${required ? "checked" : ""}> Required
-          </label>
+          <select name="fieldTag" class="p-2 border rounded mr-2">
+            <option value="">Select tag</option>
+            <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
+            <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
+            <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
+          </select>
+          ${index === 0 ? `
+            <label>
+              <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
+            </label>
+          ` : ''}
           <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
         </div>
-      `;
-    $("#tableFields").append(fieldHTML);
-    fieldCount++;
+      `).join(''));
+    $(".removeFieldBtn").click(function () {
+      const index = $(this).closest(".field-row").index();
+      fields.splice(index, 1);
+      renderFields();
+    });
   }
-  $("#addFieldBtn").click(() => addField());
-  $(document).on("click", ".removeFieldBtn", function () {
-    $(this).closest(".field-row").remove();
-    fieldCount--;
+  renderFields();
+  $("#addFieldBtn").click(() => {
+    fields.push({
+      name: "",
+      type: "text",
+      tag: "",
+      filter: null
+    });
+    renderFields();
   });
   if (tableId) {
     tableStructureComponent.getById(projectId, tableId).then(table => {
       $("#tableName").val(table.table_name);
-      table.table_structure.forEach(field => {
-        addField(field.name, field.type, field.required);
-      });
+      fields = JSON.parse(table.table_structure);
+      renderFields();
     });
-  } else {
-    addField(); // Add one empty field by default for new tables
   }
-  $("#tableForm").submit(function (e) {
+  $("#tableStructureForm").submit(function (e) {
     e.preventDefault();
     const tableData = {
       table_name: $("#tableName").val(),
-      table_structure: []
+      table_structure: fields.map((_, index) => ({
+        name: $("input[name='fieldName']").eq(index).val(),
+        type: $("select[name='fieldType']").eq(index).val(),
+        tag: $("select[name='fieldTag']").eq(index).val(),
+        filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : null
+      }))
     };
-    $(".field-row").each(function () {
-      tableData.table_structure.push({
-        name: $(this).find('input[name="field_name[]"]').val(),
-        type: $(this).find('select[name="field_type[]"]').val(),
-        required: $(this).find('input[name="field_required[]"]').is(":checked")
-      });
-    });
     const action = tableId ? tableStructureComponent.update(projectId, tableId, tableData) : tableStructureComponent.create(projectId, tableData);
     action.then(() => {
-      showNotification(`Table ${tableId ? "updated" : "created"} successfully`, "success");
+      notification.show(`Table ${tableId ? "updated" : "created"} successfully`, "success");
       loadTables(contentArea, projectId, tableStructureComponent);
     }).catch(error => {
-      showNotification(`Error ${tableId ? "updating" : "creating"} table: ` + error.message, "error");
+      notification.show(`Error ${tableId ? "updating" : "creating"} table: ${error.message}`, "error");
     });
   });
-}
-
-/**
- * Loads and displays the data for a specific table
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {string} tableId - The ID of the table
- * @param {number} page - The page number to load
- * @example
- * loadTableData($('#contentArea'), '123', '456', 1);
- */
-function loadTableData(contentArea, projectId, tableId, page) {
-  // This function would be implemented to load and display the actual data in the table
-  // It would use a separate component for table data, which is not provided in the original context
-  // For now, we'll just show a placeholder message
-  contentArea.html(`<p>Table data for table ID ${tableId} would be displayed here.</p>`);
-  showNotification("Table data loading is not implemented in this example.", "info");
 }
 
 /***/ }),
@@ -771,8 +924,21 @@ __webpack_require__.r(__webpack_exports__);
  * @example
  * loadUsers($('#contentArea'), '123', userComponent);
  */
-function loadUsers(contentArea, projectId, userComponent) {
-  userComponent.getAll(projectId).then(users => {
+function loadUsers(contentArea, projectId, userComponent, options = {}) {
+  const {
+    page = 1,
+    itemsPerPage = 10
+  } = options;
+  const notification = $().notification({
+    position: "top-right",
+    duration: 3000
+  });
+  userComponent.getAll(projectId, {
+    page,
+    itemsPerPage
+  }).then(response => {
+    const users = response.data;
+    const totalPages = response.last_page;
     let usersHTML = `
           <h2 class="text-xl mb-4">Users</h2>
           <button id="addUserBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add User</button>
@@ -785,7 +951,7 @@ function loadUsers(contentArea, projectId, userComponent) {
               </tr>
             </thead>
             <tbody>
-              ${users.data.map(user => `
+              ${users.map(user => `
                 <tr>
                   <td>${user.name}</td>
                   <td>${user.email}</td>
@@ -799,6 +965,7 @@ function loadUsers(contentArea, projectId, userComponent) {
           </table>
         `;
     contentArea.html(usersHTML);
+    $("#paginationArea").pagination(totalPages, page);
     $("#addUserBtn").click(() => showUserForm(contentArea, projectId, userComponent));
     $(".editUserBtn").click(function () {
       const userId = $(this).data("id");
@@ -807,12 +974,18 @@ function loadUsers(contentArea, projectId, userComponent) {
     $(".deleteUserBtn").click(function () {
       const userId = $(this).data("id");
       if (confirm("Are you sure you want to delete this user?")) {
-        userComponent.delete(projectId, userId).then(() => loadUsers(contentArea, projectId, userComponent)).catch(error => alert("Error deleting user: " + error.message));
+        userComponent.delete(projectId, userId).then(() => {
+          notification.show("User delete successfully", "success");
+          loadUsers(contentArea, projectId, userComponent);
+        }).catch(error => {
+          notification.show("Error deleting user: " + error.message);
+        });
       }
     });
   }).catch(error => {
     contentArea.html("<p>Error loading users.</p>");
     console.error("Error loading users:", error);
+    notification.show("Error loading users:", error);
   });
 }
 
@@ -833,6 +1006,7 @@ function showUserForm(contentArea, projectId, userComponent, userId = null) {
         <input type="text" id="userName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
         <input type="email" id="userEmail" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
         <input type="password" id="userPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
+        <input type="password" id="userConfirmed" placeholder="Confirmed" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
         <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
       </form>
     `;
@@ -843,12 +1017,13 @@ function showUserForm(contentArea, projectId, userComponent, userId = null) {
       $("#userEmail").val(user.email);
     });
   }
-  $("#userForm").submit(function (e) {
+  $("#userForm").on("submit", function (e) {
     e.preventDefault();
     const userData = {
       name: $("#userName").val(),
       email: $("#userEmail").val(),
-      password: $("#userPassword").val()
+      password: $("#userPassword").val(),
+      password_confirmation: $("#userConfirmed").val()
     };
     const action = userId ? userComponent.update(projectId, userId, userData) : userComponent.create(projectId, userData);
     action.then(() => loadUsers(contentArea, projectId, userComponent)).catch(error => alert("Error saving user: " + error.message));
@@ -909,6 +1084,8 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].adminSettings = {
  * @param {Object} [options.additionalComponents] - Additional UI components like tabs or modals.
  * @returns {Object} The ModernLib object for chaining.
  */
+
+let isInitialized = false;
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.adminPanel = function (options) {
   const {
     projectId,
@@ -935,21 +1112,55 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.adminPanel = function (o
     additionalComponents = {}
   } = options;
   const services = (0,_services__WEBPACK_IMPORTED_MODULE_1__.initServices)(apiBaseUrl, components);
-  services.authService.getMe().then(user => {
-    if (!user || !user.id) {
-      (0,_adminPanelAuth__WEBPACK_IMPORTED_MODULE_2__.showLoginForm)(this, services.authService, projectId, (context, user) => (0,_adminPanelInit__WEBPACK_IMPORTED_MODULE_3__.initializeAdminPanel)(context, user, options, services));
-    } else {
-      (0,_adminPanelInit__WEBPACK_IMPORTED_MODULE_3__.initializeAdminPanel)(this, user, options, services);
+  const checkAuthAndInitialize = async () => {
+    if (isInitialized) {
+      console.log("Admin panel is already initialized");
+      return;
     }
-  }).catch(() => (0,_adminPanelAuth__WEBPACK_IMPORTED_MODULE_2__.showLoginForm)(this, services.authService, projectId, (context, user) => (0,_adminPanelInit__WEBPACK_IMPORTED_MODULE_3__.initializeAdminPanel)(context, user, options, services)));
+    try {
+      const token = services.authService.getToken();
+      if (!token) {
+        throw new Error("No token found");
+      }
+      const user = await services.authService.getMe(projectId);
+      if (!user || !user.id) {
+        throw new Error("Invalid user data");
+      }
+      (0,_adminPanelInit__WEBPACK_IMPORTED_MODULE_3__.initializeAdminPanel)(this, user, options, services);
+      isInitialized = true;
+    } catch (error) {
+      console.error("Authentication error:", error);
+      services.authService.removeToken();
+      (0,_adminPanelAuth__WEBPACK_IMPORTED_MODULE_2__.showLoginForm)(this, services.authService, projectId, handleSuccessfulLogin);
+    }
+  };
+  const handleSuccessfulLogin = async user => {
+    if (!user || !user.id) {
+      console.error("Invalid user data after login");
+      services.authService.removeToken();
+      (0,_adminPanelAuth__WEBPACK_IMPORTED_MODULE_2__.showLoginForm)(this, services.authService, projectId, handleSuccessfulLogin);
+      return;
+    }
+    (0,_adminPanelInit__WEBPACK_IMPORTED_MODULE_3__.initializeAdminPanel)(this, user, options, services);
+    isInitialized = true;
+  };
 
-  // Rest of the adminPanel code...
-  // Use services.authService, services.userService, etc. instead of separate variables
-  console.log("adminPanel this:", this);
-  console.log("adminPanel this methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
+  // Start the authentication check and initialization process
+  checkAuthAndInitialize();
   return this;
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+/*   services.authService
+    .getMe()
+    .then((user) => {
+      if (!user || !user.id) {
+        showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services));
+      } else {
+        initializeAdminPanel(this, user, options, services);
+      }
+    })
+    .catch(() => showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services))); */
 
 /***/ }),
 
@@ -1043,6 +1254,10 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the registration result.
      * @throws {Error} If there's an error during registration.
      */
+
+    setToken: () => setToken(),
+    getToken: () => getToken(),
+    removeToken: () => removeToken(),
     register: async function (userData, projectId) {
       try {
         const response = await fetch(`${baseUrl}/project/register`, {
@@ -1090,6 +1305,7 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.auth = function (baseUrl
         return data;
       } catch (error) {
         console.error("Login error:", error);
+        localStorage.removeItem(this.tokenKey); // Clear token on login error
         throw error;
       }
     },
@@ -1203,9 +1419,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (b
      * @returns {Promise<Array>} A promise that resolves to an array of permissions.
      * @throws {Error} If there's an error fetching the permissions.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, {
+      page = 1,
+      itemsPerPage = 15
+    }) {
       try {
-        const response = await fetch(`${baseUrl}/project-permissions`, {
+        const response = await fetch(`${baseUrl}/project-permissions?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
@@ -1351,14 +1570,20 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
      * @returns {Promise<Array>} A promise that resolves to an array of roles.
      * @throws {Error} If there's an error fetching the roles.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, {
+      page = 1,
+      itemsPerPage = 15
+    }) {
       try {
-        const response = await fetch(`${baseUrl}/project-roles`, {
+        const response = await fetch(`${baseUrl}/project-roles?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
           }
         });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return await response.json();
       } catch (error) {
         console.error("Error fetching roles:", error);
@@ -1551,9 +1776,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableData = function (ba
      * @returns {Promise<Array>} A promise that resolves to an array of table data.
      * @throws {Error} If there's an error fetching the table data.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, {
+      page = 1,
+      itemsPerPage = 15
+    }) {
       try {
-        const response = await fetch(`${baseUrl}/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
@@ -1699,9 +1927,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tableStructure = functio
      * @returns {Promise<Array>} A promise that resolves to an array of table structures.
      * @throws {Error} If there's an error fetching the table structures.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, {
+      page = 1,
+      itemsPerPage = 15
+    }) {
       try {
-        const response = await fetch(`${baseUrl}/project-table-structures`, {
+        const response = await fetch(`${baseUrl}/project-table-structures?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
@@ -1856,8 +2087,8 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
       try {
         const response = await fetch(`${baseUrl}/project/me`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
-            /*  */
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}` /*  */,
             "X-Project-ID": projectId
           }
         });
@@ -1875,6 +2106,31 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
       }
     },
     /**
+     * Retrieves a specific permission by ID.
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @param {string} permissionId - The ID of the permission.
+     * @returns {Promise<Object>} A promise that resolves to the permission.
+     * @throws {Error} If there's an error fetching the permission.
+     */
+    getById: async function (projectId, userId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching permission:", error);
+        throw error;
+      }
+    },
+    /**
      * Retrieves all users for a specific project.
      * @async
      * @param {number} projectId - The ID of the project.
@@ -1886,9 +2142,12 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
      *   .then(users => console.log(users))
      *   .catch(error => console.error(error));
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, {
+      page = 1,
+      itemsPerPage = 15
+    }) {
       try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/users`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId
@@ -1911,22 +2170,26 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the created user object.
      * @throws {Error} If there's an error creating the user.
      */
-    createUser: async function (projectId, userData) {
+    create: async function (projectId, userData) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(userData)
         });
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorBody = await response.text();
+          console.error("Error response:", response.status, errorBody);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
         }
         return await response.json();
       } catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error updating user:", error);
+        console.error("Error details:", error.message);
         throw error;
       }
     },
@@ -1939,13 +2202,14 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
      * @returns {Promise<Object>} A promise that resolves to the updated user object.
      * @throws {Error} If there's an error updating the user.
      */
-    updateUser: async function (projectId, userId, userData) {
+    update: async function (projectId, userId, userData) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           },
           body: JSON.stringify(userData)
         });
@@ -1966,12 +2230,13 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
      * @returns {Promise<void>} A promise that resolves when the user is successfully deleted.
      * @throws {Error} If there's an error deleting the user.
      */
-    deleteUser: async function (projectId, userId) {
+    delete: async function (projectId, userId) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
           }
         });
         if (!response.ok) {
@@ -1983,28 +2248,28 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
       }
     },
     /**
-       * Checks if the current user has a specific permission.
-       * @async
-       * @param {string} permissionName - The name of the permission to check.
-       * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise.
-       * @throws {Error} If there's an error checking the permission.
-       */
+     * Checks if the current user has a specific permission.
+     * @async
+     * @param {string} permissionName - The name of the permission to check.
+     * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise.
+     * @throws {Error} If there's an error checking the permission.
+     */
     hasPermission: async function (permissionName, projectId) {
       try {
         const currentUser = await this.getCurrentUser(projectId);
         if (!currentUser) {
-          console.warn('User is undefined');
+          console.warn("User is undefined");
           return false;
         }
 
         // Перевірка для super_user
-        if (currentUser.user_type === 'super_user') {
+        if (currentUser.user_type === "super_user") {
           return true; // super_user має всі дозволи
         }
 
         // Перевірка для project_user
         if (!Array.isArray(currentUser.permissions)) {
-          console.warn('User permissions are undefined or not an array');
+          console.warn("User permissions are undefined or not an array");
           return false;
         }
         return currentUser.permissions.includes(permissionName);
@@ -2024,18 +2289,18 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
       try {
         const currentUser = await this.getCurrentUser(projectId);
         if (!currentUser) {
-          console.warn('User is undefined');
+          console.warn("User is undefined");
           return false;
         }
 
         // Перевірка для super_user
-        if (currentUser.user_type === 'super_user') {
+        if (currentUser.user_type === "super_user") {
           return true; // super_user має всі ролі
         }
 
         // Перевірка для project_user
         if (!Array.isArray(currentUser.roles)) {
-          console.warn('User roles are undefined or not an array');
+          console.warn("User roles are undefined or not an array");
           return false;
         }
         return currentUser.roles.includes(roleName);
@@ -2739,6 +3004,134 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.mobileNav = function () 
 
 /***/ }),
 
+/***/ "./src/js/lib/components/notification.js":
+/*!***********************************************!*\
+  !*** ./src/js/lib/components/notification.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core */ "./src/js/lib/core.js");
+/**
+ * @file notification.js
+ * @module components/notification
+ */
+
+
+
+/**
+ * Creates a notification component.
+ * @param {Object} options - Configuration options for the notification component.
+ * @param {string} [options.position='top-right'] - Position of the notification ('top-right', 'top-left', 'bottom-right', 'bottom-left').
+ * @param {number} [options.duration=5000] - Duration in milliseconds for which the notification is displayed.
+ * @returns {Object} An object with methods for showing notifications.
+ *
+ * @example
+ * // Initialize the notification component
+ * const notification = $().notification({
+ *   position: 'bottom-left',
+ *   duration: 3000
+ * });
+ *
+ * // Show a success notification
+ * notification.show('Operation successful!', 'success');
+ *
+ * // Show an error notification
+ * notification.show('An error occurred', 'error');
+ *
+ * // Show a warning notification
+ * notification.show('Please check your input', 'warning');
+ *
+ * // Show an info notification
+ * notification.show('New update available', 'info');
+ */
+
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.notification = function (options = {}) {
+  const defaultOptions = {
+    position: "top-right",
+    duration: 5000
+  };
+  const settings = {
+    ...defaultOptions,
+    ...options
+  };
+
+  // Create container for notifications if it doesn't exist
+  let container = document.querySelector(".modernlib-notification-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = `modernlib-notification-container ${settings.position}`;
+    document.body.appendChild(container);
+  }
+
+  /**
+   * Shows a notification.
+   * @param {string} message - The message to display.
+   * @param {string} type - The type of notification ('success', 'error', 'warning', 'info').
+   */
+  function showNotification(message, type = "info") {
+    const notification = document.createElement("div");
+    notification.className = `modernlib-notification ${type}`;
+    notification.textContent = message;
+    container.appendChild(notification);
+
+    // Trigger a reflow to enable the transition
+    notification.offsetHeight;
+
+    // Add visible class to trigger the transition
+    notification.classList.add("visible");
+
+    // Remove the notification after the specified duration
+    setTimeout(() => {
+      notification.classList.remove("visible");
+      setTimeout(() => {
+        container.removeChild(notification);
+      }, 300); // Wait for the fade-out transition to complete
+    }, settings.duration);
+  }
+
+  // Add styles to the document
+  const style = document.createElement("style");
+  style.textContent = `
+    .modernlib-notification-container {
+      position: fixed;
+      z-index: 9999;
+      max-width: 300px;
+    }
+    .modernlib-notification-container.top-right { top: 20px; right: 20px; }
+    .modernlib-notification-container.top-left { top: 20px; left: 20px; }
+    .modernlib-notification-container.bottom-right { bottom: 20px; right: 20px; }
+    .modernlib-notification-container.bottom-left { bottom: 20px; left: 20px; }
+    .modernlib-notification {
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 4px;
+      color: white;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .modernlib-notification.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .modernlib-notification.success { background-color: #4CAF50; }
+    .modernlib-notification.error { background-color: #F44336; }
+    .modernlib-notification.warning { background-color: #FF9800; }
+    .modernlib-notification.info { background-color: #2196F3; }
+  `;
+  document.head.appendChild(style);
+  return {
+    show: showNotification
+  };
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+/***/ }),
+
 /***/ "./src/js/lib/components/pagination.js":
 /*!*********************************************!*\
   !*** ./src/js/lib/components/pagination.js ***!
@@ -3022,20 +3415,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_effects__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./modules/effects */ "./src/js/lib/modules/effects.js");
 /* harmony import */ var _modules_url__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./modules/url */ "./src/js/lib/modules/url.js");
 /* harmony import */ var _modules_jqueryLikeMethods__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./modules/jqueryLikeMethods */ "./src/js/lib/modules/jqueryLikeMethods.js");
-/* harmony import */ var _components_dropdown__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./components/dropdown */ "./src/js/lib/components/dropdown.js");
-/* harmony import */ var _components_modal__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./components/modal */ "./src/js/lib/components/modal.js");
-/* harmony import */ var _components_tab__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./components/tab */ "./src/js/lib/components/tab.js");
-/* harmony import */ var _components_accordion__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./components/accordion */ "./src/js/lib/components/accordion.js");
-/* harmony import */ var _components_carousel__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./components/carousel */ "./src/js/lib/components/carousel.js");
-/* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./components/navigation */ "./src/js/lib/components/navigation.js");
-/* harmony import */ var _components_postGenerator__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./components/postGenerator */ "./src/js/lib/components/postGenerator.js");
-/* harmony import */ var _components_loadPosts__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./components/loadPosts */ "./src/js/lib/components/loadPosts.js");
-/* harmony import */ var _components_loadPostsLocal__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./components/loadPostsLocal */ "./src/js/lib/components/loadPostsLocal.js");
-/* harmony import */ var _components_pagination__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./components/pagination */ "./src/js/lib/components/pagination.js");
-/* harmony import */ var _components_carouselBlog__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./components/carouselBlog */ "./src/js/lib/components/carouselBlog.js");
-/* harmony import */ var _components_cardGenerator__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./components/cardGenerator */ "./src/js/lib/components/cardGenerator.js");
-/* harmony import */ var _components_adminPanel__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./components/adminPanel */ "./src/js/lib/components/adminPanel/index.js");
-/* harmony import */ var _services_request__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./services/request */ "./src/js/lib/services/request.js");
+/* harmony import */ var _components_notification__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./components/notification */ "./src/js/lib/components/notification.js");
+/* harmony import */ var _components_dropdown__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./components/dropdown */ "./src/js/lib/components/dropdown.js");
+/* harmony import */ var _components_modal__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./components/modal */ "./src/js/lib/components/modal.js");
+/* harmony import */ var _components_tab__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./components/tab */ "./src/js/lib/components/tab.js");
+/* harmony import */ var _components_accordion__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./components/accordion */ "./src/js/lib/components/accordion.js");
+/* harmony import */ var _components_carousel__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./components/carousel */ "./src/js/lib/components/carousel.js");
+/* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./components/navigation */ "./src/js/lib/components/navigation.js");
+/* harmony import */ var _components_postGenerator__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./components/postGenerator */ "./src/js/lib/components/postGenerator.js");
+/* harmony import */ var _components_loadPosts__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./components/loadPosts */ "./src/js/lib/components/loadPosts.js");
+/* harmony import */ var _components_loadPostsLocal__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./components/loadPostsLocal */ "./src/js/lib/components/loadPostsLocal.js");
+/* harmony import */ var _components_pagination__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./components/pagination */ "./src/js/lib/components/pagination.js");
+/* harmony import */ var _components_carouselBlog__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./components/carouselBlog */ "./src/js/lib/components/carouselBlog.js");
+/* harmony import */ var _components_cardGenerator__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./components/cardGenerator */ "./src/js/lib/components/cardGenerator.js");
+/* harmony import */ var _components_adminPanel__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./components/adminPanel */ "./src/js/lib/components/adminPanel/index.js");
+/* harmony import */ var _services_request__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./services/request */ "./src/js/lib/services/request.js");
 /**
  * @file lib.js
  * @description Main entry point for the ModernLib library.
@@ -3047,6 +3441,7 @@ __webpack_require__.r(__webpack_exports__);
  * @type {Object}
  * @const
  */
+
 
 
 

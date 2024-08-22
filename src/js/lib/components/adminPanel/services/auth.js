@@ -38,6 +38,11 @@ $.prototype.auth = function (baseUrl) {
      * @returns {Promise<Object>} A promise that resolves to the registration result.
      * @throws {Error} If there's an error during registration.
      */
+
+    setToken: () => setToken(),
+    getToken: () => getToken(),
+    removeToken: () => removeToken(),
+
     register: async function (userData, projectId) {
       try {
         const response = await fetch(`${baseUrl}/project/register`, {
@@ -83,6 +88,7 @@ $.prototype.auth = function (baseUrl) {
         return data;
       } catch (error) {
         console.error("Login error:", error);
+        localStorage.removeItem(this.tokenKey); // Clear token on login error
         throw error;
       }
     },

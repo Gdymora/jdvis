@@ -7,7 +7,8 @@
 import { loadUsers } from "./adminPanelUsers";
 import { loadRoles } from "./adminPanelRoles";
 import { loadPermissions } from "./adminPanelPermissions";
-import { loadTables } from "./adminPanelTables";
+import { loadTableData, loadTables } from "./adminPanelTables";
+import { loadPosts } from "./adminPanelPosts";
 import { showLoginForm } from "./adminPanelAuth";
 
 /**
@@ -139,6 +140,14 @@ export function initializeAdminPanel(context, user, options, services) {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
         }
         break;
+      case "posts":
+        console.log("Posts case");
+        if (await checkPermission(services, "view_posts", projectId)) {
+          loadPosts(contentArea, projectId, services.tableDataService);
+        } else {
+          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
+        }
+        break;
       default:
         console.log("Default case");
         contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
@@ -155,7 +164,7 @@ export function initializeAdminPanel(context, user, options, services) {
       })
       .catch((error) => {
         console.error("Logout failed:", error);
-        alert("Logout failed. Please try again.");
+        window.location.reload();
       });
   });
 }

@@ -20,9 +20,9 @@ $.prototype.permission = function (baseUrl) {
      * @returns {Promise<Array>} A promise that resolves to an array of permissions.
      * @throws {Error} If there's an error fetching the permissions.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
       try {
-        const response = await fetch(`${baseUrl}/project-permissions`, {
+        const response = await fetch(`${baseUrl}/project-permissions?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,

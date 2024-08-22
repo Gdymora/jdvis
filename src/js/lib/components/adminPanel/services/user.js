@@ -29,7 +29,8 @@ $.prototype.user = function (baseUrl) {
       try {
         const response = await fetch(`${baseUrl}/project/me`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,/*  */
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}` /*  */,
             "X-Project-ID": projectId,
           },
         });
@@ -48,6 +49,32 @@ $.prototype.user = function (baseUrl) {
     },
 
     /**
+     * Retrieves a specific permission by ID.
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @param {string} permissionId - The ID of the permission.
+     * @returns {Promise<Object>} A promise that resolves to the permission.
+     * @throws {Error} If there's an error fetching the permission.
+     */
+    getById: async function (projectId, userId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching permission:", error);
+        throw error;
+      }
+    },
+
+    /**
      * Retrieves all users for a specific project.
      * @async
      * @param {number} projectId - The ID of the project.
@@ -59,14 +86,15 @@ $.prototype.user = function (baseUrl) {
      *   .then(users => console.log(users))
      *   .catch(error => console.error(error));
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
       try {
-        const response = await fetch(`${baseUrl}/project/${projectId}/users`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,
           },
         });
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -84,22 +112,26 @@ $.prototype.user = function (baseUrl) {
      * @returns {Promise<Object>} A promise that resolves to the created user object.
      * @throws {Error} If there's an error creating the user.
      */
-    createUser: async function (projectId, userData) {
+    create: async function (projectId, userData) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
           },
           body: JSON.stringify(userData),
         });
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorBody = await response.text();
+          console.error("Error response:", response.status, errorBody);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
         }
         return await response.json();
       } catch (error) {
-        console.error("Error creating user:", error);
+        console.error("Error updating user:", error);
+        console.error("Error details:", error.message);
         throw error;
       }
     },
@@ -113,13 +145,14 @@ $.prototype.user = function (baseUrl) {
      * @returns {Promise<Object>} A promise that resolves to the updated user object.
      * @throws {Error} If there's an error updating the user.
      */
-    updateUser: async function (projectId, userId, userData) {
+    update: async function (projectId, userId, userData) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
           },
           body: JSON.stringify(userData),
         });
@@ -141,12 +174,13 @@ $.prototype.user = function (baseUrl) {
      * @returns {Promise<void>} A promise that resolves when the user is successfully deleted.
      * @throws {Error} If there's an error deleting the user.
      */
-    deleteUser: async function (projectId, userId) {
+    delete: async function (projectId, userId) {
       try {
-        const response = await fetch(`${baseUrl}/${apiVersion}/project/${projectId}/users/${userId}`, {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
           },
         });
         if (!response.ok) {
@@ -158,69 +192,69 @@ $.prototype.user = function (baseUrl) {
       }
     },
 
-  /**
+    /**
      * Checks if the current user has a specific permission.
      * @async
      * @param {string} permissionName - The name of the permission to check.
      * @returns {Promise<boolean>} A promise that resolves to true if the user has the permission, false otherwise.
      * @throws {Error} If there's an error checking the permission.
      */
-  hasPermission: async function (permissionName, projectId) {
-    try {
-      const currentUser = await this.getCurrentUser(projectId);
-      if (!currentUser) {
-        console.warn('User is undefined');
+    hasPermission: async function (permissionName, projectId) {
+      try {
+        const currentUser = await this.getCurrentUser(projectId);
+        if (!currentUser) {
+          console.warn("User is undefined");
+          return false;
+        }
+
+        // Перевірка для super_user
+        if (currentUser.user_type === "super_user") {
+          return true; // super_user має всі дозволи
+        }
+
+        // Перевірка для project_user
+        if (!Array.isArray(currentUser.permissions)) {
+          console.warn("User permissions are undefined or not an array");
+          return false;
+        }
+        return currentUser.permissions.includes(permissionName);
+      } catch (error) {
+        console.error("Error checking permission:", error);
         return false;
       }
+    },
 
-      // Перевірка для super_user
-      if (currentUser.user_type === 'super_user') {
-        return true; // super_user має всі дозволи
-      }
+    /**
+     * Checks if the current user has a specific role.
+     * @async
+     * @param {string} roleName - The name of the role to check.
+     * @returns {Promise<boolean>} A promise that resolves to true if the user has the role, false otherwise.
+     * @throws {Error} If there's an error checking the role.
+     */
+    hasRole: async function (roleName) {
+      try {
+        const currentUser = await this.getCurrentUser(projectId);
+        if (!currentUser) {
+          console.warn("User is undefined");
+          return false;
+        }
 
-      // Перевірка для project_user
-      if (!Array.isArray(currentUser.permissions)) {
-        console.warn('User permissions are undefined or not an array');
+        // Перевірка для super_user
+        if (currentUser.user_type === "super_user") {
+          return true; // super_user має всі ролі
+        }
+
+        // Перевірка для project_user
+        if (!Array.isArray(currentUser.roles)) {
+          console.warn("User roles are undefined or not an array");
+          return false;
+        }
+        return currentUser.roles.includes(roleName);
+      } catch (error) {
+        console.error("Error checking role:", error);
         return false;
       }
-      return currentUser.permissions.includes(permissionName);
-    } catch (error) {
-      console.error("Error checking permission:", error);
-      return false;
-    }
-  },
-
-  /**
-   * Checks if the current user has a specific role.
-   * @async
-   * @param {string} roleName - The name of the role to check.
-   * @returns {Promise<boolean>} A promise that resolves to true if the user has the role, false otherwise.
-   * @throws {Error} If there's an error checking the role.
-   */
-  hasRole: async function (roleName) {
-    try {
-      const currentUser = await this.getCurrentUser(projectId);
-      if (!currentUser) {
-        console.warn('User is undefined');
-        return false;
-      }
-
-      // Перевірка для super_user
-      if (currentUser.user_type === 'super_user') {
-        return true; // super_user має всі ролі
-      }
-
-      // Перевірка для project_user
-      if (!Array.isArray(currentUser.roles)) {
-        console.warn('User roles are undefined or not an array');
-        return false;
-      }
-      return currentUser.roles.includes(roleName);
-    } catch (error) {
-      console.error("Error checking role:", error);
-      return false;
-    }
-  },
+    },
   };
 };
 

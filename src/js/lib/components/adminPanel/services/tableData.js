@@ -20,9 +20,9 @@ $.prototype.tableData = function (baseUrl) {
      * @returns {Promise<Array>} A promise that resolves to an array of table data.
      * @throws {Error} If there's an error fetching the table data.
      */
-    getAll: async function (projectId) {
+    getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
       try {
-        const response = await fetch(`${baseUrl}/project-table-data`, {
+        const response = await fetch(`${baseUrl}/project-table-data?page=${page}&per_page=${itemsPerPage}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
             "X-Project-ID": projectId,

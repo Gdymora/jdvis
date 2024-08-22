@@ -32,6 +32,9 @@ $.adminSettings = {
  * @param {Object} [options.additionalComponents] - Additional UI components like tabs or modals.
  * @returns {Object} The ModernLib object for chaining.
  */
+
+let isInitialized = false;
+
 $.prototype.adminPanel = function (options) {
   const {
     projectId,
@@ -49,10 +52,55 @@ $.prototype.adminPanel = function (options) {
     additionalComponents = {},
   } = options;
 
-
   const services = initServices(apiBaseUrl, components);
 
-  services.authService
+  const checkAuthAndInitialize = async () => {
+    if (isInitialized) {
+      console.log("Admin panel is already initialized");
+      return;
+    }
+
+    try {
+      const token = services.authService.getToken();
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      const user = await services.authService.getMe(projectId);
+      if (!user || !user.id) {
+        throw new Error("Invalid user data");
+      }
+
+      initializeAdminPanel(this, user, options, services);
+      isInitialized = true;
+    } catch (error) {
+      console.error("Authentication error:", error);
+      services.authService.removeToken();
+      showLoginForm(this, services.authService, projectId, handleSuccessfulLogin);
+    }
+  };
+
+  const handleSuccessfulLogin = async (user) => {
+    if (!user || !user.id) {
+      console.error("Invalid user data after login");
+      services.authService.removeToken();
+      showLoginForm(this, services.authService, projectId, handleSuccessfulLogin);
+      return;
+    }
+
+    initializeAdminPanel(this, user, options, services);
+    isInitialized = true;
+  };
+
+  // Start the authentication check and initialization process
+  checkAuthAndInitialize();
+
+  return this;
+};
+
+export default $;
+
+/*   services.authService
     .getMe()
     .then((user) => {
       if (!user || !user.id) {
@@ -61,14 +109,4 @@ $.prototype.adminPanel = function (options) {
         initializeAdminPanel(this, user, options, services);
       }
     })
-    .catch(() => showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services)));
-
-  // Rest of the adminPanel code...
-  // Use services.authService, services.userService, etc. instead of separate variables
-  console.log("adminPanel this:", this);
-  console.log("adminPanel this methods:", Object.getOwnPropertyNames(Object.getPrototypeOf(this)));
-  
-  return this;
-};
-
-export default $;
+    .catch(() => showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services))); */

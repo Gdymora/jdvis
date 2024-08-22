@@ -19,7 +19,7 @@ import "./modules/actions";
 import "./modules/effects";
 import "./modules/url";
 import "./modules/jqueryLikeMethods";
-
+import "./components/notification";
 import "./components/dropdown";
 import "./components/modal";
 import "./components/tab";
