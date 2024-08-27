@@ -39,8 +39,8 @@ async function checkPermission(services, permission, projectId) {
  * @example
  * initializeAdminPanel($, { name: 'John Doe' }, { projectId: '123' }, services);
  */
-export function initializeAdminPanel(context, user, options, services) {
-  const { projectId, onMenuItemClick, menuItems = [] } = options;
+export function initializeAdminPanel(context, user, options) {
+  const { projectId, onMenuItemClick, menuItems = [], services, components } = options;
 
   if (!context || context.length === 0) {
     console.warn("Context is empty or undefined, initializing with document body");
@@ -111,7 +111,9 @@ export function initializeAdminPanel(context, user, options, services) {
       case "users":
         console.log("Users case");
         if (await checkPermission(services, "view_users", projectId)) {
-          loadUsers(contentArea, projectId, services.userService);
+          components.userManagement.load(contentArea, projectId, services.userService);
+
+          //loadUsers(contentArea, projectId, services.userService);
         } else {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view users.</p>');
         }
@@ -119,7 +121,7 @@ export function initializeAdminPanel(context, user, options, services) {
       case "roles":
         console.log("Roles case");
         if (await checkPermission(services, "view_roles", projectId)) {
-          loadRoles(contentArea, projectId, services.roleService);
+          components.roleManagement.load(contentArea, projectId, services.roleService);
         } else {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
         }
@@ -127,7 +129,7 @@ export function initializeAdminPanel(context, user, options, services) {
       case "permissions":
         console.log("Permissions case");
         if (await checkPermission(services, "view_permissions", projectId)) {
-          loadPermissions(contentArea, projectId, services.permissionService);
+          components.permissionManagement.load(contentArea, projectId, services.permissionService);
         } else {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
         }
@@ -135,7 +137,7 @@ export function initializeAdminPanel(context, user, options, services) {
       case "tables":
         console.log("Tables case");
         if (await checkPermission(services, "view_tables", projectId)) {
-          loadTables(contentArea, projectId, services.tableStructureService);
+          components.tableManagement.load(contentArea, projectId, services.tableStructureService);
         } else {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
         }
@@ -143,7 +145,7 @@ export function initializeAdminPanel(context, user, options, services) {
       case "posts":
         console.log("Posts case");
         if (await checkPermission(services, "view_posts", projectId)) {
-          loadPosts(contentArea, projectId, services.tableDataService);
+          components.postManagement.load(contentArea, projectId, services.tableDataService);
         } else {
           contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
         }

@@ -6,6 +6,7 @@
 
 import $ from "../../core";
 import { initServices } from "./services";
+import { initComponents } from "./components";
 import { showLoginForm } from "./adminPanelAuth";
 import { initializeAdminPanel } from "./adminPanelInit";
 import { loadUsers, showUserForm } from "./adminPanelUsers";
@@ -53,6 +54,7 @@ $.prototype.adminPanel = function (options) {
   } = options;
 
   const services = initServices(apiBaseUrl, components);
+  const initializedComponents = initComponents(components);
 
   const checkAuthAndInitialize = async () => {
     if (isInitialized) {
@@ -71,7 +73,13 @@ $.prototype.adminPanel = function (options) {
         throw new Error("Invalid user data");
       }
 
-      initializeAdminPanel(this, user, options, services);
+      //initializeAdminPanel(this, user, options, services);
+      initializeAdminPanel(this, user, {
+        ...options,
+        services,
+        components: initializedComponents,
+      });
+
       isInitialized = true;
     } catch (error) {
       console.error("Authentication error:", error);
@@ -88,7 +96,12 @@ $.prototype.adminPanel = function (options) {
       return;
     }
 
-    initializeAdminPanel(this, user, options, services);
+    // initializeAdminPanel(this, user, options, services);
+    initializeAdminPanel(this, user, {
+      ...options,
+      services,
+      components: initializedComponents,
+    });
     isInitialized = true;
   };
 

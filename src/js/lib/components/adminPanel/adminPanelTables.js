@@ -59,24 +59,24 @@ export function loadTables(contentArea, projectId, tableStructureComponent, opti
                       table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0
                         ? `
                       <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
-                        <i class="fa-regular fa-eye"></i>
+                        <i class="fa-regular fa-eye">view</i>
                       </button>
                       <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                        <i class="fa-regular fa-square-plus fa-lg"></i>
+                        <i class="fa-regular fa-square-plus fa-lg">add</i>
                       </button>
                       <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                        <i class="fa-solid fa-file-excel fa-lg"></i>
+                        <i class="fa-solid fa-file-excel fa-lg">exel</i>
                       </button>
                     `
                         : `
                       <button class="viewTableBtn p-2 bg-gray-500 text-white rounded-md mr-2" data-id="${table.id}" disabled>
-                        <i class="fa-regular fa-eye"></i>
+                        <i class="fa-regular fa-eye">view</i>
                       </button>
                       <button class="fillTableBtn px-2 py-3 bg-green-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                        <i class="fa-regular fa-square-plus fa-lg"></i>
+                        <i class="fa-regular fa-square-plus fa-lg">add</i>
                       </button>
                       <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                        <i class="fa-solid fa-file-excel fa-lg"></i>
+                        <i class="fa-solid fa-file-excel fa-lg">exel</i>
                       </button>
                     `
                     }
@@ -85,7 +85,7 @@ export function loadTables(contentArea, projectId, tableStructureComponent, opti
                       <i class="fa-solid fa-pencil" style="color: #429424"></i>
                     </button>
                     <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                      <i class="fa-regular fa-trash-can" style="color: #ea3f06"></i>
+                      <i class="fa-regular fa-trash-can" style="color: #ea3f06">delete</i>
                     </button>
                   </td>
                 </tr>
