@@ -48,13 +48,13 @@ export function createPermissionManagement() {
           // Render pagination
           $("#paginationArea").pagination(totalPages, page);
 
-          $("#addPermissionBtn").click(() => showPermissionForm(contentArea, projectId, permissionService));
-          $(".editPermissionBtn").click(function () {
-            const permissionId = $(this).data("id");
+          $("#addPermissionBtn").click(() => this.showForm(contentArea, projectId, permissionService));
+          $(".editPermissionBtn").click((e) => {
+            const permissionId = $(e.target).data("id");
             this.showForm(contentArea, projectId, permissionService, permissionId);
           });
-          $(".deletePermissionBtn").click(function () {
-            const permissionId = $(this).data("id");
+          $(".deletePermissionBtn").click((e) => {
+            const permissionId = $(e.target).data("id");
             if (confirm("Are you sure you want to delete this permission?")) {
               permissionService
                 .delete(projectId, permissionId)
@@ -94,16 +94,14 @@ export function createPermissionManagement() {
         });
       }
 
-      $("#permissionForm").submit(function (e) {
+      $("#permissionForm").on("submit",(e) => {
         e.preventDefault();
         const permissionData = {
           name: $("#permissionName").val(),
           description: $("#permissionDescription").val(),
         };
 
-        const action = permissionId
-          ? permissionService.update(projectId, permissionId, permissionData)
-          : permissionService.create(projectId, permissionData);
+        const action = permissionId ? permissionService.update(projectId, permissionId, permissionData) : permissionService.create(projectId, permissionData);
 
         action
           .then(() => {

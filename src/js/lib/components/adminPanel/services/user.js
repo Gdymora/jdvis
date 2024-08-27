@@ -192,6 +192,48 @@ $.prototype.user = function (baseUrl) {
       }
     },
 
+    assignRole: async function (projectId, userId, roleId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}/assign-role`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+          body: JSON.stringify({ role_id: roleId }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error assigning role:", error);
+        throw error;
+      }
+    },
+
+    removeRole: async function (projectId, userId, roleId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}/remove-role`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+          body: JSON.stringify({ role_id: roleId }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error removing role:", error);
+        throw error;
+      }
+    },
+
     /**
      * Checks if the current user has a specific permission.
      * @async

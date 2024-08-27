@@ -1,5 +1,5 @@
 // components/tableManagement.js
- 
+
 export function createTableManagement() {
   const notification = $().notification({
     position: "top-right",
@@ -179,7 +179,7 @@ export function createTableManagement() {
         });
       }
 
-      $("#tableStructureForm").submit(function (e) {
+      $("#tableStructureForm").on("submit", (e) => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),
@@ -203,26 +203,26 @@ export function createTableManagement() {
           });
       });
     },
-   
-    viewTable: function(contentArea, projectId, tableStructureService, tableId) {
+
+    viewTable: function (contentArea, projectId, tableStructureService, tableId) {
       // Implement viewTable functionality here
       // This function will be called when viewing a table
     },
-    showFillTableForm: function(contentArea, projectId, tableStructureService, tableId, action) {
+    showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action) {
       // Implement showFillTableForm functionality here
       // This function will be called when filling a table with data
     },
-    showExcelImportForm: function(contentArea, projectId, tableStructureService, tableId, action) {
+    showExcelImportForm: function (contentArea, projectId, tableStructureService, tableId, action) {
       // Implement showExcelImportForm functionality here
       // This function will be called when importing data from Excel
     },
-    cloneTable: function(contentArea, projectId, tableStructureService, tableId) {
+    cloneTable: function (contentArea, projectId, tableStructureService, tableId) {
       // Implement cloneTable functionality here
       // This function will be called when cloning a table
     },
-    deleteTable: function(contentArea, projectId, tableStructureService, tableId) {
+    deleteTable: function (contentArea, projectId, tableStructureService, tableId) {
       // Implement deleteTable functionality here
       // This function will be called when deleting a table
-    }
+    },
   };
 }

@@ -10,11 +10,6 @@ export function createRoleManagement() {
     load: function (contentArea, projectId, roleService, options = {}) {
       const { page = 1, itemsPerPage = 10 } = options;
 
-      const notification = $().notification({
-        position: "top-right",
-        duration: 3000,
-      });
-
       roleService
         .getAll(projectId, { page, itemsPerPage })
         .then((response) => {
@@ -56,23 +51,21 @@ export function createRoleManagement() {
           $("#paginationArea").pagination(totalPages, page);
 
           $("#addRoleBtn").click(() => this.showForm(contentArea, projectId, roleService));
-          $(".editRoleBtn").click(function () {
-            const roleId = $(this).data("id");
+          $(".editRoleBtn").click((e) => {
+            const roleId = $(e.target).data("id");
             this.showForm(contentArea, projectId, roleService, roleId);
           });
-          $(".deleteRoleBtn").click(function () {
-            const roleId = $(this).data("id");
+          $(".deleteRoleBtn").click((e) => {
+            const roleId = $(e.target).data("id");
             if (confirm("Are you sure you want to delete this role?")) {
               roleService
                 .delete(projectId, roleId)
                 .then(() => {
-                  // Обробка успішного завантаження
-                  notification.show("Roles loaded successfully", "success");
+                  notification.show("Role deleted successfully", "success");
                   this.load(contentArea, projectId, roleService, options);
                 })
                 .catch((error) => {
-                  // Обробка помилки
-                  notification.show(`Error loading roles: ${error.message}`, "error");
+                  notification.show(`Error deleting role: ${error.message}`, "error");
                 });
             }
           });
@@ -103,7 +96,7 @@ export function createRoleManagement() {
         });
       }
 
-      $("#roleForm").submit(function (e) {
+      $("#roleForm").on("submit",(e) => {
         e.preventDefault();
         const roleData = {
           name: $("#roleName").val(),
@@ -118,7 +111,7 @@ export function createRoleManagement() {
             this.load(contentArea, projectId, roleService);
           })
           .catch((error) => {
-            notification.show(`Error loading roles: ${error.message}`, "error");
+            notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
           });
       });
     },

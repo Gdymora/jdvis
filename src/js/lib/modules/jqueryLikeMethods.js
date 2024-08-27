@@ -81,21 +81,37 @@ $.prototype.append = function (content) {
 
 /**
  * Gets or sets data attributes on the first element in the set.
- * @param {string} key - The name of the data attribute.
+ * The method supports both camelCase and kebab-case keys.
+ * 
+ * @param {string} key - The name of the data attribute (camelCase or kebab-case).
  * @param {*} [value] - The value to set. If omitted, gets the current value.
  * @returns {(*|Object)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
+ * 
  * @example
- * // Get data
- * const value = $('#myElement').data('key');
- * // Set data
- * $('#myElement').data('key', 'value');
+ * //  <input type="checkbox" data-role-id="${role.id}" />
+ * // Get data using kebab-case
+ * const value = $('#myElement').data('role-id');
+ * 
+ * @example
+ * // Get data using camelCase
+ * const value = $('#myElement').data('roleId');
+ * 
+ * @example
+ * // Set data using kebab-case
+ * $('#myElement').data('role-id', 'value');
+ * 
+ * @example
+ * // Set data using camelCase
+ * $('#myElement').data('roleId', 'value');
  */
 $.prototype.data = function (key, value) {
+  const formattedKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+
   if (value === undefined) {
-    return this[0].dataset[key];
+    return this[0].dataset[formattedKey];
   } else {
     for (let i = 0; i < this.length; i++) {
-      this[i].dataset[key] = value;
+      this[i].dataset[formattedKey] = value;
     }
     return this;
   }

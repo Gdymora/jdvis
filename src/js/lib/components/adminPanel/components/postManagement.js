@@ -154,7 +154,7 @@ export function createPostManagement() {
         });
       }
 
-      $("#tableStructureForm").submit(function (e) {
+      $("#tableStructureForm").on("submit", (e) => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),

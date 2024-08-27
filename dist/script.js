@@ -244,7 +244,7 @@ function initializeAdminPanel(context, user, options) {
       case "users":
         console.log("Users case");
         if (await checkPermission(services, "view_users", projectId)) {
-          components.userManagement.load(contentArea, projectId, services.userService);
+          components.userManagement.load(contentArea, projectId, services.userService, services.roleService);
 
           //loadUsers(contentArea, projectId, services.userService);
         } else {
@@ -1131,13 +1131,13 @@ function createPermissionManagement() {
 
         // Render pagination
         $("#paginationArea").pagination(totalPages, page);
-        $("#addPermissionBtn").click(() => showPermissionForm(contentArea, projectId, permissionService));
-        $(".editPermissionBtn").click(function () {
-          const permissionId = $(this).data("id");
+        $("#addPermissionBtn").click(() => this.showForm(contentArea, projectId, permissionService));
+        $(".editPermissionBtn").click(e => {
+          const permissionId = $(e.target).data("id");
           this.showForm(contentArea, projectId, permissionService, permissionId);
         });
-        $(".deletePermissionBtn").click(function () {
-          const permissionId = $(this).data("id");
+        $(".deletePermissionBtn").click(e => {
+          const permissionId = $(e.target).data("id");
           if (confirm("Are you sure you want to delete this permission?")) {
             permissionService.delete(projectId, permissionId).then(() => {
               notification.show("Permission deleted successfully", "success");
@@ -1169,7 +1169,7 @@ function createPermissionManagement() {
           $("#permissionDescription").val(permission.description);
         });
       }
-      $("#permissionForm").submit(function (e) {
+      $("#permissionForm").on("submit", e => {
         e.preventDefault();
         const permissionData = {
           name: $("#permissionName").val(),
@@ -1342,7 +1342,7 @@ function createPostManagement() {
           renderFields();
         });
       }
-      $("#tableStructureForm").submit(function (e) {
+      $("#tableStructureForm").on("submit", e => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),
@@ -1398,10 +1398,6 @@ function createRoleManagement() {
         page = 1,
         itemsPerPage = 10
       } = options;
-      const notification = $().notification({
-        position: "top-right",
-        duration: 3000
-      });
       roleService.getAll(projectId, {
         page,
         itemsPerPage
@@ -1438,20 +1434,18 @@ function createRoleManagement() {
         // Render pagination
         $("#paginationArea").pagination(totalPages, page);
         $("#addRoleBtn").click(() => this.showForm(contentArea, projectId, roleService));
-        $(".editRoleBtn").click(function () {
-          const roleId = $(this).data("id");
+        $(".editRoleBtn").click(e => {
+          const roleId = $(e.target).data("id");
           this.showForm(contentArea, projectId, roleService, roleId);
         });
-        $(".deleteRoleBtn").click(function () {
-          const roleId = $(this).data("id");
+        $(".deleteRoleBtn").click(e => {
+          const roleId = $(e.target).data("id");
           if (confirm("Are you sure you want to delete this role?")) {
             roleService.delete(projectId, roleId).then(() => {
-              // Обробка успішного завантаження
-              notification.show("Roles loaded successfully", "success");
+              notification.show("Role deleted successfully", "success");
               this.load(contentArea, projectId, roleService, options);
             }).catch(error => {
-              // Обробка помилки
-              notification.show(`Error loading roles: ${error.message}`, "error");
+              notification.show(`Error deleting role: ${error.message}`, "error");
             });
           }
         });
@@ -1477,7 +1471,7 @@ function createRoleManagement() {
           $("#roleDescription").val(role.description);
         });
       }
-      $("#roleForm").submit(function (e) {
+      $("#roleForm").on("submit", e => {
         e.preventDefault();
         const roleData = {
           name: $("#roleName").val(),
@@ -1488,7 +1482,7 @@ function createRoleManagement() {
           notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
           this.load(contentArea, projectId, roleService);
         }).catch(error => {
-          notification.show(`Error loading roles: ${error.message}`, "error");
+          notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
         });
       });
     }
@@ -1671,7 +1665,7 @@ function createTableManagement() {
           renderFields();
         });
       }
-      $("#tableStructureForm").submit(function (e) {
+      $("#tableStructureForm").on("submit", e => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),
@@ -1734,7 +1728,7 @@ function createUserManagement() {
     duration: 3000
   });
   return {
-    load: function (contentArea, projectId, userService, options = {}) {
+    load: function (contentArea, projectId, userService, roleService, options = {}) {
       const {
         page = 1,
         itemsPerPage = 10
@@ -1753,6 +1747,7 @@ function createUserManagement() {
                 <tr>
                   <th class="text-left">Name</th>
                   <th class="text-left">Email</th>
+                  <th class="text-left">Roles</th>
                   <th class="text-left">Actions</th>
                 </tr>
               </thead>
@@ -1761,9 +1756,11 @@ function createUserManagement() {
                   <tr>
                     <td>${user.name}</td>
                     <td>${user.email}</td>
+                    <td>${user.roles ? user.roles.map(role => role.name).join(", ") : ""}</td>
                     <td>
-                      <button class="editUserBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${user.id}">Edit</button>
-                      <button class="deleteUserBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${user.id}">Delete</button>
+                      <button class="editUserBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${user.id}">Edit</button>
+                      <button class="deleteUserBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 mr-2" data-id="${user.id}">Delete</button>
+                      <button class="manageRolesBtn px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-id="${user.id}">Manage Roles</button>
                     </td>
                   </tr>
                 `).join("")}
@@ -1772,57 +1769,126 @@ function createUserManagement() {
           `;
         contentArea.html(usersHTML);
         $("#paginationArea").pagination(totalPages, page);
-        $("#addUserBtn").click(() => this.showForm(contentArea, projectId, userService));
-        $(".editUserBtn").click(function () {
-          const userId = $(this).data("id");
-          showForm(contentArea, projectId, userService, userId);
+        $("#addUserBtn").click(() => this.showForm(contentArea, projectId, userService, roleService));
+        $(".editUserBtn").click(e => {
+          const userId = $(e.target).data("id");
+          this.showForm(contentArea, projectId, userService, roleService, userId);
         });
-        $(".deleteUserBtn").click(function () {
-          const userId = $(this).data("id");
+        $(".deleteUserBtn").click(e => {
+          const userId = $(e.target).data("id");
           if (confirm("Are you sure you want to delete this user?")) {
             userService.delete(projectId, userId).then(() => {
-              notification.show("User delete successfully", "success");
-              load(contentArea, projectId, userService);
+              notification.show("User deleted successfully", "success");
+              this.load(contentArea, projectId, userService, roleService);
             }).catch(error => {
-              notification.show("Error deleting user: " + error.message);
+              notification.show("Error deleting user: " + error.message, "error");
+              console.error("Error deleting user: " + error.message);
             });
           }
         });
+        $(".manageRolesBtn").click(e => {
+          const userId = $(e.target).data("id");
+          this.showRolesManagement(contentArea, projectId, userService, roleService, userId);
+        });
       }).catch(error => {
         contentArea.html("<p>Error loading users.</p>");
-        console.error("Error loading users:", error);
-        notification.show("Error loading users:", error);
+        notification.show("Error loading users: " + error.message, "error");
+        console.error("Error loading users: " + error.message);
       });
     },
-    showForm: function (contentArea, projectId, userService, userId = null) {
+    showForm: function (contentArea, projectId, userService, roleService, userId = null) {
       const title = userId ? "Edit User" : "Add User";
-      const formHTML = `
+      Promise.all([roleService.getAll(projectId, {
+        page: 1,
+        itemsPerPage: 100
+      }), userId ? userService.getById(projectId, userId) : Promise.resolve(null)]).then(([rolesResponse, user]) => {
+        const roles = Array.isArray(rolesResponse) ? rolesResponse : rolesResponse.data || [];
+        const formHTML = `
           <h2 class="text-xl mb-4">${title}</h2>
           <form id="userForm">
-            <input type="text" id="userName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-            <input type="email" id="userEmail" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
-            <input type="password" id="userPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
-            <input type="password" id="userConfirmed" placeholder="Confirmed" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
+            <input type="text" id="userName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required value="${user ? user.name : ""}">
+            <input type="email" id="userEmail" placeholder="Email" class="w-full p-2 mb-4 border rounded" required value="${user ? user.email : ""}">
+            ${!userId ? `
+              <input type="password" id="userPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
+              <input type="password" id="userConfirmed" placeholder="Confirm Password" class="w-full p-2 mb-4 border rounded" required>
+            ` : ""}
+            <div class="mb-4">
+              <label class="block mb-2">Roles:</label>
+              ${roles.map(role => `
+                <label class="inline-flex items-center mr-4">
+                  <input type="checkbox" class="form-checkbox" name="roles[]" value="${role.id}"
+                    ${user && user.roles && user.roles.some(r => r.id === role.id) ? "checked" : ""}>
+                  <span class="ml-2">${role.name}</span>
+                </label>
+              `).join("")}
+            </div>
             <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
           </form>
         `;
-      contentArea.html(formHTML);
-      if (userId) {
-        userService.getById(projectId, userId).then(user => {
-          $("#userName").val(user.name);
-          $("#userEmail").val(user.email);
+        contentArea.html(formHTML);
+        $("#userForm").on("submit", e => {
+          e.preventDefault();
+          const userData = {
+            name: $("#userName").val(),
+            email: $("#userEmail").val(),
+            roles: Array.from(document.querySelectorAll('input[name="roles[]"]:checked')).map(checkbox => checkbox.value)
+          };
+          if (!userId) {
+            userData.password = $("#userPassword").val();
+            userData.password_confirmation = $("#userConfirmed").val();
+          }
+          const action = userId ? userService.update(projectId, userId, userData) : userService.create(projectId, userData);
+          action.then(() => {
+            notification.show(`User ${userId ? "updated" : "created"} successfully`, "success");
+            this.load(contentArea, projectId, userService, roleService);
+          }).catch(error => {
+            notification.show(`Error ${userId ? "updating" : "creating"} user: ${error.message}`, "error");
+            console.error(`Error ${userId ? "updating" : "creating"} user: ${error.message}`);
+          });
         });
-      }
-      $("#userForm").on("submit", function (e) {
-        e.preventDefault();
-        const userData = {
-          name: $("#userName").val(),
-          email: $("#userEmail").val(),
-          password: $("#userPassword").val(),
-          password_confirmation: $("#userConfirmed").val()
-        };
-        const action = userId ? userService.update(projectId, userId, userData) : userService.create(projectId, userData);
-        action.then(() => this.load(contentArea, projectId, userService)).catch(error => alert("Error saving user: " + error.message));
+      }).catch(error => {
+        notification.show("Error loading form data: " + error.message, "error");
+        console.error("Error loading form data: " + error.message);
+      });
+    },
+    showRolesManagement: function (contentArea, projectId, userService, roleService, userId) {
+      Promise.all([userService.getById(projectId, userId), roleService.getAll(projectId, {
+        page: 1,
+        itemsPerPage: 100
+      })]).then(([user, rolesResponse]) => {
+        const roles = Array.isArray(rolesResponse) ? rolesResponse : rolesResponse.data || [];
+        const rolesManagementHTML = `
+          <h2 class="text-xl mb-4">Manage Roles for ${user.name}</h2>
+          <div class="mb-4">
+            ${roles.map(role => `
+              <div class="mb-2">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" class="form-checkbox roleCheckbox" data-role-id="${role.id}" 
+                    ${user.roles.some(r => r.id === role.id) ? "checked" : ""}>
+                  <span class="ml-2">${role.name}</span>
+                </label>
+              </div>
+            `).join("")}
+          </div>
+          <button id="backBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back</button>
+        `;
+        contentArea.html(rolesManagementHTML);
+        $(".roleCheckbox").change(e => {
+          const roleId = $(e.target).data("role-id");
+          const isChecked = e.target.checked;
+          const action = isChecked ? userService.assignRole(projectId, userId, roleId) : userService.removeRole(projectId, userId, roleId);
+          action.then(() => {
+            notification.show(`Role ${isChecked ? "assigned to" : "removed from"} user successfully`, "success");
+          }).catch(error => {
+            notification.show(`Error ${isChecked ? "assigning" : "removing"} role: ${error.message}`, "error");
+            console.error(`Error ${isChecked ? "assigning" : "removing"} role: ${error.message}`);
+            e.target.checked = !isChecked; // Revert checkbox state on error
+          });
+        });
+        $("#backBtn").click(() => this.load(contentArea, projectId, userService, roleService));
+      }).catch(error => {
+        notification.show("Error loading roles management: " + error.message, "error");
+        console.error("Error loading roles management: " + error.message);
       });
     }
   };
@@ -3057,6 +3123,50 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
         }
       } catch (error) {
         console.error("Error deleting user:", error);
+        throw error;
+      }
+    },
+    assignRole: async function (projectId, userId, roleId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}/assign-role`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          },
+          body: JSON.stringify({
+            role_id: roleId
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error assigning role:", error);
+        throw error;
+      }
+    },
+    removeRole: async function (projectId, userId, roleId) {
+      try {
+        const response = await fetch(`${baseUrl}/project/${projectId}/users/${userId}/remove-role`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          },
+          body: JSON.stringify({
+            role_id: roleId
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error removing role:", error);
         throw error;
       }
     },
@@ -4817,6 +4927,41 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.click = function (handle
   return this;
 };
 
+/**
+ * Attaches a change event handler to each element in the collection.
+ * @param {Function} callback - The function to execute when the change event occurs.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.change = function (callback) {
+  if (!callback) {
+    return this;
+  }
+  for (let i = 0; i < this.length; i++) {
+    this[i].addEventListener("change", callback);
+  }
+  return this;
+};
+
+/**
+ * Maps each element in the collection through a transformation function.
+ * @param {Function} callback - Function that produces an element of the new collection.
+ * @param {*} [thisArg] - Value to use as `this` when executing callback.
+ * @returns {Object} A new ModernLib object with the results of calling the provided function for every element.
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.map = function (callback, thisArg) {
+  if (typeof callback !== "function") {
+    throw new TypeError(callback + " is not a function");
+  }
+  const results = [];
+  const len = this.length;
+  for (let i = 0; i < len; i++) {
+    if (i in this) {
+      results.push(callback.call(thisArg, this[i], i, this));
+    }
+  }
+  return (0,_core__WEBPACK_IMPORTED_MODULE_0__["default"])(results);
+};
+
 /***/ }),
 
 /***/ "./src/js/lib/modules/jqueryLikeMethods.js":
@@ -4913,21 +5058,36 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.append = function (conte
 
 /**
  * Gets or sets data attributes on the first element in the set.
- * @param {string} key - The name of the data attribute.
+ * The method supports both camelCase and kebab-case keys.
+ * 
+ * @param {string} key - The name of the data attribute (camelCase or kebab-case).
  * @param {*} [value] - The value to set. If omitted, gets the current value.
  * @returns {(*|Object)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
+ * 
  * @example
- * // Get data
- * const value = $('#myElement').data('key');
- * // Set data
- * $('#myElement').data('key', 'value');
+ * //  <input type="checkbox" data-role-id="${role.id}" />
+ * // Get data using kebab-case
+ * const value = $('#myElement').data('role-id');
+ * 
+ * @example
+ * // Get data using camelCase
+ * const value = $('#myElement').data('roleId');
+ * 
+ * @example
+ * // Set data using kebab-case
+ * $('#myElement').data('role-id', 'value');
+ * 
+ * @example
+ * // Set data using camelCase
+ * $('#myElement').data('roleId', 'value');
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.data = function (key, value) {
+  const formattedKey = key.replace(/-([a-z])/g, g => g[1].toUpperCase());
   if (value === undefined) {
-    return this[0].dataset[key];
+    return this[0].dataset[formattedKey];
   } else {
     for (let i = 0; i < this.length; i++) {
-      this[i].dataset[key] = value;
+      this[i].dataset[formattedKey] = value;
     }
     return this;
   }

@@ -111,7 +111,7 @@ export function initializeAdminPanel(context, user, options) {
       case "users":
         console.log("Users case");
         if (await checkPermission(services, "view_users", projectId)) {
-          components.userManagement.load(contentArea, projectId, services.userService);
+          components.userManagement.load(contentArea, projectId, services.userService, services.roleService);
 
           //loadUsers(contentArea, projectId, services.userService);
         } else {
