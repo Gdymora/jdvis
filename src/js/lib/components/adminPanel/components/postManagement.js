@@ -8,8 +8,8 @@ export function createPostManagement() {
 
   return {
     load: function (contentArea, projectId, postService, options = {}) {
-      const { page = 1, itemsPerPage = 15 } = options;      
-    
+      const { page = 1, itemsPerPage = 15 } = options;
+
       postService
         .getAll(projectId, { page, itemsPerPage })
         .then((response) => {
@@ -56,9 +56,9 @@ export function createPostManagement() {
               </tbody>
             </table>
           `;
-    
+
           contentArea.html(postsHTML);
-    
+
           // Add event listeners
           $("#addPostBtn").click(() => showPostForm(contentArea, projectId, postsComponent));
           $(".viewPostBtn").click(function () {
@@ -185,6 +185,12 @@ export function createPostManagement() {
     deletePost: function (contentArea, projectId, postService, postId) {
       // Implement deletePost functionality here
       // This function will be called when deleting a post
+    },
+
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, { detail: data });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     },
   };
 }

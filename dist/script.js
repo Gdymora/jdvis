@@ -134,6 +134,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _adminPanelTables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./adminPanelTables */ "./src/js/lib/components/adminPanel/adminPanelTables.js");
 /* harmony import */ var _adminPanelPosts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./adminPanelPosts */ "./src/js/lib/components/adminPanel/adminPanelPosts.js");
 /* harmony import */ var _adminPanelAuth__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./adminPanelAuth */ "./src/js/lib/components/adminPanel/adminPanelAuth.js");
+/* harmony import */ var _util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util/helperFunctions */ "./src/js/lib/components/adminPanel/util/helperFunctions.js");
 /**
  * @file adminPanelInit.js
  * @description Initialization functions for the admin panel
@@ -171,9 +172,34 @@ async function checkPermission(services, permission, projectId) {
  * @param {Object} context - The ModernLib context
  * @param {Object} user - The authenticated user object
  * @param {Object} options - Configuration options
- * @param {Object} services - The initialized services
+ * @param {string} options.projectId - The ID of the current project
+ * @param {Function} options.onMenuItemClick - Callback function for menu item clicks
+ * @param {Array} [options.menuItems=[]] - Array of menu items
+ * @param {Object} options.services - The initialized services
+ * @param {Object} options.components - The initialized components
+ * @fires context#adminPanelInitialized
+ * @fires context#beforeMenuItemClick
+ * @fires context#beforeContentLoad
+ * @fires context#afterContentLoad
+ * @fires context#dashboardLoaded
+ * @fires context#usersLoaded
+ * @fires context#rolesLoaded
+ * @fires context#permissionsLoaded
+ * @fires context#tablesLoaded
+ * @fires context#postsLoaded
+ * @fires context#accessDenied
+ * @fires context#pageNotFound
+ * @fires context#beforeLogout
+ * @fires context#logoutSuccess
+ * @fires context#logoutError
+ * @fires context#adminPanelReady
  * @example
- * initializeAdminPanel($, { name: 'John Doe' }, { projectId: '123' }, services);
+ * initializeAdminPanel($('#adminPanel'), { name: 'John Doe' }, {
+ *   projectId: '123',
+ *   onMenuItemClick: (menuId) => console.log(menuId),
+ *   services: services,
+ *   components: components
+ * });
  */
 function initializeAdminPanel(context, user, options) {
   const {
@@ -181,7 +207,9 @@ function initializeAdminPanel(context, user, options) {
     onMenuItemClick,
     menuItems = [],
     services,
-    components
+    components,
+    customComponents = {},
+    additionalComponents = {}
   } = options;
   if (!context || context.length === 0) {
     console.warn("Context is empty or undefined, initializing with document body");
@@ -221,6 +249,24 @@ function initializeAdminPanel(context, user, options) {
     </div>
   `;
   context.html(adminPanelHTML);
+
+  // Додаємо допоміжні функції до контексту адмін-панелі
+  const adminPanelHelpers = {
+    createTabs: (containerSelector, tabsConfig) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__.createTabs)(containerSelector, tabsConfig),
+    createModal: (id, config) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__.createModal)(id, config)
+  };
+
+  /**
+   * Fires when the admin panel is initialized
+   * @event context#adminPanelInitialized
+   * @type {object}
+   * @property {object} user - The authenticated user object
+   * @property {string} projectId - The ID of the current project
+   */
+  context.trigger("adminPanelInitialized", {
+    user,
+    projectId
+  });
   context.find("nav a").on("click", async function (e) {
     e.preventDefault();
     const menuId = this.getAttribute("data-menu-id");
@@ -236,65 +282,156 @@ function initializeAdminPanel(context, user, options) {
       console.error("Content area not found");
       return;
     }
-    switch (menuId) {
-      case "dashboard":
-        console.log("Dashboard case");
-        contentArea.html('<h2 class="text-xl mb-4">Dashboard</h2><p>Welcome to your dashboard.</p>');
-        break;
-      case "users":
-        console.log("Users case");
-        if (await checkPermission(services, "view_users", projectId)) {
-          components.userManagement.load(contentArea, projectId, services.userService, services.roleService);
 
-          //loadUsers(contentArea, projectId, services.userService);
-        } else {
-          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view users.</p>');
-        }
-        break;
-      case "roles":
-        console.log("Roles case");
-        if (await checkPermission(services, "view_roles", projectId)) {
-          components.roleManagement.load(contentArea, projectId, services.roleService);
-        } else {
-          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
-        }
-        break;
-      case "permissions":
-        console.log("Permissions case");
-        if (await checkPermission(services, "view_permissions", projectId)) {
-          components.permissionManagement.load(contentArea, projectId, services.permissionService);
-        } else {
-          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
-        }
-        break;
-      case "tables":
-        console.log("Tables case");
-        if (await checkPermission(services, "view_tables", projectId)) {
-          components.tableManagement.load(contentArea, projectId, services.tableStructureService);
-        } else {
-          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
-        }
-        break;
-      case "posts":
-        console.log("Posts case");
-        if (await checkPermission(services, "view_posts", projectId)) {
-          components.postManagement.load(contentArea, projectId, services.tableDataService);
-        } else {
-          contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
-        }
-        break;
-      default:
-        console.log("Default case");
-        contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
+    /**
+     * Fires before content is loaded
+     * @event context#beforeContentLoad
+     * @type {object}
+     * @property {string} menuId - The ID of the selected menu item
+     * @property {Object} contentArea - The content area element
+     */
+    context.trigger("beforeContentLoad", {
+      menuId,
+      contentArea
+    });
+    const loadOptions = {
+      page: 1,
+      itemsPerPage: options.itemsPerPage,
+      helpers: adminPanelHelpers
+    };
+
+    // Перевіряємо, чи є користувацький компонент для цього пункту меню
+    if (customComponents[menuId]) {
+      if (await checkPermission(services, `view_${menuId}`, projectId)) {
+        // Передаємо допоміжні функції в користувацький компонент
+        customComponents[menuId].load(contentArea, projectId, services[`${menuId}Service`], loadOptions);
+        context.trigger(`${menuId}Loaded`);
+      } else {
+        contentArea.html(`<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view ${menuId}.</p>`);
+        context.trigger("accessDenied", {
+          section: menuId
+        });
+      }
+    } else {
+      switch (menuId) {
+        case "dashboard":
+          console.log("Dashboard case");
+          contentArea.html('<h2 class="text-xl mb-4">Dashboard</h2><p>Welcome to your dashboard.</p>');
+          /**
+           * Fires when the dashboard is loaded
+           * @event context#dashboardLoaded
+           */
+          context.trigger("dashboardLoaded");
+          break;
+        case "users":
+          console.log("Users case");
+          if (await checkPermission(services, "view_users", projectId)) {
+            components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
+
+            /**
+             * Fires when the users section is loaded
+             * @event context#usersLoaded
+             */
+            components.userManagement.trigger("usersLoaded");
+          } else {
+            contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view users.</p>');
+            /**
+             * Fires when access is denied to a section
+             * @event context#accessDenied
+             * @type {object}
+             * @property {string} section - The section to which access was denied
+             */
+            context.trigger("accessDenied", {
+              section: "users"
+            });
+          }
+          break;
+        case "roles":
+          console.log("Roles case");
+          if (await checkPermission(services, "view_roles", projectId)) {
+            components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+          } else {
+            contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
+          }
+          break;
+        case "permissions":
+          console.log("Permissions case");
+          if (await checkPermission(services, "view_permissions", projectId)) {
+            components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+          } else {
+            contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
+          }
+          break;
+        case "tables":
+          console.log("Tables case");
+          if (await checkPermission(services, "view_tables", projectId)) {
+            components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+          } else {
+            contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
+          }
+          break;
+        case "posts":
+          console.log("Posts case");
+          if (await checkPermission(services, "view_posts", projectId)) {
+            components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
+          } else {
+            contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
+          }
+          break;
+        case "settings":
+          /**
+           * Fires when the dashboard is loaded
+           * @event context#settingsLoaded
+           */
+          context.trigger("settingsLoaded");
+          break;
+        default:
+          console.log("Default case");
+          contentArea.html('<h2 class="text-xl mb-4">Not Found</h2><p>The requested page does not exist.</p>');
+          /**
+           * Fires when a non-existent page is requested
+           * @event context#pageNotFound
+           * @type {object}
+           * @property {string} menuId - The ID of the non-existent menu item
+           */
+          context.trigger("pageNotFound", {
+            menuId
+          });
+      }
     }
-    console.log("Exiting switch statement");
+    // console.log("Exiting switch statement");
+    /**
+     * Fires after content is loaded
+     * @event context#afterContentLoad
+     * @type {object}
+     * @property {string} menuId - The ID of the selected menu item
+     * @property {Object} contentArea - The content area element
+     */
+    context.trigger("afterContentLoad", {
+      menuId,
+      contentArea
+    });
   });
   $(document.querySelector("#logoutBtn")).on("click", function (e) {
     e.preventDefault();
     services.authService.logout(projectId).then(() => {
+      /**
+       * Fires when logout is successful
+       * @event context#logoutSuccess
+       */
+      context.trigger("logoutSuccess");
       window.location.reload();
     }).catch(error => {
       console.error("Logout failed:", error);
+      /**
+       * Fires when logout fails
+       * @event context#logoutError
+       * @type {object}
+       * @property {Error} error - The error object
+       */
+      context.trigger("logoutError", {
+        error
+      });
       window.location.reload();
     });
   });
@@ -1183,6 +1320,13 @@ function createPermissionManagement() {
           notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
         });
       });
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, {
+        detail: data
+      });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     }
   };
 }
@@ -1369,6 +1513,13 @@ function createPostManagement() {
     deletePost: function (contentArea, projectId, postService, postId) {
       // Implement deletePost functionality here
       // This function will be called when deleting a post
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, {
+        detail: data
+      });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     }
   };
 }
@@ -1485,6 +1636,13 @@ function createRoleManagement() {
           notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
         });
       });
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, {
+        detail: data
+      });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     }
   };
 }
@@ -1704,6 +1862,13 @@ function createTableManagement() {
     deleteTable: function (contentArea, projectId, tableStructureService, tableId) {
       // Implement deleteTable functionality here
       // This function will be called when deleting a table
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, {
+        detail: data
+      });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     }
   };
 }
@@ -1844,6 +2009,10 @@ function createUserManagement() {
           }).catch(error => {
             notification.show(`Error ${userId ? "updating" : "creating"} user: ${error.message}`, "error");
             console.error(`Error ${userId ? "updating" : "creating"} user: ${error.message}`);
+            this.trigger("userError", {
+              error,
+              action: userId ? "update" : "create"
+            });
           });
         });
       }).catch(error => {
@@ -1890,6 +2059,13 @@ function createUserManagement() {
         notification.show("Error loading roles management: " + error.message, "error");
         console.error("Error loading roles management: " + error.message);
       });
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, {
+        detail: data
+      });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     }
   };
 }
@@ -3235,6 +3411,57 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.user = function (baseUrl
   };
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
+
+/***/ }),
+
+/***/ "./src/js/lib/components/adminPanel/util/helperFunctions.js":
+/*!******************************************************************!*\
+  !*** ./src/js/lib/components/adminPanel/util/helperFunctions.js ***!
+  \******************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createModal: () => (/* binding */ createModal),
+/* harmony export */   createTabs: () => (/* binding */ createTabs)
+/* harmony export */ });
+// helperFunctions.js
+
+function createTabs(containerSelector, tabsConfig) {
+  const container = $(containerSelector);
+  const tabPanel = $('<div class="tab-panel" data-tabpanel></div>');
+  const tabContents = $('<div class="tab-contents"></div>');
+  tabsConfig.forEach((tab, index) => {
+    const tabItem = $(`<div class="tab-item${index === 0 ? ' tab-item--active' : ''}">${tab.title}</div>`);
+    tabPanel.append(tabItem);
+    const tabContent = $(`<div class="tab-content${index === 0 ? ' tab-content--active' : ''}">${tab.content}</div>`);
+    tabContents.append(tabContent);
+  });
+  container.append(tabPanel).append(tabContents);
+  $().tab(containerSelector);
+}
+function createModal(id, config) {
+  const modalHTML = `
+      <div class="modal" id="${id}">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <button class="close" data-close>
+              <span>&times;</span>
+            </button>
+            <div class="modal-header">
+              <div class="modal-title">${config.title}</div>
+            </div>
+            <div class="modal-body">${config.body}</div>
+            <div class="modal-footer">
+              ${config.footer || ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  $('body').append(modalHTML);
+  return $().modal(`#${id}`);
+}
 
 /***/ }),
 
@@ -5059,24 +5286,24 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.append = function (conte
 /**
  * Gets or sets data attributes on the first element in the set.
  * The method supports both camelCase and kebab-case keys.
- * 
+ *
  * @param {string} key - The name of the data attribute (camelCase or kebab-case).
  * @param {*} [value] - The value to set. If omitted, gets the current value.
  * @returns {(*|Object)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
- * 
+ *
  * @example
  * //  <input type="checkbox" data-role-id="${role.id}" />
  * // Get data using kebab-case
  * const value = $('#myElement').data('role-id');
- * 
+ *
  * @example
  * // Get data using camelCase
  * const value = $('#myElement').data('roleId');
- * 
+ *
  * @example
  * // Set data using kebab-case
  * $('#myElement').data('role-id', 'value');
- * 
+ *
  * @example
  * // Set data using camelCase
  * $('#myElement').data('roleId', 'value');
@@ -5113,6 +5340,62 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.val = function (value) {
     }
     return this;
   }
+};
+
+/**
+ * Triggers a specified event on the first element in the set, or optionally on all elements.
+ * @param {string|Event} eventName - The name of the event to trigger or an Event object.
+ * @param {*} [data] - Additional data to pass along with the event. If not an object, it will be wrapped in an object with a 'value' property.
+ * @param {boolean} [triggerAll=false] - Whether to trigger the event on all elements in the set.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Triggering a simple event on the first element
+ * $('#myElement').trigger('click');
+ *
+ * @example
+ * // Triggering an event with object data on the first element
+ * $('#myElement').trigger('customEvent', { foo: 'bar' });
+ *
+ * @example
+ * // Triggering an event with a simple value
+ * $('#myElement').trigger('customEvent', 'simpleValue');
+ *
+ * @example
+ * // Triggering a custom event on all elements in the set
+ * $('.myClass').trigger('myEvent', { foo: 'bar' }, true);
+ *
+ * @example
+ * // Triggering a custom Event object
+ * const event = new CustomEvent('myEvent', { detail: { foo: 'bar' } });
+ * $('#myElement').trigger(event);
+ *
+ * @example
+ * // Accessing triggered data in an event listener
+ * $('#myElement').on('customEvent', function(event) {
+ *   console.log(event.detail); // Access the passed data
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.trigger = function (eventName, data, triggerAll = false) {
+  let event;
+  if (typeof eventName === "string") {
+    event = new CustomEvent(eventName, {
+      bubbles: true,
+      cancelable: true,
+      detail: data
+    });
+  } else if (eventName instanceof Event) {
+    event = eventName;
+  } else {
+    throw new Error("Invalid event type. Must be a string or Event object.");
+  }
+  if (triggerAll) {
+    for (let i = 0; i < this.length; i++) {
+      this[i].dispatchEvent(event);
+    }
+  } else if (this[0]) {
+    this[0].dispatchEvent(event);
+  }
+  return this;
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
 

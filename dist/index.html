@@ -293,7 +293,129 @@
         $("#postsContainer").postGenerator("http://127.0.0.1:8005/api/data-tables/view/2");
       </script>
       <script>
-        $("#adminPanelContainer").html('<p>Hello</p>');
+        function createCustomUserManagement() {
+          return {
+            load: function (contentArea, projectId, userService, roleService) {
+              contentArea.html(`
+                          <h2 class="text-xl mb-4">Custom User Management</h2>
+                          <p>This is a custom implementation of user management.</p>
+                          <button id="loadUsersBtn" class="px-4 py-2 bg-blue-500 text-white rounded">Load Users</button>
+                          <div id="userList"></div>
+                        `);
+
+              $("#loadUsersBtn").on("click", () => {
+                userService
+                  .getAll(projectId)
+                  .then((response) => {
+                    const users = response.data;
+                    let userListHtml = "<ul>";
+                    users.forEach((user) => {
+                      userListHtml += `<li>${user.name} (${user.email}) - Custom View</li>`;
+                    });
+                    userListHtml += "</ul>";
+                    $("#userList").html(userListHtml);
+                  })
+                  .catch((error) => {
+                    console.error("Error loading users:", error);
+                    $("#userList").html("<p>Error loading users</p>");
+                  });
+              });
+            },
+
+            create: function (userData) {
+              console.log("Creating user with custom logic:", userData);
+              // Тут може бути ваша кастомна логіка створення користувача
+            },
+
+            update: function (userId, userData) {
+              console.log("Updating user with custom logic:", userId, userData);
+              // Тут може бути ваша кастомна логіка оновлення користувача
+            },
+
+            delete: function (userId) {
+              console.log("Deleting user with custom logic:", userId);
+              // Тут може бути ваша кастомна логіка видалення користувача
+            },
+          };
+        }
+
+        function createCustomComponent() {
+          return {
+            load: function (contentArea, projectId, customService, options = {}) {
+              const { page = 1, itemsPerPage = 10, helpers } = options;
+
+              // Використання вкладок
+              const tabsContainer = $('#customComponentTabs, div');
+              contentArea.append(tabsContainer);
+
+              helpers.createTabs("#customComponentTabs", [
+                { title: "Tab 1", content: "Content for Tab 1" },
+                { title: "Tab 2", content: "Content for Tab 2" },
+                { title: "Tab 3", content: "Content for Tab 3" },
+              ]);
+
+              // Додавання кнопки для модального вікна
+              const modalButton = $('<button id="openModalBtn">Open Modal</button>');
+              contentArea.append(modalButton);
+
+              // Створення модального вікна
+              const modal = helpers.createModal("customModal", {
+                title: "Custom Modal",
+                content: "This is the content of the custom modal.",
+                buttons: [
+                  { text: "Close", action: "close" },
+                  {
+                    text: "Save",
+                    action: () => {
+                      console.log("Save action");
+                      modal.close();
+                    },
+                  },
+                ],
+              });
+
+              modalButton.on("click", () => modal.open());
+
+              // Завантаження даних з використанням customService
+              customService
+                .getAll(projectId, { page, itemsPerPage })
+                .then((data) => {
+                  // Відображення даних
+                  const dataContainer = $('<div id="customDataContainer"></div>');
+                  dataContainer.html(JSON.stringify(data));
+                  contentArea.append(dataContainer);
+                })
+                .catch((error) => {
+                  console.error("Error loading custom data:", error);
+                  contentArea.append("<p>Error loading data</p>");
+                });
+            },
+          };
+        }
+        function customService() {
+          const baseUrl = "http://localhost:4000";
+          return {
+            getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
+              try {
+                const response = await fetch(`${baseUrl}/project-roles?page=${page}&per_page=${itemsPerPage}`, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+                    "X-Project-ID": projectId,
+                  },
+                });
+                if (!response.ok) {
+                  throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return await response.json();
+              } catch (error) {
+                console.error("Error fetching roles:", error);
+                throw error;
+              }
+            },
+          };
+        }
+
+        $("#adminPanelContainer").html("<p>Hello</p>");
         // Спочатку налаштуємо глобальні параметри (опціонально)
         // $.adminSettings.apiBaseUrl = "http://127.0.0.1:8005/api";
         // $.adminSettings.defaultItemsPerPage = 15;
@@ -305,13 +427,20 @@
           itemsPerPage: 20, // Це перевизначить глобальне налаштування
           onMenuItemClick: function (menuItem) {
             console.log("Clicked menu item:", menuItem);
+            $("#adminPanelContainer").trigger("menuItemClick", { menuItem: menuItem });
+
             // Тут можна додати додаткову логіку при кліку на пункт меню
           },
           components: {
-            // Якщо у вас є власні реалізації компонентів, ви можете передати їх тут
-            // auth: customAuthComponent,
-            // user: customUserComponent,
-            // і т.д.
+            // Стандартні компоненти
+            // userManagement: userManagementComponent,
+            //  roleManagement: roleManagementComponent,
+            // ...
+          },
+          customComponents: {
+            // Користувацькі компоненти
+            customManagement: createCustomUserManagement(),
+            customComponent: createCustomComponent(),
           },
           menuItems: [
             { id: "dashboard", label: "Dashboard" },
@@ -320,33 +449,23 @@
             { id: "permissions", label: "Permissions" },
             { id: "tables", label: "Tables" },
             { id: "posts", label: "Posts" },
-            { id: "settings", label: "Settings" }, // Додатковий пункт меню
+            { id: "settings", label: "Settings" },
+            { id: "customManagement", label: "Custom Management" }, // Новий пункт меню для користувацького компонента
+            { id: "customComponent", label: "Custom Component" }, // Новий пункт меню для користувацького компонента
           ],
           additionalComponents: {
             tabs: $().tab, // Якщо ви хочете використовувати компонент вкладок
             modal: $().modal, // Якщо ви хочете використовувати модальні вікна
           },
+          services: {
+            customComponentService: customService,
+            // ... інші сервіси
+          },
         });
 
-        // Якщо ви хочете додати додаткову функціональність або обробники подій після ініціалізації
-        $("#adminPanelContainer").on("userCreated", function (event, userData) {
-          console.log("New user created:", userData);
-          // Додаткова логіка після створення користувача
-        });
-
-        $("#adminPanelContainer").on("tableDeleted", function (event, tableId) {
-          console.log("Table deleted:", tableId);
-          // Додаткова логіка після видалення таблиці
-        });
-
-        // Приклад додавання користувацької дії до меню користувачів
         $("#adminPanelContainer").on("usersLoaded", function () {
-          $(".user-list-container").append('<button id="exportUsersBtn" class="bg-green-500 text-white px-4 py-2 rounded">Export Users</button>');
-          $("#exportUsersBtn").click(function () {
-            // Логіка для експорту користувачів
-            console.log("Exporting users...");
-            // Тут можна додати реальну логіку експорту
-          });
+          console.log("Users section loaded");
+          // Додаткова логіка після завантаження розділу користувачів
         });
 
         // Приклад кастомізації форми створення ролі
@@ -362,33 +481,38 @@
         });
 
         // Приклад додавання кастомної сторінки налаштувань
-        $("#adminPanelContainer").on("menuItemClick", function (event, menuItem) {
-          if (menuItem === "settings") {
+        $("#adminPanelContainer").on("menuItemClick", function (event) {
+          if (event.detail.menuItem === "settings") {
             const settingsHtml = `
-      <h2 class="text-xl mb-4">Settings</h2>
-      <form id="settingsForm">
-        <label class="block mb-2">
-          Site Name:
-          <input type="text" id="siteName" class="w-full p-2 border rounded">
-        </label>
-        <label class="block mb-2">
-          Footer Text:
-          <input type="text" id="footerText" class="w-full p-2 border rounded">
-        </label>
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Settings</button>
-      </form>
-    `;
+                       <h2 class="text-xl mb-4">Settings</h2>
+                        <form id="settingsForm">
+                          <label class="block mb-2">
+                             Site Name:
+                             <input type="text" id="siteName" class="w-full p-2 border rounded">
+                          </label>
+                          <label class="block mb-2">
+                            Footer Text:
+                             <input type="text" id="footerText" class="w-full p-2 border rounded">
+                          </label>
+                          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Settings</button>
+                        </form>
+                  `;
+
             $("#contentArea").html(settingsHtml);
 
-            $("#settingsForm").submit(function (e) {
+            $("#settingsForm").on("submit", (e) => {
               e.preventDefault();
               const settings = {
                 siteName: $("#siteName").val(),
                 footerText: $("#footerText").val(),
               };
               console.log("Saving settings:", settings);
+              const notification = $().notification({
+                position: "top-right",
+                duration: 3000,
+              });
               // Тут можна додати логіку збереження налаштувань
-              showNotification("Settings saved successfully", "success");
+              notification.show("Settings saved successfully", "success");
             });
           }
         });

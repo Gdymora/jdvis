@@ -96,7 +96,7 @@ export function createRoleManagement() {
         });
       }
 
-      $("#roleForm").on("submit",(e) => {
+      $("#roleForm").on("submit", (e) => {
         e.preventDefault();
         const roleData = {
           name: $("#roleName").val(),
@@ -114,6 +114,11 @@ export function createRoleManagement() {
             notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
           });
       });
+    },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, { detail: data });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     },
   };
 }

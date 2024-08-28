@@ -224,5 +224,10 @@ export function createTableManagement() {
       // Implement deleteTable functionality here
       // This function will be called when deleting a table
     },
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, { detail: data });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
+    },
   };
 }

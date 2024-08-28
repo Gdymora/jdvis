@@ -144,6 +144,7 @@ export function createUserManagement() {
               .catch((error) => {
                 notification.show(`Error ${userId ? "updating" : "creating"} user: ${error.message}`, "error");
                 console.error(`Error ${userId ? "updating" : "creating"} user: ${error.message}`);
+                this.trigger("userError", { error, action: userId ? "update" : "create" });
               });
           });
         })
@@ -154,9 +155,7 @@ export function createUserManagement() {
     },
 
     showRolesManagement: function (contentArea, projectId, userService, roleService, userId) {
-      Promise.all([
-        userService.getById(projectId, userId), 
-        roleService.getAll(projectId, { page: 1, itemsPerPage: 100 })])
+      Promise.all([userService.getById(projectId, userId), roleService.getAll(projectId, { page: 1, itemsPerPage: 100 })])
         .then(([user, rolesResponse]) => {
           const roles = Array.isArray(rolesResponse) ? rolesResponse : rolesResponse.data || [];
           const rolesManagementHTML = `
@@ -184,9 +183,7 @@ export function createUserManagement() {
             const roleId = $(e.target).data("role-id");
             const isChecked = e.target.checked;
 
-            const action = isChecked
-            ? userService.assignRole(projectId, userId, roleId)
-            : userService.removeRole(projectId, userId, roleId);
+            const action = isChecked ? userService.assignRole(projectId, userId, roleId) : userService.removeRole(projectId, userId, roleId);
 
             action
               .then(() => {
@@ -205,6 +202,12 @@ export function createUserManagement() {
           notification.show("Error loading roles management: " + error.message, "error");
           console.error("Error loading roles management: " + error.message);
         });
+    },
+
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, { detail: data });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     },
   };
 }

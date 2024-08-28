@@ -82,24 +82,24 @@ $.prototype.append = function (content) {
 /**
  * Gets or sets data attributes on the first element in the set.
  * The method supports both camelCase and kebab-case keys.
- * 
+ *
  * @param {string} key - The name of the data attribute (camelCase or kebab-case).
  * @param {*} [value] - The value to set. If omitted, gets the current value.
  * @returns {(*|Object)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
- * 
+ *
  * @example
  * //  <input type="checkbox" data-role-id="${role.id}" />
  * // Get data using kebab-case
  * const value = $('#myElement').data('role-id');
- * 
+ *
  * @example
  * // Get data using camelCase
  * const value = $('#myElement').data('roleId');
- * 
+ *
  * @example
  * // Set data using kebab-case
  * $('#myElement').data('role-id', 'value');
- * 
+ *
  * @example
  * // Set data using camelCase
  * $('#myElement').data('roleId', 'value');
@@ -137,6 +137,64 @@ $.prototype.val = function (value) {
     }
     return this;
   }
+};
+
+/**
+ * Triggers a specified event on the first element in the set, or optionally on all elements.
+ * @param {string|Event} eventName - The name of the event to trigger or an Event object.
+ * @param {*} [data] - Additional data to pass along with the event. If not an object, it will be wrapped in an object with a 'value' property.
+ * @param {boolean} [triggerAll=false] - Whether to trigger the event on all elements in the set.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Triggering a simple event on the first element
+ * $('#myElement').trigger('click');
+ *
+ * @example
+ * // Triggering an event with object data on the first element
+ * $('#myElement').trigger('customEvent', { foo: 'bar' });
+ *
+ * @example
+ * // Triggering an event with a simple value
+ * $('#myElement').trigger('customEvent', 'simpleValue');
+ *
+ * @example
+ * // Triggering a custom event on all elements in the set
+ * $('.myClass').trigger('myEvent', { foo: 'bar' }, true);
+ *
+ * @example
+ * // Triggering a custom Event object
+ * const event = new CustomEvent('myEvent', { detail: { foo: 'bar' } });
+ * $('#myElement').trigger(event);
+ *
+ * @example
+ * // Accessing triggered data in an event listener
+ * $('#myElement').on('customEvent', function(event) {
+ *   console.log(event.detail); // Access the passed data
+ * });
+ */
+$.prototype.trigger = function (eventName, data, triggerAll = false) {
+  let event;
+  if (typeof eventName === "string") {
+    event = new CustomEvent(eventName, {
+      bubbles: true,
+      cancelable: true,
+      detail: data,
+    });
+  } else if (eventName instanceof Event) {
+    event = eventName;
+  } else {
+    throw new Error("Invalid event type. Must be a string or Event object.");
+  }
+
+  if (triggerAll) {
+    for (let i = 0; i < this.length; i++) {
+      this[i].dispatchEvent(event);
+    }
+  } else if (this[0]) {
+    this[0].dispatchEvent(event);
+  }
+
+  return this;
 };
 
 export default $;

@@ -94,7 +94,7 @@ export function createPermissionManagement() {
         });
       }
 
-      $("#permissionForm").on("submit",(e) => {
+      $("#permissionForm").on("submit", (e) => {
         e.preventDefault();
         const permissionData = {
           name: $("#permissionName").val(),
@@ -112,6 +112,12 @@ export function createPermissionManagement() {
             notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
           });
       });
+    },
+
+    // Метод для виклику користувацьких подій
+    trigger: function (eventName, data) {
+      const event = new CustomEvent(eventName, { detail: data });
+      document.querySelector("#adminPanelContainer").dispatchEvent(event);
     },
   };
 }
