@@ -88,30 +88,30 @@ export function createTableManagement() {
 
           // Add event listeners
           $("#addTableBtn").click(() => this.showForm(contentArea, projectId, tableStructureService));
-          $(".viewTableBtn").click(() => {
-            const tableId = $(this[0]).data("id");
+          $(".viewTableBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
             this.viewTable(contentArea, projectId, tableStructureService, tableId);
           });
-          $(".fillTableBtn").click(() => {
-            const tableId = $(this).data("id");
-            const action = $(this).data("action");
+          $(".fillTableBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
+            const action = $(e.currentTarget).data("action");
             this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, action);
           });
-          $(".excelImportBtn").click(() => {
-            const tableId = $(this).data("id");
-            const action = $(this).data("action");
+          $(".excelImportBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
+            const action = $(e.currentTarget).data("action");
             this.showExcelImportForm(contentArea, projectId, tableStructureService, tableId, action);
           });
-          $(".cloneTableBtn").click(() => {
-            const tableId = $(this).data("id");
+          $(".cloneTableBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
             this.cloneTable(contentArea, projectId, tableStructureService, tableId);
           });
-          $(".editTableBtn").click(() => {
-            const tableId = $(this).data("id");
+          $(".editTableBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
             this.showTableStructureForm(contentArea, projectId, tableStructureService, tableId);
           });
-          $(".deleteTableBtn").click(() => {
-            const tableId = $(this).data("id");
+          $(".deleteTableBtn").click((e) => {
+            const tableId = $(e.currentTarget).data("id");
             if (confirm("Are you sure you want to delete this table?")) {
               this.deleteTable(contentArea, projectId, tableStructureService, tableId);
             }
