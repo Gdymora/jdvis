@@ -3,13 +3,6 @@
  * @description Initialization functions for the admin panel
  * @module components/adminPanel/init
  */
-
-import { loadUsers } from "./adminPanelUsers";
-import { loadRoles } from "./adminPanelRoles";
-import { loadPermissions } from "./adminPanelPermissions";
-import { loadTableData, loadTables } from "./adminPanelTables";
-import { loadPosts } from "./adminPanelPosts";
-import { showLoginForm } from "./adminPanelAuth";
 import { createTabs, createModal } from "./util/helperFunctions";
 /**
  * Checks if the current user has a specific permission
@@ -177,8 +170,12 @@ export function initializeAdminPanel(context, user, options) {
         case "users":
           console.log("Users case");
           if (await checkPermission(services, "view_users", projectId)) {
-            components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
-
+            try {
+              components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
             /**
              * Fires when the users section is loaded
              * @event context#usersLoaded
@@ -198,7 +195,12 @@ export function initializeAdminPanel(context, user, options) {
         case "roles":
           console.log("Roles case");
           if (await checkPermission(services, "view_roles", projectId)) {
-            components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+            try {
+              components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
           }
@@ -206,7 +208,12 @@ export function initializeAdminPanel(context, user, options) {
         case "permissions":
           console.log("Permissions case");
           if (await checkPermission(services, "view_permissions", projectId)) {
-            components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+            try {
+              components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
           }
@@ -214,7 +221,12 @@ export function initializeAdminPanel(context, user, options) {
         case "tables":
           console.log("Tables case");
           if (await checkPermission(services, "view_tables", projectId)) {
-            components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+            try {
+              components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
           }
@@ -222,7 +234,12 @@ export function initializeAdminPanel(context, user, options) {
         case "posts":
           console.log("Posts case");
           if (await checkPermission(services, "view_posts", projectId)) {
-            components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
+            try {
+              components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
           }

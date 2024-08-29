@@ -179,12 +179,79 @@ export function createPostManagement() {
       });
     },
     viewPost: function (contentArea, projectId, postService, postId) {
-      // Implement viewPost functionality here
-      // This function will be called when viewing a post
+      postService.getById(projectId, postId).then((post) => {
+        let postHTML = `
+          <h2 class="text-xl mb-4">${post.title}</h2>
+          <p><strong>Created at:</strong> ${post.created_at}</p>
+          <p><strong>Updated at:</strong> ${post.updated_at}</p>
+          <div class="mt-4">
+            ${post.content}
+          </div>
+          <div class="mt-4">
+            <button id="editPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Edit</button>
+            <button id="deletePostBtn" class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
+          </div>
+        `;
+        
+        contentArea.html(postHTML);
+        
+        $('#editPostBtn').click(() => this.showPostForm(contentArea, projectId, postService, postId));
+        $('#deletePostBtn').click(() => this.deletePost(contentArea, projectId, postService, postId));
+      });
     },
+    
     deletePost: function (contentArea, projectId, postService, postId) {
-      // Implement deletePost functionality here
-      // This function will be called when deleting a post
+      if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        postService.delete(projectId, postId).then(() => {
+          alert('Post deleted successfully');
+          this.load(contentArea, projectId, postService);
+        });
+      }
+    },
+    
+    showPostForm: function (contentArea, projectId, postService, postId = null) {
+      const isEditing = postId !== null;
+      
+      let formHTML = `
+        <h2>${isEditing ? 'Edit' : 'Create'} Post</h2>
+        <form id="postForm">
+          <div class="mb-4">
+            <label for="postTitle" class="block mb-2">Title</label>
+            <input type="text" id="postTitle" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+          </div>
+          <div class="mb-4">
+            <label for="postContent" class="block mb-2">Content</label>
+            <textarea id="postContent" name="content" rows="10" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required></textarea>
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">${isEditing ? 'Update' : 'Create'} Post</button>
+        </form>
+      `;
+      
+      contentArea.html(formHTML);
+      
+      if (isEditing) {
+        postService.getById(projectId, postId).then((post) => {
+          $('#postTitle').val(post.title);
+          $('#postContent').val(post.content);
+        });
+      }
+      
+      $('#postForm').submit((e) => {
+        e.preventDefault();
+        const postData = {
+          title: $('#postTitle').val(),
+          content: $('#postContent').val()
+        };
+        
+        const action = isEditing 
+          ? postService.update(projectId, postId, postData)
+          : postService.create(projectId, postData);
+        
+        action.then(() => {
+          alert(`Post ${isEditing ? 'updated' : 'created'} successfully`);
+          this.load(contentArea, projectId, postService);
+        });
+      });
     },
 
     // Метод для виклику користувацьких подій

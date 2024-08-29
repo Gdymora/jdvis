@@ -128,25 +128,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   initializeAdminPanel: () => (/* binding */ initializeAdminPanel)
 /* harmony export */ });
-/* harmony import */ var _adminPanelUsers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./adminPanelUsers */ "./src/js/lib/components/adminPanel/adminPanelUsers.js");
-/* harmony import */ var _adminPanelRoles__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./adminPanelRoles */ "./src/js/lib/components/adminPanel/adminPanelRoles.js");
-/* harmony import */ var _adminPanelPermissions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./adminPanelPermissions */ "./src/js/lib/components/adminPanel/adminPanelPermissions.js");
-/* harmony import */ var _adminPanelTables__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./adminPanelTables */ "./src/js/lib/components/adminPanel/adminPanelTables.js");
-/* harmony import */ var _adminPanelPosts__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./adminPanelPosts */ "./src/js/lib/components/adminPanel/adminPanelPosts.js");
-/* harmony import */ var _adminPanelAuth__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./adminPanelAuth */ "./src/js/lib/components/adminPanel/adminPanelAuth.js");
-/* harmony import */ var _util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util/helperFunctions */ "./src/js/lib/components/adminPanel/util/helperFunctions.js");
+/* harmony import */ var _util_helperFunctions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util/helperFunctions */ "./src/js/lib/components/adminPanel/util/helperFunctions.js");
 /**
  * @file adminPanelInit.js
  * @description Initialization functions for the admin panel
  * @module components/adminPanel/init
  */
-
-
-
-
-
-
-
 
 /**
  * Checks if the current user has a specific permission
@@ -252,8 +239,8 @@ function initializeAdminPanel(context, user, options) {
 
   // Додаємо допоміжні функції до контексту адмін-панелі
   const adminPanelHelpers = {
-    createTabs: (containerSelector, tabsConfig) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__.createTabs)(containerSelector, tabsConfig),
-    createModal: (id, config) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_6__.createModal)(id, config)
+    createTabs: (containerSelector, tabsConfig) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_0__.createTabs)(containerSelector, tabsConfig),
+    createModal: (id, config) => (0,_util_helperFunctions__WEBPACK_IMPORTED_MODULE_0__.createModal)(id, config)
   };
 
   /**
@@ -326,8 +313,12 @@ function initializeAdminPanel(context, user, options) {
         case "users":
           console.log("Users case");
           if (await checkPermission(services, "view_users", projectId)) {
-            components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
-
+            try {
+              components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
             /**
              * Fires when the users section is loaded
              * @event context#usersLoaded
@@ -349,7 +340,12 @@ function initializeAdminPanel(context, user, options) {
         case "roles":
           console.log("Roles case");
           if (await checkPermission(services, "view_roles", projectId)) {
-            components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+            try {
+              components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view roles.</p>');
           }
@@ -357,7 +353,12 @@ function initializeAdminPanel(context, user, options) {
         case "permissions":
           console.log("Permissions case");
           if (await checkPermission(services, "view_permissions", projectId)) {
-            components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+            try {
+              components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view permissions.</p>');
           }
@@ -365,7 +366,12 @@ function initializeAdminPanel(context, user, options) {
         case "tables":
           console.log("Tables case");
           if (await checkPermission(services, "view_tables", projectId)) {
-            components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+            try {
+              components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view tables.</p>');
           }
@@ -373,7 +379,12 @@ function initializeAdminPanel(context, user, options) {
         case "posts":
           console.log("Posts case");
           if (await checkPermission(services, "view_posts", projectId)) {
-            components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
+            try {
+              components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
+            } catch (error) {
+              console.error("Error loading table management component:", error);
+              contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
+            }
           } else {
             contentArea.html('<h2 class="text-xl mb-4">Access Denied</h2><p>You do not have permission to view posts.</p>');
           }
@@ -434,740 +445,6 @@ function initializeAdminPanel(context, user, options) {
       });
       window.location.reload();
     });
-  });
-}
-
-/***/ }),
-
-/***/ "./src/js/lib/components/adminPanel/adminPanelPermissions.js":
-/*!*******************************************************************!*\
-  !*** ./src/js/lib/components/adminPanel/adminPanelPermissions.js ***!
-  \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadPermissions: () => (/* binding */ loadPermissions),
-/* harmony export */   showPermissionForm: () => (/* binding */ showPermissionForm)
-/* harmony export */ });
-/**
- * @file adminPanelPermissions.js
- * @description Permission management functions for the admin panel
- * @module components/adminPanelPermissions
- */
-
-/**
- * Loads and displays the list of permissions
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} permissionComponent - The permission management component
- * @param {Object} options - Additional options (e.g., pagination)
- * @example
- * loadPermissions($('#contentArea'), '123', permissionComponent, { page: 1, itemsPerPage: 10 });
- */
-function loadPermissions(contentArea, projectId, permissionComponent, options = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 10
-  } = options;
-  const notification = $().notification({
-    position: "top-right",
-    duration: 3000
-  });
-  permissionComponent.getAll(projectId, {
-    page,
-    itemsPerPage
-  }).then(response => {
-    const permissions = response.data;
-    const totalPages = response.last_page;
-    let permissionsHTML = `
-          <h2 class="text-xl mb-4">Permissions</h2>
-          <button id="addPermissionBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Permission</button>
-          <table class="w-full">
-            <thead>
-              <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Description</th>
-                <th class="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${permissions.map(permission => `
-                <tr>
-                  <td>${permission.name}</td>
-                  <td>${permission.description}</td>
-                  <td>
-                    <button class="editPermissionBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${permission.id}">Edit</button>
-                    <button class="deletePermissionBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${permission.id}">Delete</button>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        `;
-    contentArea.html(permissionsHTML);
-
-    // Render pagination
-    $("#paginationArea").pagination(totalPages, page);
-    $("#addPermissionBtn").click(() => showPermissionForm(contentArea, projectId, permissionComponent));
-    $(".editPermissionBtn").click(function () {
-      const permissionId = $(this).data("id");
-      showPermissionForm(contentArea, projectId, permissionComponent, permissionId);
-    });
-    $(".deletePermissionBtn").click(function () {
-      const permissionId = $(this).data("id");
-      if (confirm("Are you sure you want to delete this permission?")) {
-        permissionComponent.delete(projectId, permissionId).then(() => {
-          notification.show("Permission deleted successfully", "success");
-          loadPermissions(contentArea, projectId, permissionComponent, options);
-        }).catch(error => {
-          notification.show("Error deleting permission: " + error.message, "error");
-        });
-      }
-    });
-  }).catch(error => {
-    contentArea.html("<p>Error loading permissions.</p>");
-    notification.show("Error loading permissions: " + error.message, "error");
-  });
-}
-
-/**
- * Shows the permission form for adding or editing a permission
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} permissionComponent - The permission management component
- * @param {string} [permissionId] - The ID of the permission to edit (optional)
- * @example
- * showPermissionForm($('#contentArea'), '123', permissionComponent, '456');
- */
-function showPermissionForm(contentArea, projectId, permissionComponent, permissionId = null) {
-  const title = permissionId ? "Edit Permission" : "Add Permission";
-  const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="permissionForm">
-        <input type="text" id="permissionName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-        <textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
-      </form>
-    `;
-  contentArea.html(formHTML);
-  if (permissionId) {
-    permissionComponent.getById(projectId, permissionId).then(permission => {
-      $("#permissionName").val(permission.name);
-      $("#permissionDescription").val(permission.description);
-    });
-  }
-  $("#permissionForm").submit(function (e) {
-    e.preventDefault();
-    const permissionData = {
-      name: $("#permissionName").val(),
-      description: $("#permissionDescription").val()
-    };
-    const action = permissionId ? permissionComponent.update(projectId, permissionId, permissionData) : permissionComponent.create(projectId, permissionData);
-    action.then(() => {
-      notification.show(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
-      loadPermissions(contentArea, projectId, permissionComponent);
-    }).catch(error => {
-      notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
-    });
-  });
-}
-
-/***/ }),
-
-/***/ "./src/js/lib/components/adminPanel/adminPanelPosts.js":
-/*!*************************************************************!*\
-  !*** ./src/js/lib/components/adminPanel/adminPanelPosts.js ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadPosts: () => (/* binding */ loadPosts)
-/* harmony export */ });
-/**
- * @file adminPanelPosts.js
- * @description Post management functions for the admin panel
- * @module components/adminPanelPosts
- */
-
-/**
- * Loads and displays the list of posts
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} postsComponent - The posts management component
- * @param {Object} options - Additional options (e.g., pagination)
- */
-function loadPosts(contentArea, projectId, postsComponent, options = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 15
-  } = options;
-  const notification = $().notification({
-    position: "top-right",
-    duration: 3000
-  });
-  postsComponent.getAll(projectId, {
-    page,
-    itemsPerPage
-  }).then(response => {
-    const posts = response.data;
-    let postsHTML = `
-        <h2 class="text-lg font-semibold mb-4">Posts</h2>
-        <button id="addPostBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-          <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
-        </button>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <i class="fa-solid fa-wrench"></i>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            ${posts.map((post, index) => `
-              <tr class="text-black">
-                <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${post.title}</td>
-                <td class="px-6 py-4 whitespace-nowrap">${post.created_at}</td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <button class="viewPostBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${post.id}">
-                    <i class="fa-regular fa-eye"></i>
-                  </button>
-                  <button class="editPostBtn bg-none rounded-md mx-2" data-id="${post.id}">
-                    <i class="fa-solid fa-pencil" style="color: #429424"></i>
-                  </button>
-                  <button class="deletePostBtn bg-none rounded-md mx-2" data-id="${post.id}">
-                    <i class="fa-regular fa-trash-can" style="color: #ea3f06"></i>
-                  </button>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-    contentArea.html(postsHTML);
-
-    // Add event listeners
-    $("#addPostBtn").click(() => showPostForm(contentArea, projectId, postsComponent));
-    $(".viewPostBtn").click(function () {
-      const postId = $(this).data("id");
-      viewPost(contentArea, projectId, postsComponent, postId);
-    });
-    $(".editPostBtn").click(function () {
-      const postId = $(this).data("id");
-      showPostForm(contentArea, projectId, postsComponent, postId);
-    });
-    $(".deletePostBtn").click(function () {
-      const postId = $(this).data("id");
-      if (confirm("Are you sure you want to delete this post?")) {
-        deletePost(contentArea, projectId, postsComponent, postId);
-      }
-    });
-  }).catch(error => {
-    contentArea.html("<p>Error loading posts.</p>");
-    notification.show("Error loading posts: " + error.message, "error");
-  });
-}
-
-/***/ }),
-
-/***/ "./src/js/lib/components/adminPanel/adminPanelRoles.js":
-/*!*************************************************************!*\
-  !*** ./src/js/lib/components/adminPanel/adminPanelRoles.js ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadRoles: () => (/* binding */ loadRoles),
-/* harmony export */   showRoleForm: () => (/* binding */ showRoleForm)
-/* harmony export */ });
-/**
- * @file adminPanelRoles.js
- * @description Role management functions for the admin panel
- * @module components/adminPanelRoles
- */
-
-/**
- * Loads and displays the list of roles
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} roleComponent - The role management component
- * @param {Object} options - Additional options (e.g., pagination)
- * @example
- * loadRoles($('#contentArea'), '123', roleComponent, { page: 1, itemsPerPage: 10 });
- */
-function loadRoles(contentArea, projectId, roleComponent, options = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 10
-  } = options;
-  const notification = $().notification({
-    position: "top-right",
-    duration: 3000
-  });
-  roleComponent.getAll(projectId, {
-    page,
-    itemsPerPage
-  }).then(response => {
-    const roles = response.data;
-    const totalPages = response.last_page;
-    let rolesHTML = `
-        <h2 class="text-xl mb-4">Roles</h2>
-        <button id="addRoleBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Role</button>
-        <table class="w-full">
-          <thead>
-            <tr>
-              <th class="text-left">Name</th>
-              <th class="text-left">Description</th>
-              <th class="text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${roles.map(role => `
-              <tr>
-                <td>${role.name}</td>
-                <td>${role.description || ""}</td>
-                <td>
-                  <button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${role.id}">Edit</button>
-                  <button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete</button>
-                </td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      `;
-    contentArea.html(rolesHTML);
-
-    // Render pagination
-    $("#paginationArea").pagination(totalPages, page);
-    $("#addRoleBtn").click(() => showRoleForm(contentArea, projectId, roleComponent));
-    $(".editRoleBtn").click(function () {
-      const roleId = $(this).data("id");
-      showRoleForm(contentArea, projectId, roleComponent, roleId);
-    });
-    $(".deleteRoleBtn").click(function () {
-      const roleId = $(this).data("id");
-      if (confirm("Are you sure you want to delete this role?")) {
-        roleComponent.delete(projectId, roleId).then(() => {
-          // Обробка успішного завантаження
-          notification.show("Roles loaded successfully", "success");
-          loadRoles(contentArea, projectId, roleComponent, options);
-        }).catch(error => {
-          // Обробка помилки
-          notification.show(`Error loading roles: ${error.message}`, "error");
-        });
-      }
-    });
-  }).catch(error => {
-    contentArea.html("<p>Error loading roles.</p>");
-    notification.show(`Error loading roles: ${error.message}`, "error");
-  });
-}
-
-/**
- * Shows the role form for adding or editing a role
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} roleComponent - The role management component
- * @param {string} [roleId] - The ID of the role to edit (optional)
- * @example
- * showRoleForm($('#contentArea'), '123', roleComponent, '456');
- */
-function showRoleForm(contentArea, projectId, roleComponent, roleId = null) {
-  const title = roleId ? "Edit Role" : "Add Role";
-  const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="roleForm">
-        <input type="text" id="roleName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-        <textarea id="roleDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
-      </form>
-    `;
-  contentArea.html(formHTML);
-  if (roleId) {
-    roleComponent.getById(projectId, roleId).then(role => {
-      $("#roleName").val(role.name);
-      $("#roleDescription").val(role.description);
-    });
-  }
-  $("#roleForm").submit(function (e) {
-    e.preventDefault();
-    const roleData = {
-      name: $("#roleName").val(),
-      description: $("#roleDescription").val()
-    };
-    const action = roleId ? roleComponent.update(projectId, roleId, roleData) : roleComponent.create(projectId, roleData);
-    action.then(() => {
-      notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
-      loadRoles(contentArea, projectId, roleComponent);
-    }).catch(error => {
-      notification.show(`Error loading roles: ${error.message}`, "error");
-    });
-  });
-}
-
-/***/ }),
-
-/***/ "./src/js/lib/components/adminPanel/adminPanelTables.js":
-/*!**************************************************************!*\
-  !*** ./src/js/lib/components/adminPanel/adminPanelTables.js ***!
-  \**************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadTables: () => (/* binding */ loadTables)
-/* harmony export */ });
-/**
- * @file adminPanelTables.js
- * @description Table management functions for the admin panel
- * @module components/adminPanelTables
- */
-
-/**
- * Loads and displays the list of tables
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} tableStructureComponent - The table structure management component
- * @param {Object} options - Additional options (e.g., pagination)
- */
-function loadTables(contentArea, projectId, tableStructureComponent, options = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 15
-  } = options;
-  const notification = $().notification({
-    position: "top-right",
-    duration: 3000
-  });
-  tableStructureComponent.getAll(projectId, {
-    page,
-    itemsPerPage
-  }).then(response => {
-    const tables = response.data || [];
-    let tablesHTML = `
-        <h2 class="text-lg font-semibold mb-4">User Tables</h2>
-        <button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-          <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
-        </button>
-        ${tables.length > 0 ? `
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id number</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Template Data</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <i class="fa-solid fa-wrench"></i>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              ${tables.map((table, index) => `
-                <tr class="text-black">
-                  <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">data</td>
-                  <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    ${table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0 ? `
-                      <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
-                        <i class="fa-regular fa-eye">view</i>
-                      </button>
-                      <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                        <i class="fa-regular fa-square-plus fa-lg">add</i>
-                      </button>
-                      <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                        <i class="fa-solid fa-file-excel fa-lg">exel</i>
-                      </button>
-                    ` : `
-                      <button class="viewTableBtn p-2 bg-gray-500 text-white rounded-md mr-2" data-id="${table.id}" disabled>
-                        <i class="fa-regular fa-eye">view</i>
-                      </button>
-                      <button class="fillTableBtn px-2 py-3 bg-green-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                        <i class="fa-regular fa-square-plus fa-lg">add</i>
-                      </button>
-                      <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                        <i class="fa-solid fa-file-excel fa-lg">exel</i>
-                      </button>
-                    `}
-                    <button class="cloneTableBtn bg-none rounded-md mx-2" data-id="${table.id}">clone</button>
-                    <button class="editTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                      <i class="fa-solid fa-pencil" style="color: #429424"></i>
-                    </button>
-                    <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                      <i class="fa-regular fa-trash-can" style="color: #ea3f06">delete</i>
-                    </button>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        ` : '<p class="text-center">No tables found. Click the "+" button to create a new table.</p>'}
-      `;
-    contentArea.html(tablesHTML);
-
-    // Add event listeners
-    $("#addTableBtn").click(() => showTableStructureForm(contentArea, projectId, tableStructureComponent));
-    $(".viewTableBtn").click(function () {
-      const tableId = $(this).data("id");
-      viewTable(contentArea, projectId, tableStructureComponent, tableId);
-    });
-    $(".fillTableBtn").click(function () {
-      const tableId = $(this).data("id");
-      const action = $(this).data("action");
-      showFillTableForm(contentArea, projectId, tableStructureComponent, tableId, action);
-    });
-    $(".excelImportBtn").click(function () {
-      const tableId = $(this).data("id");
-      const action = $(this).data("action");
-      showExcelImportForm(contentArea, projectId, tableStructureComponent, tableId, action);
-    });
-    $(".cloneTableBtn").click(function () {
-      const tableId = $(this).data("id");
-      cloneTable(contentArea, projectId, tableStructureComponent, tableId);
-    });
-    $(".editTableBtn").click(function () {
-      const tableId = $(this).data("id");
-      showTableStructureForm(contentArea, projectId, tableStructureComponent, tableId);
-    });
-    $(".deleteTableBtn").click(function () {
-      const tableId = $(this).data("id");
-      if (confirm("Are you sure you want to delete this table?")) {
-        deleteTable(contentArea, projectId, tableStructureComponent, tableId);
-      }
-    });
-  }).catch(error => {
-    contentArea.html("<p>Error loading tables.</p>");
-    notification.show("Error loading tables: " + error.message, "error");
-  });
-}
-function showTableStructureForm(contentArea, projectId, tableStructureComponent, tableId = null) {
-  const title = tableId ? "Edit Table Structure" : "Create New Table Structure";
-  const formHTML = `
-    <h2 class="text-xl mb-4">${title}</h2>
-    <form id="tableStructureForm">
-      <input type="text" id="tableName" placeholder="Table Name" class="w-full p-2 mb-4 border rounded" required>
-      <div id="tableFields"></div>
-      <button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field</button>
-      <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${tableId ? "Update" : "Create"} Table</button>
-    </form>
-  `;
-  contentArea.html(formHTML);
-  let fields = [{
-    name: "",
-    type: "text",
-    tag: "",
-    filter: null
-  }];
-  function renderFields() {
-    $("#tableFields").html(fields.map((field, index) => `
-        <div class="field-row mb-2">
-          <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
-          <select name="fieldType" class="p-2 border rounded mr-2">
-            <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-            <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-            <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-          </select>
-          <select name="fieldTag" class="p-2 border rounded mr-2">
-            <option value="">Select tag</option>
-            <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-            <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-            <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-          </select>
-          ${index === 0 ? `
-            <label>
-              <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-            </label>
-          ` : ''}
-          <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
-        </div>
-      `).join(''));
-    $(".removeFieldBtn").click(function () {
-      const index = $(this).closest(".field-row").index();
-      fields.splice(index, 1);
-      renderFields();
-    });
-  }
-  renderFields();
-  $("#addFieldBtn").click(() => {
-    fields.push({
-      name: "",
-      type: "text",
-      tag: "",
-      filter: null
-    });
-    renderFields();
-  });
-  if (tableId) {
-    tableStructureComponent.getById(projectId, tableId).then(table => {
-      $("#tableName").val(table.table_name);
-      fields = JSON.parse(table.table_structure);
-      renderFields();
-    });
-  }
-  $("#tableStructureForm").submit(function (e) {
-    e.preventDefault();
-    const tableData = {
-      table_name: $("#tableName").val(),
-      table_structure: fields.map((_, index) => ({
-        name: $("input[name='fieldName']").eq(index).val(),
-        type: $("select[name='fieldType']").eq(index).val(),
-        tag: $("select[name='fieldTag']").eq(index).val(),
-        filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : null
-      }))
-    };
-    const action = tableId ? tableStructureComponent.update(projectId, tableId, tableData) : tableStructureComponent.create(projectId, tableData);
-    action.then(() => {
-      notification.show(`Table ${tableId ? "updated" : "created"} successfully`, "success");
-      loadTables(contentArea, projectId, tableStructureComponent);
-    }).catch(error => {
-      notification.show(`Error ${tableId ? "updating" : "creating"} table: ${error.message}`, "error");
-    });
-  });
-}
-
-/***/ }),
-
-/***/ "./src/js/lib/components/adminPanel/adminPanelUsers.js":
-/*!*************************************************************!*\
-  !*** ./src/js/lib/components/adminPanel/adminPanelUsers.js ***!
-  \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   loadUsers: () => (/* binding */ loadUsers),
-/* harmony export */   showUserForm: () => (/* binding */ showUserForm)
-/* harmony export */ });
-/**
- * @file adminPanelUsers.js
- * @description User management functions for the admin panel
- * @module components/adminPanelUsers
- */
-
-/**
- * Loads and displays the list of users
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} userComponent - The user management component
- * @example
- * loadUsers($('#contentArea'), '123', userComponent);
- */
-function loadUsers(contentArea, projectId, userComponent, options = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 10
-  } = options;
-  const notification = $().notification({
-    position: "top-right",
-    duration: 3000
-  });
-  userComponent.getAll(projectId, {
-    page,
-    itemsPerPage
-  }).then(response => {
-    const users = response.data;
-    const totalPages = response.last_page;
-    let usersHTML = `
-          <h2 class="text-xl mb-4">Users</h2>
-          <button id="addUserBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add User</button>
-          <table class="w-full">
-            <thead>
-              <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Email</th>
-                <th class="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${users.map(user => `
-                <tr>
-                  <td>${user.name}</td>
-                  <td>${user.email}</td>
-                  <td>
-                    <button class="editUserBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${user.id}">Edit</button>
-                    <button class="deleteUserBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${user.id}">Delete</button>
-                  </td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        `;
-    contentArea.html(usersHTML);
-    $("#paginationArea").pagination(totalPages, page);
-    $("#addUserBtn").click(() => showUserForm(contentArea, projectId, userComponent));
-    $(".editUserBtn").click(function () {
-      const userId = $(this).data("id");
-      showUserForm(contentArea, projectId, userComponent, userId);
-    });
-    $(".deleteUserBtn").click(function () {
-      const userId = $(this).data("id");
-      if (confirm("Are you sure you want to delete this user?")) {
-        userComponent.delete(projectId, userId).then(() => {
-          notification.show("User delete successfully", "success");
-          loadUsers(contentArea, projectId, userComponent);
-        }).catch(error => {
-          notification.show("Error deleting user: " + error.message);
-        });
-      }
-    });
-  }).catch(error => {
-    contentArea.html("<p>Error loading users.</p>");
-    console.error("Error loading users:", error);
-    notification.show("Error loading users:", error);
-  });
-}
-
-/**
- * Shows the user form for adding or editing a user
- * @param {Object} contentArea - The content area element
- * @param {string} projectId - The ID of the current project
- * @param {Object} userComponent - The user management component
- * @param {string} [userId] - The ID of the user to edit (optional)
- * @example
- * showUserForm($('#contentArea'), '123', userComponent, '456');
- */
-function showUserForm(contentArea, projectId, userComponent, userId = null) {
-  const title = userId ? "Edit User" : "Add User";
-  const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="userForm">
-        <input type="text" id="userName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-        <input type="email" id="userEmail" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
-        <input type="password" id="userPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
-        <input type="password" id="userConfirmed" placeholder="Confirmed" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
-        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
-      </form>
-    `;
-  contentArea.html(formHTML);
-  if (userId) {
-    userComponent.getById(projectId, userId).then(user => {
-      $("#userName").val(user.name);
-      $("#userEmail").val(user.email);
-    });
-  }
-  $("#userForm").on("submit", function (e) {
-    e.preventDefault();
-    const userData = {
-      name: $("#userName").val(),
-      email: $("#userEmail").val(),
-      password: $("#userPassword").val(),
-      password_confirmation: $("#userConfirmed").val()
-    };
-    const action = userId ? userComponent.update(projectId, userId, userData) : userComponent.create(projectId, userData);
-    action.then(() => loadUsers(contentArea, projectId, userComponent)).catch(error => alert("Error saving user: " + error.message));
   });
 }
 
@@ -1507,12 +784,67 @@ function createPostManagement() {
       });
     },
     viewPost: function (contentArea, projectId, postService, postId) {
-      // Implement viewPost functionality here
-      // This function will be called when viewing a post
+      postService.getById(projectId, postId).then(post => {
+        let postHTML = `
+          <h2 class="text-xl mb-4">${post.title}</h2>
+          <p><strong>Created at:</strong> ${post.created_at}</p>
+          <p><strong>Updated at:</strong> ${post.updated_at}</p>
+          <div class="mt-4">
+            ${post.content}
+          </div>
+          <div class="mt-4">
+            <button id="editPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Edit</button>
+            <button id="deletePostBtn" class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
+          </div>
+        `;
+        contentArea.html(postHTML);
+        $('#editPostBtn').click(() => this.showPostForm(contentArea, projectId, postService, postId));
+        $('#deletePostBtn').click(() => this.deletePost(contentArea, projectId, postService, postId));
+      });
     },
     deletePost: function (contentArea, projectId, postService, postId) {
-      // Implement deletePost functionality here
-      // This function will be called when deleting a post
+      if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+        postService.delete(projectId, postId).then(() => {
+          alert('Post deleted successfully');
+          this.load(contentArea, projectId, postService);
+        });
+      }
+    },
+    showPostForm: function (contentArea, projectId, postService, postId = null) {
+      const isEditing = postId !== null;
+      let formHTML = `
+        <h2>${isEditing ? 'Edit' : 'Create'} Post</h2>
+        <form id="postForm">
+          <div class="mb-4">
+            <label for="postTitle" class="block mb-2">Title</label>
+            <input type="text" id="postTitle" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required>
+          </div>
+          <div class="mb-4">
+            <label for="postContent" class="block mb-2">Content</label>
+            <textarea id="postContent" name="content" rows="10" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500" required></textarea>
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">${isEditing ? 'Update' : 'Create'} Post</button>
+        </form>
+      `;
+      contentArea.html(formHTML);
+      if (isEditing) {
+        postService.getById(projectId, postId).then(post => {
+          $('#postTitle').val(post.title);
+          $('#postContent').val(post.content);
+        });
+      }
+      $('#postForm').submit(e => {
+        e.preventDefault();
+        const postData = {
+          title: $('#postTitle').val(),
+          content: $('#postContent').val()
+        };
+        const action = isEditing ? postService.update(projectId, postId, postData) : postService.create(projectId, postData);
+        action.then(() => {
+          alert(`Post ${isEditing ? 'updated' : 'created'} successfully`);
+          this.load(contentArea, projectId, postService);
+        });
+      });
     },
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
@@ -1682,73 +1014,89 @@ function createTableManagement() {
             <button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
               <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
             </button>
-            ${tables.length > 0 ? `
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id number</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <i class="fa-solid fa-wrench"></i>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  ${tables.map((table, index) => `
-                    <tr class="text-black">
-                      <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
-                      <td class="px-6 py-4 whitespace-nowrap">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id number</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <i class="fa-solid fa-wrench"></i>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                ${tables.map((table, index) => `
+                  <tr class="text-black">
+                    <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      ${table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0 ? `
                         <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
                           <i class="fa-regular fa-eye">view</i>
                         </button>
-                        <button class="editTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                          <i class="fa-solid fa-pencil" style="color: #429424"></i>
+                        <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                          <i class="fa-regular fa-square-plus fa-lg">add</i>
                         </button>
-                        <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                          <i class="fa-regular fa-trash-can" style="color: #ea3f06">delete</i>
+                        <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                          <i class="fa-solid fa-file-excel fa-lg">exel</i>
                         </button>
-                      </td>
-                    </tr>
-                  `).join("")}
-                </tbody>
-              </table>
-            ` : '<p class="text-center">No tables found. Click the "+" button to create a new table.</p>'}
+                      ` : `
+                        <button class="viewTableBtn p-2 bg-gray-500 text-white rounded-md mr-2" data-id="${table.id}" disabled>
+                          <i class="fa-regular fa-eye">view</i>
+                        </button>
+                        <button class="fillTableBtn px-2 py-3 bg-green-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
+                          <i class="fa-regular fa-square-plus fa-lg">add</i>
+                        </button>
+                        <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
+                          <i class="fa-solid fa-file-excel fa-lg">exel</i>
+                        </button>
+                      `}
+                      <button class="cloneTableBtn bg-none rounded-md mx-2" data-id="${table.id}">clone</button>
+                      <button class="editTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
+                        <i class="fa-solid fa-pencil" style="color: #429424">edit</i>
+                      </button>
+                      <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
+                        <i class="fa-regular fa-trash-can" style="color: #ea3f06">delete</i>
+                      </button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
           `;
-        contentArea.innerHTML = tablesHTML;
+        contentArea.html(tablesHTML);
 
-        // Attach event listeners
         // Add event listeners
         $("#addTableBtn").click(() => this.showForm(contentArea, projectId, tableStructureService));
-        $(".viewTableBtn").click(function () {
-          const tableId = $(this).data("id");
+        $(".viewTableBtn").click(() => {
+          const tableId = $(this[0]).data("id");
           this.viewTable(contentArea, projectId, tableStructureService, tableId);
         });
-        $(".fillTableBtn").click(function () {
+        $(".fillTableBtn").click(() => {
           const tableId = $(this).data("id");
           const action = $(this).data("action");
           this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, action);
         });
-        $(".excelImportBtn").click(function () {
+        $(".excelImportBtn").click(() => {
           const tableId = $(this).data("id");
           const action = $(this).data("action");
           this.showExcelImportForm(contentArea, projectId, tableStructureService, tableId, action);
         });
-        $(".cloneTableBtn").click(function () {
+        $(".cloneTableBtn").click(() => {
           const tableId = $(this).data("id");
           this.cloneTable(contentArea, projectId, tableStructureService, tableId);
         });
-        $(".editTableBtn").click(function () {
+        $(".editTableBtn").click(() => {
           const tableId = $(this).data("id");
           this.showTableStructureForm(contentArea, projectId, tableStructureService, tableId);
         });
-        $(".deleteTableBtn").click(function () {
+        $(".deleteTableBtn").click(() => {
           const tableId = $(this).data("id");
           if (confirm("Are you sure you want to delete this table?")) {
             this.deleteTable(contentArea, projectId, tableStructureService, tableId);
@@ -1759,17 +1107,19 @@ function createTableManagement() {
         notification.show("Error loading tables: " + error.message, "error");
       });
     },
-    showForm: function (contentArea, projectId, roleService, roleId = null) {
+    showForm: function (contentArea, projectId, tableStructureService, tableId = null) {
       const title = tableId ? "Edit Table Structure" : "Create New Table Structure";
       const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="tableStructureForm">
-        <input type="text" id="tableName" placeholder="Table Name" class="w-full p-2 mb-4 border rounded" required>
-        <div id="tableFields"></div>
-        <button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field</button>
-        <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${tableId ? "Update" : "Create"} Table</button>
-      </form>
-    `;
+        <div class="w-full min-w-3xl max-w-3xl p-4 bg-white shadow-md rounded-md">
+          <h2 class="text-lg font-semibold mb-4">${title}</h2>
+          <form id="tableStructureForm">
+            <input type="text" id="tableName" placeholder="Table name" class="w-full min-w-3xl max-w-3xl px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+            <div id="tableFields"></div>
+            <button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field</button>
+            <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${tableId ? "Update" : "Create"} Table</button>
+          </form>
+        </div>
+      `;
       contentArea.html(formHTML);
       let fields = [{
         name: "",
@@ -1779,27 +1129,27 @@ function createTableManagement() {
       }];
       function renderFields() {
         $("#tableFields").html(fields.map((field, index) => `
-          <div class="field-row mb-2">
-            <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
-            <select name="fieldType" class="p-2 border rounded mr-2">
-              <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-              <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-              <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-            </select>
-            <select name="fieldTag" class="p-2 border rounded mr-2">
-              <option value="">Select tag</option>
-              <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-              <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-              <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-            </select>
-            ${index === 0 ? `
-              <label>
-                <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-              </label>
-            ` : ""}
-            <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
-          </div>
-        `).join(""));
+            <div class="field-row mb-2">
+              <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
+              <select name="fieldType" class="p-2 border rounded mr-2">
+                <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
+                <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
+                <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
+              </select>
+              <select name="fieldTag" class="p-2 border rounded mr-2">
+                <option value="">Select tag</option>
+                <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
+                <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
+                <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
+              </select>
+              ${index === 0 ? `
+                <label>
+                  <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
+                </label>
+              ` : ""}
+              <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
+            </div>
+          `).join(""));
         $(".removeFieldBtn").click(function () {
           const index = $(this).closest(".field-row").index();
           fields.splice(index, 1);
@@ -1823,7 +1173,7 @@ function createTableManagement() {
           renderFields();
         });
       }
-      $("#tableStructureForm").on("submit", e => {
+      $("#tableStructureForm").submit(e => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),
@@ -1844,24 +1194,149 @@ function createTableManagement() {
       });
     },
     viewTable: function (contentArea, projectId, tableStructureService, tableId) {
-      // Implement viewTable functionality here
-      // This function will be called when viewing a table
+      tableStructureService.getById(projectId, tableId).then(tableData => {
+        const tableStructure = JSON.parse(tableData.table_structure);
+        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        let tableHTML = `
+          <h2 class="text-lg font-semibold m-4">${tableData.table_name} (ID: ${tableData.id})</h2>
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                ${tableStructure.map(column => `
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ${column.name}
+                  </th>
+                `).join("")}
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              ${tableDataParsed.map((row, rowIndex) => `
+                <tr class="text-black">
+                  ${tableStructure.map(column => `
+                    <td class="px-6 py-4 whitespace-nowrap">${row[column.name] || ""}</td>
+                  `).join("")}
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}">Edit</button>
+                    <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}">Delete</button>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+          <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
+        `;
+        contentArea.html(tableHTML);
+
+        // Add event listeners
+        $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "add"));
+        $(".editRowBtn").click(function () {
+          const rowIndex = $(this).data("row-index");
+          this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "edit", rowIndex);
+        });
+        $(".deleteRowBtn").click(function () {
+          const rowIndex = $(this).data("row-index");
+          if (confirm("Are you sure you want to delete this row?")) {
+            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex);
+          }
+        });
+      });
     },
-    showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action) {
-      // Implement showFillTableForm functionality here
-      // This function will be called when filling a table with data
+    showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action, rowIndex = null) {
+      tableStructureService.getById(projectId, tableId).then(tableData => {
+        const tableStructure = JSON.parse(tableData.table_structure);
+        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        let formHTML = `
+          <h2>${action === "add" ? "Add" : "Edit"} Row</h2>
+          <form id="fillTableForm">
+            ${tableStructure.map(field => `
+              <div>
+                <label for="${field.name}">${field.name}</label>
+                <input type="${field.type}" id="${field.name}" name="${field.name}" 
+                  value="${action === "edit" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+              </div>
+            `).join("")}
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+          </form>
+        `;
+        contentArea.html(formHTML);
+        $("#fillTableForm").submit(e => {
+          e.preventDefault();
+          const formData = {};
+          tableStructure.forEach(field => {
+            formData[field.name] = $(`#${field.name}`).val();
+          });
+          if (action === "add") {
+            tableDataParsed.push(formData);
+          } else if (action === "edit" && rowIndex !== null) {
+            tableDataParsed[rowIndex] = formData;
+          }
+          this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
+        });
+      });
     },
-    showExcelImportForm: function (contentArea, projectId, tableStructureService, tableId, action) {
-      // Implement showExcelImportForm functionality here
-      // This function will be called when importing data from Excel
+    showExcelImportForm: function (contentArea, projectId, tableStructureService, tableId) {
+      let formHTML = `
+        <h2>Import Excel Data</h2>
+        <form id="excelImportForm">
+          <input type="file" id="excelFile" accept=".xlsx, .xls" required>
+          <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Import</button>
+        </form>
+      `;
+      contentArea.html(formHTML);
+      $("#excelImportForm").submit(e => {
+        e.preventDefault();
+        const file = $("#excelFile")[0].files[0];
+        if (file) {
+          // Here you would typically use a library like SheetJS to parse the Excel file
+          // For this example, we'll just simulate the process
+          setTimeout(() => {
+            alert("Excel import simulated. In a real implementation, the file would be parsed and data added to the table.");
+            this.viewTable(contentArea, projectId, tableStructureService, tableId);
+          }, 1000);
+        }
+      });
     },
     cloneTable: function (contentArea, projectId, tableStructureService, tableId) {
-      // Implement cloneTable functionality here
-      // This function will be called when cloning a table
+      tableStructureService.getById(projectId, tableId).then(tableData => {
+        const newTableName = `${tableData.table_name} (Clone)`;
+        const newTableData = {
+          ...tableData,
+          id: null,
+          table_name: newTableName,
+          table_data: []
+        };
+        tableStructureService.create(projectId, newTableData).then(() => {
+          alert(`Table cloned successfully. New table name: ${newTableName}`);
+          this.load(contentArea, projectId, tableStructureService);
+        });
+      });
     },
     deleteTable: function (contentArea, projectId, tableStructureService, tableId) {
-      // Implement deleteTable functionality here
-      // This function will be called when deleting a table
+      if (confirm("Are you sure you want to delete this table? This action cannot be undone.")) {
+        tableStructureService.delete(projectId, tableId).then(() => {
+          alert("Table deleted successfully");
+          this.load(contentArea, projectId, tableStructureService);
+        });
+      }
+    },
+    updateTableData: function (contentArea, projectId, tableStructureService, tableId, newData) {
+      tableStructureService.update(projectId, tableId, {
+        table_data: JSON.stringify(newData)
+      }).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableId);
+      });
+    },
+    deleteTableRow: function (contentArea, projectId, tableStructureService, tableId, rowIndex) {
+      tableStructureService.getById(projectId, tableId).then(tableData => {
+        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        tableDataParsed.splice(rowIndex, 1);
+        this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
+      });
     },
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
@@ -2087,19 +1562,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./components */ "./src/js/lib/components/adminPanel/components.js");
 /* harmony import */ var _adminPanelAuth__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./adminPanelAuth */ "./src/js/lib/components/adminPanel/adminPanelAuth.js");
 /* harmony import */ var _adminPanelInit__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./adminPanelInit */ "./src/js/lib/components/adminPanel/adminPanelInit.js");
-/* harmony import */ var _adminPanelUsers__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./adminPanelUsers */ "./src/js/lib/components/adminPanel/adminPanelUsers.js");
-/* harmony import */ var _adminPanelRoles__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./adminPanelRoles */ "./src/js/lib/components/adminPanel/adminPanelRoles.js");
-/* harmony import */ var _adminPanelPermissions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./adminPanelPermissions */ "./src/js/lib/components/adminPanel/adminPanelPermissions.js");
-/* harmony import */ var _adminPanelTables__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./adminPanelTables */ "./src/js/lib/components/adminPanel/adminPanelTables.js");
 /**
  * @file index.js
  * @description Main entry point for the admin panel module
  * @module components/adminPanel
  */
-
-
-
-
 
 
 

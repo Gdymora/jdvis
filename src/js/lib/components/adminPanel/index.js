@@ -8,11 +8,7 @@ import $ from "../../core";
 import { initServices } from "./services";
 import { initComponents } from "./components";
 import { showLoginForm } from "./adminPanelAuth";
-import { initializeAdminPanel } from "./adminPanelInit";
-import { loadUsers, showUserForm } from "./adminPanelUsers";
-import { loadRoles, showRoleForm } from "./adminPanelRoles";
-import { loadPermissions, showPermissionForm } from "./adminPanelPermissions";
-import { loadTables, showTableForm } from "./adminPanelTables";
+import { initializeAdminPanel } from "./adminPanelInit"; 
 
 // Global settings
 $.adminSettings = {
