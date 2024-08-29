@@ -25,8 +25,10 @@ export function createTableManagement() {
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">№</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Id number</th>
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
+                  <!--  
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Updated At</th>
+                  -->
                   <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <i class="fa-solid fa-wrench"></i>
                   </th>
@@ -40,8 +42,10 @@ export function createTableManagement() {
                     <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
+                  <!--  
                     <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
+                   -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       ${
                         table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0
@@ -197,7 +201,7 @@ export function createTableManagement() {
         });
       }
 
-      $("#tableStructureForm").submit((e) => {
+      $("#tableStructureForm").on("submit", (e) => {
         e.preventDefault();
         const tableData = {
           table_name: $("#tableName").val(),
@@ -288,6 +292,96 @@ export function createTableManagement() {
       });
     },
 
+    showTableStructureForm: function (contentArea, projectId, tableStructureService, tableId) {
+      tableStructureService.getById(projectId, tableId).then((table) => {
+        let formHTML = `
+          <h2>Edit Table Structure</h2>
+          <form id="editTableStructureForm">
+            <input type="text" id="tableName" value="${table.table_name}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+            <div id="tableFields"></div>
+            <button type="button" id="addFieldBtn" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Add Field</button>
+            <button type="submit" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Update Table Structure</button>
+          </form>
+        `;
+
+        contentArea.html(formHTML);
+
+        let fields = JSON.parse(table.table_structure);
+
+        function renderFields() {
+          $("#tableFields").html(
+            fields
+              .map(
+                (field, index) => `
+              <div class="field-row mt-2">
+                <input type="text" name="fieldName" value="${field.name}" class="px-2 py-1 border rounded mr-2">
+                <select name="fieldType" class="px-2 py-1 border rounded mr-2">
+                  <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
+                  <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
+                  <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
+                </select>
+                <select name="fieldTag" class="px-2 py-1 border rounded mr-2">
+                  <option value="">Select tag</option>
+                  <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
+                  <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
+                  <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
+                </select>
+                ${
+                  index === 0
+                    ? `
+                  <label>
+                    <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
+                  </label>
+                `
+                    : ""
+                }
+                <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded">Remove</button>
+              </div>
+            `
+              )
+              .join("")
+          );
+
+          $(".removeFieldBtn").click(function () {
+            fields.splice($(this).closest(".field-row").index(), 1);
+            renderFields();
+          });
+        }
+
+        renderFields();
+
+        $("#addFieldBtn").click(() => {
+          fields.push({ name: "", type: "text", tag: "", filter: null });
+          renderFields();
+        });
+
+        $("#editTableStructureForm").on("submit", (e) => {
+          e.preventDefault();
+          const updatedTableData = {
+            user_id: table.project.super_user_id,
+            project_id: table.project.id,
+            table_name: $("#tableName").val(),
+            table_structure: fields.map((_, index) => ({
+              name: $("input[name='fieldName']").eq(index).val(),
+              type: $("select[name='fieldType']").eq(index).val(),
+              tag: $("select[name='fieldTag']").eq(index).val(),
+              filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : null,
+            })),
+          };
+
+          tableStructureService
+            .update(projectId, tableId, updatedTableData)
+            .then(() => {
+              notification.show("Table structure updated successfully", "success");
+              this.load(contentArea, projectId, tableStructureService);
+            })
+            .catch((error) => {
+              notification.show(`Error updating table structure: ${error.message}`, "error");
+            });
+        });
+      });
+    },
+    
     showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action, rowIndex = null) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
@@ -314,7 +408,7 @@ export function createTableManagement() {
 
         contentArea.html(formHTML);
 
-        $("#fillTableForm").submit((e) => {
+        $("#fillTableForm").on("submit", (e) => {
           e.preventDefault();
           const formData = {};
           tableStructure.forEach((field) => {
@@ -343,7 +437,7 @@ export function createTableManagement() {
 
       contentArea.html(formHTML);
 
-      $("#excelImportForm").submit((e) => {
+      $("#excelImportForm").on("submit", (e) => {
         e.preventDefault();
         const file = $("#excelFile")[0].files[0];
         if (file) {
@@ -359,17 +453,55 @@ export function createTableManagement() {
 
     cloneTable: function (contentArea, projectId, tableStructureService, tableId) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
-        const newTableName = `${tableData.table_name} (Clone)`;
-        const newTableData = {
-          ...tableData,
-          id: null,
-          table_name: newTableName,
-          table_data: [],
-        };
+        const formHTML = `
+          <h2 class="text-lg font-semibold mb-4">Clone Table</h2>
+          <form id="cloneTableForm">
+            <div class="mb-4">
+              <label for="newTableName" class="block text-sm font-medium text-gray-700">New Table Name</label>
+              <input type="text" id="newTableName" name="newTableName" value="${tableData.table_name} (Clone)" 
+                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+            </div> 
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              Clone Table
+            </button>
+          </form>
+        `;
 
-        tableStructureService.create(projectId, newTableData).then(() => {
-          alert(`Table cloned successfully. New table name: ${newTableName}`);
-          this.load(contentArea, projectId, tableStructureService);
+        contentArea.html(formHTML);
+
+        $("#cloneTableForm").on("submit", (e) => {
+          e.preventDefault();
+          const newTableName = $("#newTableName").val();
+
+          // Ensure table_structure is an array, not a string
+          let tableStructure = tableData.table_structure;
+          if (typeof tableStructure === "string") {
+            try {
+              tableStructure = JSON.parse(tableStructure);
+            } catch (error) {
+              console.error("Error parsing table_structure:", error);
+              notification.show("Error parsing table structure", "error");
+              return;
+            }
+          }
+
+          const newTableData = {
+            user_id: tableData.user_id, // Assume this is available from the original table data
+            project_id: projectId,
+            table_name: newTableName,
+            type_data: tableData.type_data || "custom_type",
+            table_structure: tableStructure,
+          };
+
+          tableStructureService
+            .create(projectId, newTableData)
+            .then(() => {
+              notification.show(`Table cloned successfully. New table name: ${newTableName}`, "success");
+              this.load(contentArea, projectId, tableStructureService);
+            })
+            .catch((error) => {
+              notification.show(`Error cloning table: ${error.message}`, "error");
+            });
         });
       });
     },

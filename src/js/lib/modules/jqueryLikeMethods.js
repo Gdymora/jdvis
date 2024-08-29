@@ -197,4 +197,51 @@ $.prototype.trigger = function (eventName, data, triggerAll = false) {
   return this;
 };
 
+/**
+ * Gets the value of a property for the first element in the set of matched elements or
+ * sets one or more properties for every matched element.
+ * @param {string} propertyName - The name of the property to get or set.
+ * @param {*} [value] - The value to set for the property. If omitted, the method returns the current value.
+ * @returns {(*|Object)} The value of the property if getting, or the ModernLib object for chaining if setting.
+ *
+ * @example
+ * // Get the checked property of a checkbox
+ * const isChecked = $('#myCheckbox').prop('checked');
+ *
+ * @example
+ * // Set the disabled property of an input
+ * $('#myInput').prop('disabled', true);
+ *
+ * @example
+ * // Get the tagName of an element
+ * const tagName = $('#myElement').prop('tagName');
+ *
+ * @example
+ * // Set multiple properties at once
+ * $('.myClass').prop({
+ *   disabled: false,
+ *   required: true
+ * });
+ */
+$.prototype.prop = function (propertyName, value) {
+  if (typeof propertyName === "object") {
+    // Setting multiple properties
+    for (let key in propertyName) {
+      this.prop(key, propertyName[key]);
+    }
+    return this;
+  }
+
+  if (value === undefined) {
+    // Getting property value
+    return this[0] ? this[0][propertyName] : undefined;
+  } else {
+    // Setting property value
+    for (let i = 0; i < this.length; i++) {
+      this[i][propertyName] = value;
+    }
+    return this;
+  }
+};
+
 export default $;
