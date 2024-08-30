@@ -5,7 +5,6 @@ export function createTableManagement() {
     position: "top-right",
     duration: 3000,
   });
-
   return {
     load: function (contentArea, projectId, tableStructureService, options = {}) {
       const { page = 1, itemsPerPage = 15 } = options;
@@ -17,7 +16,7 @@ export function createTableManagement() {
           let tablesHTML = `
             <h2 class="text-lg font-semibold mb-4">User Tables</h2>
             <button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-              <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f"></i>
+              <i class="fa-regular fa-square-plus fa-xl" style="color: #3e1e9f" data-fallback-text="+"></i>
             </button>
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
@@ -51,33 +50,33 @@ export function createTableManagement() {
                         table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0
                           ? `
                         <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
-                          <i class="fa-regular fa-eye">view</i>
+                          <i class="fa-regular fa-eye" data-fallback-text="view"></i>
                         </button>
                         <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                          <i class="fa-regular fa-square-plus fa-lg">add</i>
+                          <i class="fa-regular fa-square-plus fa-lg" data-fallback-text="add"></i>
                         </button>
                         <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
-                          <i class="fa-solid fa-file-excel fa-lg">exel</i>
+                          <i class="fa-solid fa-file-excel fa-lg" data-fallback-text="exel"></i>
                         </button>
                       `
                           : `
                         <button class="viewTableBtn p-2 bg-gray-500 text-white rounded-md mr-2" data-id="${table.id}" disabled>
-                          <i class="fa-regular fa-eye">view</i>
+                          <i class="fa-regular fa-eye" data-fallback-text="view"></i>
                         </button>
                         <button class="fillTableBtn px-2 py-3 bg-green-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                          <i class="fa-regular fa-square-plus fa-lg">add</i>
+                          <i class="fa-regular fa-square-plus fa-lg" data-fallback-text="add"></i>
                         </button>
                         <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
-                          <i class="fa-solid fa-file-excel fa-lg">exel</i>
+                          <i class="fa-solid fa-file-excel fa-lg" data-fallback-text="exel"></i>
                         </button>
                       `
                       }
                       <button class="cloneTableBtn bg-none rounded-md mx-2" data-id="${table.id}">clone</button>
                       <button class="editTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                        <i class="fa-solid fa-pencil" style="color: #429424">edit</i>
+                        <i class="fa-solid fa-pencil" style="color: #429424" data-fallback-text="edit"></i>
                       </button>
                       <button class="deleteTableBtn bg-none rounded-md mx-2" data-id="${table.id}">
-                        <i class="fa-regular fa-trash-can" style="color: #ea3f06">delete</i>
+                        <i class="fa-regular fa-trash-can" style="color: #ea3f06" data-fallback-text="delete"></i>
                       </button>
                     </td>
                   </tr>
@@ -381,7 +380,7 @@ export function createTableManagement() {
         });
       });
     },
-    
+
     showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action, rowIndex = null) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
@@ -427,27 +426,33 @@ export function createTableManagement() {
     },
 
     showExcelImportForm: function (contentArea, projectId, tableStructureService, tableId) {
-      let formHTML = `
-        <h2>Import Excel Data</h2>
-        <form id="excelImportForm">
-          <input type="file" id="excelFile" accept=".xlsx, .xls" required>
-          <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Import</button>
-        </form>
-      `;
+      contentArea.html('<div id="fileParserContainer"></div>');
 
-      contentArea.html(formHTML);
+      $("#fileParserContainer").fileParser({
+        onParse: function (data) {
+          // Here you can handle the parsed data
+          console.log("Parsed data:", data);
 
-      $("#excelImportForm").on("submit", (e) => {
-        e.preventDefault();
-        const file = $("#excelFile")[0].files[0];
-        if (file) {
-          // Here you would typically use a library like SheetJS to parse the Excel file
-          // For this example, we'll just simulate the process
-          setTimeout(() => {
-            alert("Excel import simulated. In a real implementation, the file would be parsed and data added to the table.");
-            this.viewTable(contentArea, projectId, tableStructureService, tableId);
-          }, 1000);
-        }
+          // Example: update the table with the parsed data
+          tableStructureService
+            .update(projectId, tableId, { data: data })
+            .then(() => {
+              alert("Data imported successfully");
+              this.viewTable(contentArea, projectId, tableStructureService, tableId);
+            })
+            .catch((error) => {
+              alert("Error importing data: " + error.message);
+            });
+        },
+        onError: function (error) {
+          alert("Error: " + error);
+        },
+        tableStructure: [
+          { name: "imgSrc", type: "text" },
+          { name: "Column2", type: "number" },
+          // ... інші колонки відповідно до вашої структури таблиці
+        ],
+        ignoreFormat: false,
       });
     },
 

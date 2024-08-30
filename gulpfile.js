@@ -8,16 +8,31 @@ const autoprefixer = require("autoprefixer");
 const cleanCSS = require("gulp-clean-css");
 const postcss = require("gulp-postcss");
 const jsdoc = require("gulp-jsdoc3");
-
+const fontAwesomePath =  require('@fortawesome/fontawesome-free').cssPath;
 // const dist = "/Applications/MAMP/htdocs/test"; // Ссылка на вашу папку на локальном сервере
 const dist = "./dist";
+// Шлях до Font Awesome
 
 gulp.task("copy-html", () => {
   return gulp.src("./src/index.html").pipe(gulp.dest(dist)).pipe(browsersync.stream());
 });
 
+// Завдання для копіювання шрифтів Font Awesome
+gulp.task("copy-fa-fonts", function () {
+  return gulp.src(`${fontAwesomePath}/webfonts/*`).pipe(gulp.dest(`${dist}/fontawesome/webfonts`));
+});
+
+// Оновлене завдання build-sass
 gulp.task("build-sass", () => {
-  return gulp.src("./src/sass/style.scss").pipe(sass().on("error", sass.logError)).pipe(gulp.dest(dist)).pipe(browsersync.stream());
+  return gulp
+    .src("./src/sass/style.scss")
+    .pipe(
+      sass({
+        includePaths: [fontAwesomePath],
+      }).on("error", sass.logError)
+    )
+    .pipe(gulp.dest(dist))
+    .pipe(browsersync.stream());
 });
 
 gulp.task("build-js", () => {
@@ -70,17 +85,23 @@ gulp.task("watch", () => {
   gulp.watch("./src/index.html", gulp.parallel("copy-html"));
   gulp.watch("./src/js/**/*.js", gulp.parallel("build-js"));
   gulp.watch("./src/sass/**/*.scss", gulp.parallel("build-sass"));
+  gulp.watch(`${fontAwesomePath}/webfonts/*`, gulp.parallel("copy-fa-fonts"));
 });
 
-gulp.task("build", gulp.parallel("copy-html", "build-js", "build-sass"));
+gulp.task("build", gulp.parallel("copy-html", "build-js", "build-sass", "copy-fa-fonts"));
 
 gulp.task("prod", () => {
   gulp
     .src("./src/sass/style.scss")
-    .pipe(sass().on("error", sass.logError))
+    .pipe(
+      sass({
+        includePaths: [fontAwesomePath],
+      }).on("error", sass.logError)
+    )
     .pipe(postcss([autoprefixer()]))
     .pipe(cleanCSS())
     .pipe(gulp.dest(dist));
+  gulp.src(`${fontAwesomePath}/webfonts/*`).pipe(gulp.dest(`${dist}/fontawesome/webfonts`));
 
   return gulp
     .src("./src/js/main.js")
@@ -117,6 +138,8 @@ gulp.task("prod", () => {
     .pipe(gulp.dest(dist));
 });
 
+gulp.task("default", gulp.series("build", "watch"));
+
 gulp.task("doc", function (cb) {
   const config = {
     opts: {
@@ -127,6 +150,5 @@ gulp.task("doc", function (cb) {
   return gulp.src(["./src/js/**/*.js"], { read: false }).pipe(jsdoc(config, cb));
   //gulp.src(["README.md", "./src/**/*.js"], { read: false }).pipe(jsdoc(cb));
 });
- 
 
 gulp.task("default", gulp.parallel("watch", "build"));

@@ -46,15 +46,36 @@ $.fn = $.prototype;
  * @returns {Object} The ModernLib object for chaining.
  */
 
-$.prototype.each = function(callback) {
+$.prototype.each = function (callback) {
   for (let i = 0; i < this.length; i++) {
     callback.call(this[i], this[i], i, this);
   }
   return this;
 };
 
+/**
+ * Executes a callback function when the DOM is ready.
+ * @param {Function} callback - Function to execute when the DOM is ready.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $().ready(function() {
+ *   console.log('DOM is ready!');
+ *     // Ваш код ініціалізації тут
+ *  });
+ */
+ 
+
+$.prototype.ready = function (callback) {
+  if (document.readyState !== "loading") {
+    callback();
+  } else {
+    document.addEventListener("DOMContentLoaded", callback);
+  }
+  return this;
+};
+
 // Експортуємо як глобальний об'єкт
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   window.$ = $;
 }
 
