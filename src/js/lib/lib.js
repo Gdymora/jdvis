@@ -22,6 +22,7 @@ import "./modules/jqueryLikeMethods";
 import "./modules/checkFontAwesomeIcons";
 import "./modules/fileParser";
 import "./modules/objectUtils";
+import "./modules/domManipulation";
 import "./components/notification";
 import "./components/dropdown";
 import "./components/modal";

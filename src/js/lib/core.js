@@ -19,7 +19,7 @@ const $ = function (selector) {
  * @param {string|Element} selector - A CSS selector string or DOM Element.
  */
 
-$.prototype.init = function (selector) {
+/* $.prototype.init = function (selector) {
   if (!selector) {
     return this; //{}
   }
@@ -34,7 +34,42 @@ $.prototype.init = function (selector) {
   Object.assign(this, document.querySelectorAll(selector));
   this.length = document.querySelectorAll(selector).length;
   return this;
+}; */
+$.prototype.init = function (selector) {
+  if (!selector) {
+    return this; // Повертаємо пустий об'єкт, якщо немає селектора
+  }
+
+  // Якщо selector — це HTML-рядок
+  if (typeof selector === 'string' && selector.trim().startsWith('<')) {
+    const temp = document.implementation.createHTMLDocument();
+    temp.body.innerHTML = selector.trim();
+    Object.assign(this, temp.body.children);
+    this.length = temp.body.children.length;
+    return this;
+  }
+
+  // Якщо selector — це DOM-вузол
+  if (selector instanceof HTMLElement) {
+    this[0] = selector;
+    this.length = 1;
+    return this;
+  }
+
+  // Якщо selector — це CSS-селектор
+  if (typeof selector === 'string') {
+    const nodeList = document.querySelectorAll(selector);
+    Object.assign(this, nodeList);
+    this.length = nodeList.length;
+  } else {
+    this[0] = selector;
+    this.length = 1;
+  }
+
+  return this;
 };
+
+
 
 $.prototype.init.prototype = $.prototype;
 // Додайте цей рядок для підтримки плагінів
@@ -63,7 +98,6 @@ $.prototype.each = function (callback) {
  *     // Ваш код ініціалізації тут
  *  });
  */
- 
 
 $.prototype.ready = function (callback) {
   if (document.readyState !== "loading") {

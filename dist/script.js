@@ -369,7 +369,7 @@ function initializeAdminPanel(context, user, options) {
           console.log("Tables case");
           if (await checkPermission(services, "view_tables", projectId)) {
             try {
-              components.tableManagement.load(contentArea, projectId, services.tableStructureService, loadOptions);
+              components.tableManagement.load(contentArea, projectId, services.tableStructureService, services.tableDataService, loadOptions);
             } catch (error) {
               console.error("Error loading table management component:", error);
               contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
@@ -638,111 +638,98 @@ function createPostManagement() {
         page = 1,
         itemsPerPage = 15
       } = options;
-      let table_structure = [];
-      let dataTable = [];
-      let showButtonSave = false;
       postService.getAll(projectId, {
         page,
         itemsPerPage
       }).then(response => {
         const data = response.data;
-        if (data && Object.keys(data).length > 0) {
-          table_structure = JSON.parse(data.table_structure);
-          dataTable = data.table_data && data.table_data[0] ? JSON.parse(data.table_data[0].data) : [];
+        if (data && data.length > 0) {
           const tableHTML = `
               <div class="overflow-auto">
-                <div class="flex justify-center">
-                  <h2 class="text-lg font-semibold m-4">${data.user_table?.table_name} ${data.user_table?.id}</h2>
-                  ${showButtonSave ? `
-                    <button id="saveTableBtn" class="justify-right bg-none rounded-md mx-2">
-                      <i class="fa-regular fa-floppy-disk fa-beat fa-lg" style="color: #96f3d7;"></i>
-                    </button>
-                    <button id="resetTableBtn" class="justify-right bg-none rounded-md mx-2">Reset</button>
-                  ` : ''}
-                </div>
-    
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
-                      ${table_structure.map(column => `
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          ${column.name}
-                        </th>
-                      `).join('')}
-                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <i class="fa-solid fa-wrench"></i>
-                      </th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project ID</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Tables ID</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Table Name</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Table Structure</th>
+                      <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
-                    ${dataTable.map((row, rowIndex) => `
+                    ${data.map((item, index) => `
                       <tr class="text-black">
-                        ${table_structure.map(column => `
-                          <td class="px-6 py-4 whitespace-nowrap">
-                            ${row[column.name]}
-                          </td>
-                        `).join('')}
+                        <td class="px-6 py-4 whitespace-nowrap">${item.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${item.project_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${item.user_tables_id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">${item.user_table.table_name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${item.data}">
+                          ${item.data.length > 15 ? item.data.substring(0, 15) + "..." : item.data}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="jojoopopiopiopiopioipo">
+                          ${item.user_table.table_structure.length > 15 ? item.user_table.table_structure.substring(0, 15) + "..." : item.user_table.table_structure}
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                          <button ${showButtonSave ? 'disabled' : ''} class="editRowBtn bg-none rounded-md mx-2" data-row-index="${rowIndex}">
-                            <i class="fa-solid fa-pencil" style="color: ${showButtonSave ? '#ccc' : '#429424'};"></i>
-                          </button>
-                          <button ${showButtonSave ? 'disabled' : ''} class="deleteRowBtn bg-none rounded-md mx-2" data-row-index="${rowIndex}">
-                            <i class="fa-regular fa-trash-can" style="color: ${showButtonSave ? '#ccc' : '#ea3f06'};"></i>
-                          </button>
+                          <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${index}">Edit</button>
+                          <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${index}">Delete</button>
                         </td>
                       </tr>
-                    `).join('')}
+                    `).join("")}
                   </tbody>
                 </table>
               </div>
+              <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
             `;
           contentArea.html(tableHTML);
 
           // Add event listeners
-          $('.editRowBtn').click(e => {
-            const rowIndex = $(e.currentTarget).data('row-index');
-            this.openModalUpdate(dataTable[rowIndex], rowIndex);
+          $(".editRowBtn").click(event => {
+            const rowIndex = $(event.currentTarget).data("row-index");
+            this.openModalUpdate(data[rowIndex], rowIndex);
           });
-          $('.deleteRowBtn').click(e => {
-            const rowIndex = $(e.currentTarget).data('row-index');
-            this.handleDeleteRow(rowIndex);
+          $(".deleteRowBtn").click(event => {
+            const rowIndex = $(event.currentTarget).data("row-index");
+            if (confirm("Are you sure you want to delete this row?")) {
+              this.handleDeleteRow(rowIndex);
+            }
           });
-          $('#saveTableBtn').click(() => this.handleUpdateTable(projectId, postService, data.id));
-          $('#resetTableBtn').click(() => this.reset(data));
+          $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, postService, data[0].user_tables_id, "first"));
+
+          // Add tooltip functionality
+          $(".tooltip-trigger").hover(function () {
+            const tooltip = $().create('<div class="tooltip"></div>');
+            const fullText = $(this).data("full-text");
+            console.log(fullText);
+            $(tooltip).text(fullText);
+            $(this).append(tooltip);
+            const triggerRect = $(this).offset();
+            const tooltipRect = $(tooltip).offset();
+            const top = triggerRect.top + window.scrollY - tooltipRect.height - 10;
+            const left = triggerRect.left + window.scrollX;
+            $(tooltip).css({
+              position: "absolute",
+              top: `${top}px`,
+              left: `${left}px`,
+              background: "#333",
+              color: "#fff",
+              padding: "5px",
+              borderRadius: "5px",
+              maxWidth: "300px",
+              wordWrap: "break-word",
+              zIndex: 1000
+            });
+          }, function () {
+            $(this).find(".tooltip").remove();
+          });
         } else {
           contentArea.html("<p>No data available.</p>");
         }
       }).catch(error => {
-        contentArea.html("<p>Error loading posts.</p>");
-        notification.show("Error loading posts: " + error.message, "error");
+        contentArea.html("<p>Error loading data.</p>");
+        console.error("Error loading data:", error);
       });
-      this.openModalUpdate = (row, rowIndex) => {
-        // Implement modal opening logic here
-        console.log('Open modal for updating row', rowIndex);
-      };
-      this.handleDeleteRow = rowIndex => {
-        dataTable.splice(rowIndex, 1);
-        showButtonSave = true;
-        this.load(contentArea, projectId, postService, options);
-      };
-      this.handleUpdateTable = (projectId, postService, tableId) => {
-        const updateData = {
-          user_tables_id: tableId,
-          data: dataTable
-        };
-        postService.update(projectId, tableId, updateData).then(() => {
-          notification.show("Table updated successfully", "success");
-          showButtonSave = false;
-          this.load(contentArea, projectId, postService, options);
-        }).catch(error => {
-          notification.show("Error updating table: " + error.message, "error");
-        });
-      };
-      this.reset = originalData => {
-        dataTable = originalData.table_data && originalData.table_data[0] ? JSON.parse(originalData.table_data[0].data) : [];
-        showButtonSave = false;
-        this.load(contentArea, projectId, postService, options);
-      };
     },
     showPostForm: function (contentArea, projectId, postService, postId = null) {
       const title = postId ? "Edit Post" : "Create New Post";
@@ -793,17 +780,17 @@ function createPostManagement() {
         `;
         contentArea.html(postHTML);
         const self = this;
-        $('#editPostBtn').click(() => self.showPostForm(contentArea, projectId, postService, postId));
-        $('#deletePostBtn').click(() => self.deletePost(contentArea, projectId, postService, postId));
+        $("#editPostBtn").click(() => self.showPostForm(contentArea, projectId, postService, postId));
+        $("#deletePostBtn").click(() => self.deletePost(contentArea, projectId, postService, postId));
       });
     },
     deletePost: function (contentArea, projectId, postService, postId) {
-      if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      if (confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
         postService.delete(projectId, postId).then(() => {
-          notification.show('Post deleted successfully', 'success');
+          notification.show("Post deleted successfully", "success");
           this.load(contentArea, projectId, postService);
         }).catch(error => {
-          notification.show(`Error deleting post: ${error.message}`, 'error');
+          notification.show(`Error deleting post: ${error.message}`, "error");
         });
       }
     },
@@ -962,7 +949,7 @@ function createTableManagement() {
     duration: 3000
   });
   return {
-    load: function (contentArea, projectId, tableStructureService, options = {}) {
+    load: function (contentArea, projectId, tableStructureService, tableDataService, options = {}) {
       const {
         page = 1,
         itemsPerPage = 15
@@ -1007,7 +994,7 @@ function createTableManagement() {
                         <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
                           <i class="fa-regular fa-eye" data-fallback-text="view"></i>
                         </button>
-                        <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                        <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
                           <i class="fa-regular fa-square-plus fa-lg" data-fallback-text="add"></i>
                         </button>
                         <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
@@ -1043,12 +1030,12 @@ function createTableManagement() {
         $("#addTableBtn").click(() => this.showForm(contentArea, projectId, tableStructureService));
         $(".viewTableBtn").click(e => {
           const tableId = $(e.currentTarget).data("id");
-          this.viewTable(contentArea, projectId, tableStructureService, tableId);
+          this.viewTable(contentArea, projectId, tableStructureService, tableDataService, tableId);
         });
         $(".fillTableBtn").click(e => {
           const tableId = $(e.currentTarget).data("id");
           const action = $(e.currentTarget).data("action");
-          this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, action);
+          this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, action);
         });
         $(".excelImportBtn").click(e => {
           const tableId = $(e.currentTarget).data("id");
@@ -1160,10 +1147,36 @@ function createTableManagement() {
         });
       });
     },
-    viewTable: function (contentArea, projectId, tableStructureService, tableId) {
+    viewTable: function (contentArea, projectId, tableStructureService, tableDataService, tableId) {
       tableStructureService.getById(projectId, tableId).then(tableData => {
         const tableStructure = JSON.parse(tableData.table_structure);
-        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        const tableDataParsed = tableData.table_data && tableData.table_data.length > 0 ? tableData.table_data : [];
+
+        // Функція для розпарсювання JSON-рядка
+        const parseJSON = jsonString => {
+          try {
+            return JSON.parse(jsonString);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            return [];
+          }
+        };
+
+        // Функція для рендерингу рядка таблиці
+        const renderTableRow = (rowData, rowIndex) => {
+          const parsedData = parseJSON(rowData.data);
+          return parsedData.map((item, itemIndex) => `
+            <tr class="text-black">
+              ${tableStructure.map(column => `
+                  <td class="px-6 py-4 whitespace-nowrap">${item[column.name] || ""}</td>
+                `).join("")}
+              <td class="px-6 py-4 whitespace-nowrap">
+                <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Edit</button>
+                <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Delete</button>
+              </td>
+            </tr>
+          `).join("");
+        };
         let tableHTML = `
           <h2 class="text-lg font-semibold m-4">${tableData.table_name} (ID: ${tableData.id})</h2>
           <table class="min-w-full divide-y divide-gray-200">
@@ -1180,17 +1193,7 @@ function createTableManagement() {
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              ${tableDataParsed.map((row, rowIndex) => `
-                <tr class="text-black">
-                  ${tableStructure.map(column => `
-                    <td class="px-6 py-4 whitespace-nowrap">${row[column.name] || ""}</td>
-                  `).join("")}
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}">Edit</button>
-                    <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}">Delete</button>
-                  </td>
-                </tr>
-              `).join("")}
+              ${tableDataParsed.map((row, index) => renderTableRow(row, index)).join("")}
             </tbody>
           </table>
           <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
@@ -1198,15 +1201,17 @@ function createTableManagement() {
         contentArea.html(tableHTML);
 
         // Add event listeners
-        $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "add"));
-        $(".editRowBtn").click(function () {
-          const rowIndex = $(this).data("row-index");
-          this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "edit", rowIndex);
+        $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "first"));
+        $(".editRowBtn").click(event => {
+          const rowIndex = $(event.currentTarget).data("row-index");
+          const itemIndex = $(event.currentTarget).data("item-index");
+          this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "second", rowIndex, itemIndex);
         });
-        $(".deleteRowBtn").click(function () {
-          const rowIndex = $(this).data("row-index");
+        $(".deleteRowBtn").click(event => {
+          const rowIndex = $(event.currentTarget).data("row-index");
+          const itemIndex = $(event.currentTarget).data("item-index");
           if (confirm("Are you sure you want to delete this row?")) {
-            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex);
+            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex, itemIndex);
           }
         });
       });
@@ -1284,18 +1289,18 @@ function createTableManagement() {
         });
       });
     },
-    showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action, rowIndex = null) {
+    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
       tableStructureService.getById(projectId, tableId).then(tableData => {
         const tableStructure = JSON.parse(tableData.table_structure);
         const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
         let formHTML = `
-          <h2>${action === "add" ? "Add" : "Edit"} Row</h2>
+          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
           <form id="fillTableForm">
             ${tableStructure.map(field => `
               <div>
                 <label for="${field.name}">${field.name}</label>
                 <input type="${field.type}" id="${field.name}" name="${field.name}" 
-                  value="${action === "edit" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
+                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
               </div>
             `).join("")}
@@ -1303,18 +1308,28 @@ function createTableManagement() {
           </form>
         `;
         contentArea.html(formHTML);
-        $("#fillTableForm").on("submit", e => {
+        $("#fillTableForm").on("submit", async e => {
           e.preventDefault();
-          const formData = {};
-          tableStructure.forEach(field => {
-            formData[field.name] = $(`#${field.name}`).val();
-          });
-          if (action === "add") {
-            tableDataParsed.push(formData);
-          } else if (action === "edit" && rowIndex !== null) {
-            tableDataParsed[rowIndex] = formData;
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+          const updatedTableData = action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => index === rowIndex ? formData : item);
+          const requestData = {
+            user_tables_id: tableId,
+            data: JSON.stringify(updatedTableData)
+          };
+          try {
+            if (action === "first") {
+              await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
+            } else if (action === "second" && rowIndex !== null) {
+              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
+            }
+            // Можна додати повідомлення про успіх або інші дії після успішного виконання
+          } catch (error) {
+            console.error("Error updating table data:", error);
+            // Можна додати відображення помилки для користувача
           }
-          this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
         });
       });
     },
@@ -1406,19 +1421,23 @@ function createTableManagement() {
         });
       }
     },
-    updateTableData: function (contentArea, projectId, tableStructureService, tableId, newData) {
-      tableStructureService.update(projectId, tableId, {
-        table_data: JSON.stringify(newData)
-      }).then(() => {
+    createTableData: function (contentArea, projectId, tableStructureService, tableDataService, newData) {
+      tableDataService.create(projectId, newData).then(() => {
         alert("Table data updated successfully");
-        this.viewTable(contentArea, projectId, tableStructureService, tableId);
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+      });
+    },
+    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
+      tableDataService.update(projectId, tableId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
       });
     },
     deleteTableRow: function (contentArea, projectId, tableStructureService, tableId, rowIndex) {
       tableStructureService.getById(projectId, tableId).then(tableData => {
         const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
         tableDataParsed.splice(rowIndex, 1);
-        this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
+        //this.updateTableStructure(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
       });
     },
     // Метод для виклику користувацьких подій
@@ -4080,18 +4099,52 @@ const $ = function (selector) {
  * @param {string|Element} selector - A CSS selector string or DOM Element.
  */
 
-$.prototype.init = function (selector) {
+/* $.prototype.init = function (selector) {
   if (!selector) {
     return this; //{}
   }
+
   if (selector.tagName) {
     // перевіряємо чи не є обєкт вузлом
     this[0] = selector;
     this.length = 1;
     return this;
   }
+
   Object.assign(this, document.querySelectorAll(selector));
   this.length = document.querySelectorAll(selector).length;
+  return this;
+}; */
+$.prototype.init = function (selector) {
+  if (!selector) {
+    return this; // Повертаємо пустий об'єкт, якщо немає селектора
+  }
+
+  // Якщо selector — це HTML-рядок
+  if (typeof selector === 'string' && selector.trim().startsWith('<')) {
+    const temp = document.implementation.createHTMLDocument();
+    temp.body.innerHTML = selector.trim();
+    Object.assign(this, temp.body.children);
+    this.length = temp.body.children.length;
+    return this;
+  }
+
+  // Якщо selector — це DOM-вузол
+  if (selector instanceof HTMLElement) {
+    this[0] = selector;
+    this.length = 1;
+    return this;
+  }
+
+  // Якщо selector — це CSS-селектор
+  if (typeof selector === 'string') {
+    const nodeList = document.querySelectorAll(selector);
+    Object.assign(this, nodeList);
+    this.length = nodeList.length;
+  } else {
+    this[0] = selector;
+    this.length = 1;
+  }
   return this;
 };
 $.prototype.init.prototype = $.prototype;
@@ -4162,21 +4215,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modules_checkFontAwesomeIcons__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./modules/checkFontAwesomeIcons */ "./src/js/lib/modules/checkFontAwesomeIcons.js");
 /* harmony import */ var _modules_fileParser__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./modules/fileParser */ "./src/js/lib/modules/fileParser.js");
 /* harmony import */ var _modules_objectUtils__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./modules/objectUtils */ "./src/js/lib/modules/objectUtils.js");
-/* harmony import */ var _components_notification__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./components/notification */ "./src/js/lib/components/notification.js");
-/* harmony import */ var _components_dropdown__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./components/dropdown */ "./src/js/lib/components/dropdown.js");
-/* harmony import */ var _components_modal__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./components/modal */ "./src/js/lib/components/modal.js");
-/* harmony import */ var _components_tab__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./components/tab */ "./src/js/lib/components/tab.js");
-/* harmony import */ var _components_accordion__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./components/accordion */ "./src/js/lib/components/accordion.js");
-/* harmony import */ var _components_carousel__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./components/carousel */ "./src/js/lib/components/carousel.js");
-/* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./components/navigation */ "./src/js/lib/components/navigation.js");
-/* harmony import */ var _components_postGenerator__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./components/postGenerator */ "./src/js/lib/components/postGenerator.js");
-/* harmony import */ var _components_loadPosts__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./components/loadPosts */ "./src/js/lib/components/loadPosts.js");
-/* harmony import */ var _components_loadPostsLocal__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./components/loadPostsLocal */ "./src/js/lib/components/loadPostsLocal.js");
-/* harmony import */ var _components_pagination__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./components/pagination */ "./src/js/lib/components/pagination.js");
-/* harmony import */ var _components_carouselBlog__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./components/carouselBlog */ "./src/js/lib/components/carouselBlog.js");
-/* harmony import */ var _components_cardGenerator__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./components/cardGenerator */ "./src/js/lib/components/cardGenerator.js");
-/* harmony import */ var _components_adminPanel__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./components/adminPanel */ "./src/js/lib/components/adminPanel/index.js");
-/* harmony import */ var _services_request__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./services/request */ "./src/js/lib/services/request.js");
+/* harmony import */ var _modules_domManipulation__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./modules/domManipulation */ "./src/js/lib/modules/domManipulation.js");
+/* harmony import */ var _components_notification__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./components/notification */ "./src/js/lib/components/notification.js");
+/* harmony import */ var _components_dropdown__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./components/dropdown */ "./src/js/lib/components/dropdown.js");
+/* harmony import */ var _components_modal__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./components/modal */ "./src/js/lib/components/modal.js");
+/* harmony import */ var _components_tab__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! ./components/tab */ "./src/js/lib/components/tab.js");
+/* harmony import */ var _components_accordion__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! ./components/accordion */ "./src/js/lib/components/accordion.js");
+/* harmony import */ var _components_carousel__WEBPACK_IMPORTED_MODULE_18__ = __webpack_require__(/*! ./components/carousel */ "./src/js/lib/components/carousel.js");
+/* harmony import */ var _components_navigation__WEBPACK_IMPORTED_MODULE_19__ = __webpack_require__(/*! ./components/navigation */ "./src/js/lib/components/navigation.js");
+/* harmony import */ var _components_postGenerator__WEBPACK_IMPORTED_MODULE_20__ = __webpack_require__(/*! ./components/postGenerator */ "./src/js/lib/components/postGenerator.js");
+/* harmony import */ var _components_loadPosts__WEBPACK_IMPORTED_MODULE_21__ = __webpack_require__(/*! ./components/loadPosts */ "./src/js/lib/components/loadPosts.js");
+/* harmony import */ var _components_loadPostsLocal__WEBPACK_IMPORTED_MODULE_22__ = __webpack_require__(/*! ./components/loadPostsLocal */ "./src/js/lib/components/loadPostsLocal.js");
+/* harmony import */ var _components_pagination__WEBPACK_IMPORTED_MODULE_23__ = __webpack_require__(/*! ./components/pagination */ "./src/js/lib/components/pagination.js");
+/* harmony import */ var _components_carouselBlog__WEBPACK_IMPORTED_MODULE_24__ = __webpack_require__(/*! ./components/carouselBlog */ "./src/js/lib/components/carouselBlog.js");
+/* harmony import */ var _components_cardGenerator__WEBPACK_IMPORTED_MODULE_25__ = __webpack_require__(/*! ./components/cardGenerator */ "./src/js/lib/components/cardGenerator.js");
+/* harmony import */ var _components_adminPanel__WEBPACK_IMPORTED_MODULE_26__ = __webpack_require__(/*! ./components/adminPanel */ "./src/js/lib/components/adminPanel/index.js");
+/* harmony import */ var _services_request__WEBPACK_IMPORTED_MODULE_27__ = __webpack_require__(/*! ./services/request */ "./src/js/lib/services/request.js");
 /**
  * @file lib.js
  * @description Main entry point for the ModernLib library.
@@ -4188,6 +4242,7 @@ __webpack_require__.r(__webpack_exports__);
  * @type {Object}
  * @const
  */
+
 
 
 
@@ -4614,6 +4669,121 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.toggle = function () {
   }
   return this;
 };
+
+/***/ }),
+
+/***/ "./src/js/lib/modules/domManipulation.js":
+/*!***********************************************!*\
+  !*** ./src/js/lib/modules/domManipulation.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../core */ "./src/js/lib/core.js");
+/**
+ * @file domManipulation.js
+ * @module domManipulation
+ * @description Модуль для створення та маніпуляції елементами DOM.
+ */
+
+
+
+/**
+ * Create a new ModernLib object with elements created from the provided HTML string.
+ * @param {string} html - A string of HTML to create DOM elements from.
+ * @returns {Object} A new ModernLib object containing the created elements.
+ * @example
+ *  const newElement = $().create(`
+ * <div class="container">
+ *   <h1>Hello World</h1>
+ *   <p>This is a new paragraph.</p>
+ * </div>
+ * `);
+ * // Додаємо створені елементи на сторінку
+ *  $('body').append(newElement);
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.create = function (html) {
+  return (0,_core__WEBPACK_IMPORTED_MODULE_0__["default"])(html.trim())[0];
+};
+
+/**
+ * Set or get the text content of the matched elements.
+ * @param {string} [text] - The text to set. If omitted, returns the text of the first element.
+ * @returns {(string|Object)} The text content or the ModernLib object for chaining.
+ * @example
+ * // Встановлення тексту для всіх елементів
+ * $('p').text('Новий текст для параграфів');
+ * // Отримання тексту першого елемента
+ * const text = $('p').text();
+ * console.log(text);
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.text = function (text) {
+  if (typeof text !== "undefined") {
+    this.each(element => {
+      element.textContent = text;
+    });
+    return this;
+  } else {
+    return this[0] ? this[0].textContent : "";
+  }
+};
+
+/**
+ * Insert content at the end of each element in the set of matched elements.
+ * @param {(string|Node|ModernLib)} content - The content to append.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Додавання HTML-коду до всіх елементів
+ * $('div').append('<p>Новий параграф всередині div</p>');
+ * // Додавання існуючого вузла до всіх елементів
+ * const newNode = document.createElement('span');
+ * newNode.textContent = 'Новий елемент';
+ * $('div').append(newNode);
+ * // Додавання елементів із ModernLib об'єкта
+ * const newContent = $.fn.create('<p>Параграф створений за допомогою ModernLib</p>');
+ * $('div').append(newContent);
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.append = function (content) {
+  if (typeof content === "string") {
+    this.each(element => {
+      element.insertAdjacentHTML("beforeend", content);
+    });
+  } else if (content instanceof Node) {
+    this.each(element => {
+      element.appendChild(content.cloneNode(true));
+    });
+  } else if (content instanceof _core__WEBPACK_IMPORTED_MODULE_0__["default"]) {
+    this.each(element => {
+      content.each((index, item) => {
+        if (item instanceof Node) {
+          element.appendChild(item.cloneNode(true));
+        }
+      });
+    });
+  }
+  return this;
+};
+
+/**
+ * Remove all child nodes of the set of matched elements from the DOM.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Видалення всіх дочірніх елементів із вибраних елементів
+ * $('div').empty();
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.empty = function () {
+  this.each(element => {
+    while (element.firstChild) {
+      element.removeChild(element.firstChild);
+    }
+  });
+  return this;
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
 
 /***/ }),
 
@@ -5262,6 +5432,165 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.prop = function (propert
     }
     return this;
   }
+};
+/**
+ * Get the value of an attribute for the first element in the set of matched elements or
+ * set one or more attributes for every matched element.
+ * @param {string|Object} attributeName - The name of the attribute to get or set, or an object of attribute-value pairs to set.
+ * @param {string} [value] - A value to set for the attribute. If omitted, the method returns the current value.
+ * @returns {(string|Object)} The value of the attribute if getting, or the ModernLib object for chaining if setting.
+ * @example
+ * // Get an attribute
+ * const href = $('#myLink').attr('href');
+ *
+ * @example
+ * // Set an attribute
+ * $('#myImage').attr('src', 'image.jpg');
+ *
+ * @example
+ * // Set multiple attributes
+ * $('#myElement').attr({
+ *   'data-id': '123',
+ *   'aria-label': 'My Element'
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.attr = function (attributeName, value) {
+  if (typeof attributeName === "object") {
+    // Setting multiple attributes
+    for (let key in attributeName) {
+      this.attr(key, attributeName[key]);
+    }
+    return this;
+  }
+  if (value === undefined) {
+    // Getting attribute value
+    return this[0] ? this[0].getAttribute(attributeName) : undefined;
+  } else {
+    // Setting attribute value
+    for (let i = 0; i < this.length; i++) {
+      this[i].setAttribute(attributeName, value);
+    }
+    return this;
+  }
+};
+
+/**
+ * Bind one or two handlers to the matched elements, to be executed when the mouse pointer enters and leaves the elements.
+ * @param {Function} handlerIn - A function to execute when the mouse pointer enters the element.
+ * @param {Function} [handlerOut] - A function to execute when the mouse pointer leaves the element.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Using hover with two separate handlers
+ * $('#myElement').hover(
+ *   function() { console.log('Mouse entered'); },
+ *   function() { console.log('Mouse left'); }
+ * );
+ *
+ * @example
+ * // Using hover with a single handler for both events
+ * $('#myElement').hover(function() {
+ *   console.log('Mouse entered or left');
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.hover = function (handlerIn, handlerOut) {
+  if (typeof handlerIn !== "function") {
+    throw new Error("At least one function must be provided to hover()");
+  }
+  if (typeof handlerOut !== "function") {
+    // If only one handler provided, use it for both mouseenter and mouseleave
+    handlerOut = handlerIn;
+  }
+  return this.on("mouseenter", handlerIn).on("mouseleave", handlerOut);
+};
+
+/**
+ * Remove the set of matched elements from the DOM.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Remove all paragraphs from the document
+ * $('p').remove();
+ *
+ * @example
+ * // Remove all elements with a specific class
+ * $('.myClass').remove();
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.remove = function () {
+  for (let i = 0; i < this.length; i++) {
+    if (this[i].parentNode) {
+      this[i].parentNode.removeChild(this[i]);
+    }
+  }
+  return this;
+};
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.offset = function () {
+  if (!this[0]) return null;
+  const rect = this[0].getBoundingClientRect();
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  return {
+    top: rect.top + scrollTop,
+    left: rect.left + scrollLeft
+  };
+};
+
+/**
+ * Get the value of a computed style property for the first element in the set of matched elements
+ * or set one or more CSS properties for every matched element.
+ * @param {(string|Object)} property - A CSS property name or an object of property-value pairs to set.
+ * @param {string} [value] - A value to set for the property.
+ * @returns {(string|Object)} The value of the property if getting, or the ModernLib object for chaining if setting.
+ * @example
+ * // Get a style property
+ * const color = $('div').css('color');
+ *
+ * // Set a style property
+ * $('div').css('color', 'red');
+ *
+ * // Set multiple style properties
+ * $('div').css({
+ *   color: 'red',
+ *   backgroundColor: 'black'
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.css = function (property, value) {
+  if (typeof property === "string") {
+    if (value === undefined) {
+      // Getting the value
+      const element = this[0];
+      return element ? getComputedStyle(element)[property] : undefined;
+    } else {
+      // Setting a single property
+      this.each(element => {
+        element.style[property] = value;
+      });
+    }
+  } else if (typeof property === "object") {
+    // Setting multiple properties
+    this.each(element => {
+      Object.assign(element.style, property);
+    });
+  }
+  return this;
+};
+
+/**
+ * Display the matched elements.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $('div').show();
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.show = function () {
+  return this.css("display", "");
+};
+
+/**
+ * Hide the matched elements.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $('div').hide();
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.hide = function () {
+  return this.css("display", "none");
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
 

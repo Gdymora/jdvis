@@ -243,5 +243,170 @@ $.prototype.prop = function (propertyName, value) {
     return this;
   }
 };
+/**
+ * Get the value of an attribute for the first element in the set of matched elements or
+ * set one or more attributes for every matched element.
+ * @param {string|Object} attributeName - The name of the attribute to get or set, or an object of attribute-value pairs to set.
+ * @param {string} [value] - A value to set for the attribute. If omitted, the method returns the current value.
+ * @returns {(string|Object)} The value of the attribute if getting, or the ModernLib object for chaining if setting.
+ * @example
+ * // Get an attribute
+ * const href = $('#myLink').attr('href');
+ *
+ * @example
+ * // Set an attribute
+ * $('#myImage').attr('src', 'image.jpg');
+ *
+ * @example
+ * // Set multiple attributes
+ * $('#myElement').attr({
+ *   'data-id': '123',
+ *   'aria-label': 'My Element'
+ * });
+ */
+$.prototype.attr = function (attributeName, value) {
+  if (typeof attributeName === "object") {
+    // Setting multiple attributes
+    for (let key in attributeName) {
+      this.attr(key, attributeName[key]);
+    }
+    return this;
+  }
+
+  if (value === undefined) {
+    // Getting attribute value
+    return this[0] ? this[0].getAttribute(attributeName) : undefined;
+  } else {
+    // Setting attribute value
+    for (let i = 0; i < this.length; i++) {
+      this[i].setAttribute(attributeName, value);
+    }
+    return this;
+  }
+};
+
+/**
+ * Bind one or two handlers to the matched elements, to be executed when the mouse pointer enters and leaves the elements.
+ * @param {Function} handlerIn - A function to execute when the mouse pointer enters the element.
+ * @param {Function} [handlerOut] - A function to execute when the mouse pointer leaves the element.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Using hover with two separate handlers
+ * $('#myElement').hover(
+ *   function() { console.log('Mouse entered'); },
+ *   function() { console.log('Mouse left'); }
+ * );
+ *
+ * @example
+ * // Using hover with a single handler for both events
+ * $('#myElement').hover(function() {
+ *   console.log('Mouse entered or left');
+ * });
+ */
+$.prototype.hover = function (handlerIn, handlerOut) {
+  if (typeof handlerIn !== "function") {
+    throw new Error("At least one function must be provided to hover()");
+  }
+
+  if (typeof handlerOut !== "function") {
+    // If only one handler provided, use it for both mouseenter and mouseleave
+    handlerOut = handlerIn;
+  }
+
+  return this.on("mouseenter", handlerIn).on("mouseleave", handlerOut);
+};
+
+/**
+ * Remove the set of matched elements from the DOM.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * // Remove all paragraphs from the document
+ * $('p').remove();
+ *
+ * @example
+ * // Remove all elements with a specific class
+ * $('.myClass').remove();
+ */
+$.prototype.remove = function () {
+  for (let i = 0; i < this.length; i++) {
+    if (this[i].parentNode) {
+      this[i].parentNode.removeChild(this[i]);
+    }
+  }
+  return this;
+};
+
+$.prototype.offset = function () {
+  if (!this[0]) return null;
+
+  const rect = this[0].getBoundingClientRect();
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+  return {
+    top: rect.top + scrollTop,
+    left: rect.left + scrollLeft,
+  };
+};
+
+/**
+ * Get the value of a computed style property for the first element in the set of matched elements
+ * or set one or more CSS properties for every matched element.
+ * @param {(string|Object)} property - A CSS property name or an object of property-value pairs to set.
+ * @param {string} [value] - A value to set for the property.
+ * @returns {(string|Object)} The value of the property if getting, or the ModernLib object for chaining if setting.
+ * @example
+ * // Get a style property
+ * const color = $('div').css('color');
+ *
+ * // Set a style property
+ * $('div').css('color', 'red');
+ *
+ * // Set multiple style properties
+ * $('div').css({
+ *   color: 'red',
+ *   backgroundColor: 'black'
+ * });
+ */
+$.prototype.css = function (property, value) {
+  if (typeof property === "string") {
+    if (value === undefined) {
+      // Getting the value
+      const element = this[0];
+      return element ? getComputedStyle(element)[property] : undefined;
+    } else {
+      // Setting a single property
+      this.each((element) => {
+        element.style[property] = value;
+      });
+    }
+  } else if (typeof property === "object") {
+    // Setting multiple properties
+    this.each((element) => {
+      Object.assign(element.style, property);
+    });
+  }
+  return this;
+};
+
+/**
+ * Display the matched elements.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $('div').show();
+ */
+$.prototype.show = function () {
+  return this.css("display", "");
+};
+
+/**
+ * Hide the matched elements.
+ * @returns {Object} The ModernLib object for chaining.
+ * @example
+ * $('div').hide();
+ */
+$.prototype.hide = function () {
+  return this.css("display", "none");
+};
 
 export default $;

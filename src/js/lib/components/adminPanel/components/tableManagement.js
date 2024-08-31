@@ -6,7 +6,7 @@ export function createTableManagement() {
     duration: 3000,
   });
   return {
-    load: function (contentArea, projectId, tableStructureService, options = {}) {
+    load: function (contentArea, projectId, tableStructureService, tableDataService, options = {}) {
       const { page = 1, itemsPerPage = 15 } = options;
 
       tableStructureService
@@ -52,7 +52,7 @@ export function createTableManagement() {
                         <button class="viewTableBtn p-2 bg-blue-500 text-white rounded-md mr-2" data-id="${table.id}">
                           <i class="fa-regular fa-eye" data-fallback-text="view"></i>
                         </button>
-                        <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
+                        <button class="fillTableBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="first">
                           <i class="fa-regular fa-square-plus fa-lg" data-fallback-text="add"></i>
                         </button>
                         <button class="excelImportBtn px-2 py-3 bg-yellow-500 text-white rounded-md mr-2" data-id="${table.id}" data-action="second">
@@ -93,12 +93,12 @@ export function createTableManagement() {
           $("#addTableBtn").click(() => this.showForm(contentArea, projectId, tableStructureService));
           $(".viewTableBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
-            this.viewTable(contentArea, projectId, tableStructureService, tableId);
+            this.viewTable(contentArea, projectId, tableStructureService, tableDataService, tableId);
           });
           $(".fillTableBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
             const action = $(e.currentTarget).data("action");
-            this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, action);
+            this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, action);
           });
           $(".excelImportBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
@@ -225,11 +225,40 @@ export function createTableManagement() {
       });
     },
 
-    viewTable: function (contentArea, projectId, tableStructureService, tableId) {
+    viewTable: function (contentArea, projectId, tableStructureService, tableDataService, tableId) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
-        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
-
+        const tableDataParsed = tableData.table_data && tableData.table_data.length > 0 ? tableData.table_data : [];
+    
+        // Функція для розпарсювання JSON-рядка
+        const parseJSON = (jsonString) => {
+          try {
+            return JSON.parse(jsonString);
+          } catch (error) {
+            console.error('Error parsing JSON:', error);
+            return [];
+          }
+        };
+    
+        // Функція для рендерингу рядка таблиці
+        const renderTableRow = (rowData, rowIndex) => {
+          const parsedData = parseJSON(rowData.data);
+          
+          return parsedData.map((item, itemIndex) => `
+            <tr class="text-black">
+              ${tableStructure
+                .map(column => `
+                  <td class="px-6 py-4 whitespace-nowrap">${item[column.name] || ""}</td>
+                `)
+                .join("")}
+              <td class="px-6 py-4 whitespace-nowrap">
+                <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Edit</button>
+                <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Delete</button>
+              </td>
+            </tr>
+          `).join("");
+        };
+    
         let tableHTML = `
           <h2 class="text-lg font-semibold m-4">${tableData.table_name} (ID: ${tableData.id})</h2>
           <table class="min-w-full divide-y divide-gray-200">
@@ -250,42 +279,26 @@ export function createTableManagement() {
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              ${tableDataParsed
-                .map(
-                  (row, rowIndex) => `
-                <tr class="text-black">
-                  ${tableStructure
-                    .map(
-                      (column) => `
-                    <td class="px-6 py-4 whitespace-nowrap">${row[column.name] || ""}</td>
-                  `
-                    )
-                    .join("")}
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}">Edit</button>
-                    <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}">Delete</button>
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
+              ${tableDataParsed.map((row, index) => renderTableRow(row, index)).join("")}
             </tbody>
           </table>
           <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
         `;
-
+    
         contentArea.html(tableHTML);
-
+    
         // Add event listeners
-        $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "add"));
-        $(".editRowBtn").click(function () {
-          const rowIndex = $(this).data("row-index");
-          this.showFillTableForm(contentArea, projectId, tableStructureService, tableId, "edit", rowIndex);
+        $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "first"));
+        $(".editRowBtn").click((event) => {
+          const rowIndex = $(event.currentTarget).data("row-index");
+          const itemIndex = $(event.currentTarget).data("item-index");
+          this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "second", rowIndex, itemIndex);
         });
-        $(".deleteRowBtn").click(function () {
-          const rowIndex = $(this).data("row-index");
+        $(".deleteRowBtn").click((event) => {
+          const rowIndex = $(event.currentTarget).data("row-index");
+          const itemIndex = $(event.currentTarget).data("item-index");
           if (confirm("Are you sure you want to delete this row?")) {
-            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex);
+            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex, itemIndex);
           }
         });
       });
@@ -381,13 +394,13 @@ export function createTableManagement() {
       });
     },
 
-    showFillTableForm: function (contentArea, projectId, tableStructureService, tableId, action, rowIndex = null) {
+    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
         const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
 
         let formHTML = `
-          <h2>${action === "add" ? "Add" : "Edit"} Row</h2>
+          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
           <form id="fillTableForm">
             ${tableStructure
               .map(
@@ -395,7 +408,7 @@ export function createTableManagement() {
               <div>
                 <label for="${field.name}">${field.name}</label>
                 <input type="${field.type}" id="${field.name}" name="${field.name}" 
-                  value="${action === "edit" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
+                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
               </div>
             `
@@ -407,20 +420,33 @@ export function createTableManagement() {
 
         contentArea.html(formHTML);
 
-        $("#fillTableForm").on("submit", (e) => {
+        $("#fillTableForm").on("submit", async (e) => {
           e.preventDefault();
-          const formData = {};
-          tableStructure.forEach((field) => {
-            formData[field.name] = $(`#${field.name}`).val();
-          });
 
-          if (action === "add") {
-            tableDataParsed.push(formData);
-          } else if (action === "edit" && rowIndex !== null) {
-            tableDataParsed[rowIndex] = formData;
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+
+          const updatedTableData =
+            action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => (index === rowIndex ? formData : item));
+
+          const requestData = {
+            user_tables_id: tableId,
+            data: JSON.stringify(updatedTableData),
+          };
+
+          try {
+            if (action === "first") {
+              await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
+            } else if (action === "second" && rowIndex !== null) {
+              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
+            }
+            // Можна додати повідомлення про успіх або інші дії після успішного виконання
+          } catch (error) {
+            console.error("Error updating table data:", error);
+            // Можна додати відображення помилки для користувача
           }
-
-          this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
         });
       });
     },
@@ -520,10 +546,17 @@ export function createTableManagement() {
       }
     },
 
-    updateTableData: function (contentArea, projectId, tableStructureService, tableId, newData) {
-      tableStructureService.update(projectId, tableId, { table_data: JSON.stringify(newData) }).then(() => {
+    createTableData: function (contentArea, projectId, tableStructureService, tableDataService, newData) {
+      tableDataService.create(projectId, newData).then(() => {
         alert("Table data updated successfully");
-        this.viewTable(contentArea, projectId, tableStructureService, tableId);
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+      });
+    },
+
+    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
+      tableDataService.update(projectId, tableId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
       });
     },
 
@@ -531,7 +564,7 @@ export function createTableManagement() {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
         tableDataParsed.splice(rowIndex, 1);
-        this.updateTableData(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
+        //this.updateTableStructure(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
       });
     },
     // Метод для виклику користувацьких подій
