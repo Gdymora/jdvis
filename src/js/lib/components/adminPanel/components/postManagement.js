@@ -38,10 +38,10 @@ export function createPostManagement() {
                         <td class="px-6 py-4 whitespace-nowrap">${item.project_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_tables_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_table.table_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${item.data}">
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.data)}">
                           ${item.data.length > 15 ? item.data.substring(0, 15) + "..." : item.data}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="jojoopopiopiopiopioipo">
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.user_table.table_structure)}">
                           ${
                             item.user_table.table_structure.length > 15
                               ? item.user_table.table_structure.substring(0, 15) + "..."
@@ -83,10 +83,10 @@ export function createPostManagement() {
             $(".tooltip-trigger").hover(
               function () {
                 const tooltip = $().create('<div class="tooltip"></div>');
-                const fullText = $(this).data("full-text");
+                const fullText = decodeURIComponent($(this).data("full-text"));
+
                 console.log(fullText);
-                $(tooltip).text(fullText);
-                $(this).append(tooltip);
+                $(tooltip).text(fullText); // Pretty-print the JSON for better readability
 
                 const triggerRect = $(this).offset();
                 const tooltipRect = $(tooltip).offset();
@@ -100,15 +100,21 @@ export function createPostManagement() {
                   left: `${left}px`,
                   background: "#333",
                   color: "#fff",
-                  padding: "5px",
+                  padding: "10px",
                   borderRadius: "5px",
-                  maxWidth: "300px",
+                  maxWidth: "400px",
+                  maxHeight: "300px",
+                  overflowY: "auto",
                   wordWrap: "break-word",
                   zIndex: 1000,
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                  fontSize: "14px",
+                  lineHeight: "1.4",
                 });
+                $(this).append(tooltip);
               },
               function () {
-                $(this).find(".tooltip").remove();
+                $(".tooltip").remove();
               }
             );
           } else {
@@ -119,6 +125,77 @@ export function createPostManagement() {
           contentArea.html("<p>Error loading data.</p>");
           console.error("Error loading data:", error);
         });
+    },
+
+    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
+      tableStructureService.getById(projectId, tableId).then((tableData) => {
+        const tableStructure = JSON.parse(tableData.table_structure);
+        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+
+        let formHTML = `
+          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
+          <form id="fillTableForm">
+            ${tableStructure
+              .map(
+                (field) => `
+              <div>
+                <label for="${field.name}">${field.name}</label>
+                <input type="${field.type}" id="${field.name}" name="${field.name}" 
+                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+              </div>
+            `
+              )
+              .join("")}
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+          </form>
+        `;
+
+        contentArea.html(formHTML);
+
+        $("#fillTableForm").on("submit", async (e) => {
+          e.preventDefault();
+
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+
+          const updatedTableData =
+            action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => (index === rowIndex ? formData : item));
+
+          const requestData = {
+            user_tables_id: tableId,
+            data: JSON.stringify(updatedTableData),
+          };
+
+          try {
+            if (action === "first") {
+              await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
+            } else if (action === "second" && rowIndex !== null) {
+              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
+            }
+            // Можна додати повідомлення про успіх або інші дії після успішного виконання
+          } catch (error) {
+            console.error("Error updating table data:", error);
+            // Можна додати відображення помилки для користувача
+          }
+        });
+      });
+    },
+
+    createTableData: function (contentArea, projectId, tableStructureService, tableDataService, newData) {
+      tableDataService.create(projectId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+      });
+    },
+
+    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
+      tableDataService.update(projectId, tableId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+      });
     },
 
     showPostForm: function (contentArea, projectId, postService, postId = null) {

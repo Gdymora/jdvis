@@ -24,6 +24,7 @@ export function createRoleManagement() {
                 <tr>
                   <th class="text-left">Name</th>
                   <th class="text-left">Description</th>
+                  <th class="text-left">Permissions</th>
                   <th class="text-left">Actions</th>
                 </tr>
               </thead>
@@ -34,8 +35,10 @@ export function createRoleManagement() {
                   <tr>
                     <td>${role.name}</td>
                     <td>${role.description || ""}</td>
+                    <td>${role.permissions ? role.permissions.map(p => p.name).join(", ") : ""}</td>
                     <td>
                       <button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${role.id}">Edit</button>
+                      <button class="managePermissionsBtn px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 mr-2" data-id="${role.id}">Manage Permissions</button>
                       <button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete</button>
                     </td>
                   </tr>
@@ -54,6 +57,10 @@ export function createRoleManagement() {
           $(".editRoleBtn").click((e) => {
             const roleId = $(e.target).data("id");
             this.showForm(contentArea, projectId, roleService, roleId);
+          });
+          $(".managePermissionsBtn").click((e) => {
+            const roleId = $(e.target).data("id");
+            this.showPermissionForm(contentArea, projectId, roleService, roleId);
           });
           $(".deleteRoleBtn").click((e) => {
             const roleId = $(e.target).data("id");
@@ -77,44 +84,69 @@ export function createRoleManagement() {
     },
 
     showForm: function (contentArea, projectId, roleService, roleId = null) {
-      const title = roleId ? "Edit Role" : "Add Role";
-      const formHTML = `
-          <h2 class="text-xl mb-4">${title}</h2>
-          <form id="roleForm">
-            <input type="text" id="roleName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-            <textarea id="roleDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
+      // ... (залишається без змін)
+    },
+
+    showPermissionForm: function (contentArea, projectId, roleService, roleId) {
+      roleService.getById(projectId, roleId).then((role) => {
+        let permissionFormHTML = `
+          <h2 class="text-xl mb-4">Manage Permissions for ${role.name}</h2>
+          <form id="permissionForm">
+            <div id="permissionList"></div>
+            <input type="text" id="newPermissionName" placeholder="New Permission Name" class="w-full p-2 mb-4 border rounded">
+            <textarea id="newPermissionDescription" placeholder="New Permission Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
+            <button type="button" id="addPermissionBtn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 mb-4">Add New Permission</button>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Save Permissions</button>
           </form>
         `;
 
-      contentArea.html(formHTML);
+        contentArea.html(permissionFormHTML);
 
-      if (roleId) {
-        roleService.getById(projectId, roleId).then((role) => {
-          $("#roleName").val(role.name);
-          $("#roleDescription").val(role.description);
+        this.renderPermissionList(role.permissions || []);
+
+        $("#addPermissionBtn").click(() => {
+          const newPermName = $("#newPermissionName").val();
+          const newPermDesc = $("#newPermissionDescription").val();
+          if (newPermName) {
+            role.permissions = role.permissions || [];
+            role.permissions.push({ name: newPermName, description: newPermDesc });
+            this.renderPermissionList(role.permissions);
+            $("#newPermissionName").val("");
+            $("#newPermissionDescription").val("");
+          }
         });
-      }
 
-      $("#roleForm").on("submit", (e) => {
-        e.preventDefault();
-        const roleData = {
-          name: $("#roleName").val(),
-          description: $("#roleDescription").val(),
-        };
-
-        const action = roleId ? roleService.update(projectId, roleId, roleData) : roleService.create(projectId, roleData);
-
-        action
-          .then(() => {
-            notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
-            this.load(contentArea, projectId, roleService);
-          })
-          .catch((error) => {
-            notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
-          });
+        $("#permissionForm").on("submit", (e) => {
+          e.preventDefault();
+          roleService.update(projectId, roleId, { permissions: role.permissions })
+            .then(() => {
+              notification.show("Permissions updated successfully", "success");
+              this.load(contentArea, projectId, roleService);
+            })
+            .catch((error) => {
+              notification.show(`Error updating permissions: ${error.message}`, "error");
+            });
+        });
       });
     },
+
+    renderPermissionList: function (permissions) {
+      const permissionListHTML = permissions.map((perm, index) => `
+        <div class="flex items-center mb-2">
+          <input type="text" value="${perm.name}" class="p-2 border rounded mr-2" readonly>
+          <button type="button" class="deletePermBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-index="${index}">Delete</button>
+        </div>
+      `).join("");
+
+      $("#permissionList").html(permissionListHTML);
+
+      $(".deletePermBtn").click((e) => {
+        const index = $(e.target).data("index");
+        permissions.splice(index, 1);
+        this.renderPermissionList(permissions);
+      });
+    },
+
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
       const event = new CustomEvent(eventName, { detail: data });

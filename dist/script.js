@@ -356,7 +356,7 @@ function initializeAdminPanel(context, user, options) {
           console.log("Permissions case");
           if (await checkPermission(services, "view_permissions", projectId)) {
             try {
-              components.permissionManagement.load(contentArea, projectId, services.permissionService, loadOptions);
+              components.permissionManagement.load(contentArea, projectId, services.permissionService, services.roleService, loadOptions);
             } catch (error) {
               console.error("Error loading table management component:", error);
               contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
@@ -509,57 +509,65 @@ function createPermissionManagement() {
     duration: 3000
   });
   return {
-    load: function (contentArea, projectId, permissionService, options = {}) {
+    load: function (contentArea, projectId, permissionService, roleService, options = {}) {
       const {
         page = 1,
         itemsPerPage = 10
       } = options;
-      permissionService.getAll(projectId, {
+      Promise.all([permissionService.getAll(projectId, {
         page,
         itemsPerPage
-      }).then(response => {
-        const permissions = response.data;
-        const totalPages = response.last_page;
+      }), roleService.getAll(projectId, {
+        page,
+        itemsPerPage
+      })]).then(([permissionsResponse, rolesResponse]) => {
+        const permissions = Array.isArray(permissionsResponse.data) ? permissionsResponse.data : [];
+        const roles = Array.isArray(rolesResponse.data) ? rolesResponse.data : [];
+        const totalPages = permissionsResponse.last_page || 1;
         let permissionsHTML = `
           <h2 class="text-xl mb-4">Permissions</h2>
           <button id="addPermissionBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Permission</button>
-          <table class="w-full">
-            <thead>
-              <tr>
-                <th class="text-left">Name</th>
-                <th class="text-left">Description</th>
-                <th class="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${permissions.map(permission => `
+          ${permissions.length > 0 ? `
+            <table class="w-full">
+              <thead>
                 <tr>
-                  <td>${permission.name}</td>
-                  <td>${permission.description}</td>
-                  <td>
-                    <button class="editPermissionBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${permission.id}">Edit</button>
-                    <button class="deletePermissionBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${permission.id}">Delete</button>
-                  </td>
+                  <th class="text-left">Name</th>
+                  <th class="text-left">Description</th>
+                  <th class="text-left">Roles</th>
+                  <th class="text-left">Actions</th>
                 </tr>
-              `).join("")}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${permissions.map(permission => `
+                  <tr>
+                    <td>${permission.name}</td>
+                    <td>${permission.description || ""}</td>
+                    <td>${permission.roles ? permission.roles.map(r => r.name).join(", ") : ""}</td>
+                    <td>
+                      <button class="editPermissionBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${permission.id}">Edit</button>
+                      <button class="deletePermissionBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${permission.id}">Delete</button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          ` : "<p>No permissions found.</p>"}
         `;
         contentArea.html(permissionsHTML);
 
         // Render pagination
         $("#paginationArea").pagination(totalPages, page);
-        $("#addPermissionBtn").click(() => this.showForm(contentArea, projectId, permissionService));
+        $("#addPermissionBtn").click(() => this.showForm(contentArea, projectId, permissionService, roleService));
         $(".editPermissionBtn").click(e => {
           const permissionId = $(e.target).data("id");
-          this.showForm(contentArea, projectId, permissionService, permissionId);
+          this.showForm(contentArea, projectId, permissionService, roleService, permissionId);
         });
         $(".deletePermissionBtn").click(e => {
           const permissionId = $(e.target).data("id");
           if (confirm("Are you sure you want to delete this permission?")) {
             permissionService.delete(projectId, permissionId).then(() => {
               notification.show("Permission deleted successfully", "success");
-              this.load(contentArea, projectId, permissionService, options);
+              this.load(contentArea, projectId, permissionService, roleService, options);
             }).catch(error => {
               notification.show("Error deleting permission: " + error.message, "error");
             });
@@ -567,39 +575,69 @@ function createPermissionManagement() {
         });
       }).catch(error => {
         contentArea.html("<p>Error loading permissions.</p>");
+        console.error("Error loading data:", error);
         notification.show("Error loading permissions: " + error.message, "error");
       });
     },
-    showForm: function (contentArea, projectId, permissionService, permissionId = null) {
+    showForm: function (contentArea, projectId, permissionService, roleService, permissionId = null) {
       const title = permissionId ? "Edit Permission" : "Add Permission";
-      const formHTML = `
-      <h2 class="text-xl mb-4">${title}</h2>
-      <form id="permissionForm">
-        <input type="text" id="permissionName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-        <textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
-      </form>
-    `;
-      contentArea.html(formHTML);
-      if (permissionId) {
-        permissionService.getById(projectId, permissionId).then(permission => {
-          $("#permissionName").val(permission.name);
-          $("#permissionDescription").val(permission.description);
+      const page = 1,
+        itemsPerPage = 10;
+      roleService.getAll(projectId, {
+        page,
+        itemsPerPage
+      }).then(rolesResponse => {
+        const roles = Array.isArray(rolesResponse.data) ? rolesResponse.data : [];
+        const formHTML = `
+        <h2 class="text-xl mb-4">${title}</h2>
+        <form id="permissionForm">
+          <input type="text" id="permissionName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
+          <textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
+          <div class="mb-4">
+            <label class="block mb-2">Assign to Roles:</label>
+            ${roles.map(role => `
+              <div>
+                <input type="checkbox" id="role_${role.id}" name="roles" value="${role.id}">
+                <label for="role_${role.id}">${role.name}</label>
+              </div>
+            `).join("")}
+          </div>
+          <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
+        </form>
+      `;
+        contentArea.html(formHTML);
+        if (permissionId) {
+          permissionService.getById(projectId, permissionId).then(permission => {
+            $("#permissionName").val(permission.name);
+            $("#permissionDescription").val(permission.description);
+            if (Array.isArray(permission.roles)) {
+              permission.roles.forEach(role => {
+                $(`#role_${role.id}`).prop("checked", true);
+              });
+            }
+          });
+        }
+        $("#permissionForm").on("submit", e => {
+          e.preventDefault();
+          const permissionData = {
+            name: $("#permissionName").val(),
+            description: $("#permissionDescription").val(),
+            role_ids: $('input[name="roles"]:checked').map(function () {
+              return this.value;
+            }).get()
+          };
+          const action = permissionId ? permissionService.update(projectId, permissionId, permissionData) : permissionService.create(projectId, permissionData);
+          action.then(() => {
+            notification.show(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
+            this.load(contentArea, projectId, permissionService, roleService);
+          }).catch(error => {
+            notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
+          });
         });
-      }
-      $("#permissionForm").on("submit", e => {
-        e.preventDefault();
-        const permissionData = {
-          name: $("#permissionName").val(),
-          description: $("#permissionDescription").val()
-        };
-        const action = permissionId ? permissionService.update(projectId, permissionId, permissionData) : permissionService.create(projectId, permissionData);
-        action.then(() => {
-          notification.show(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
-          this.load(contentArea, projectId, permissionService);
-        }).catch(error => {
-          notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
-        });
+      }).catch(error => {
+        contentArea.html("<p>Error loading roles.</p>");
+        console.error("Error loading roles:", error);
+        notification.show("Error loading roles: " + error.message, "error");
       });
     },
     // Метод для виклику користувацьких подій
@@ -665,10 +703,10 @@ function createPostManagement() {
                         <td class="px-6 py-4 whitespace-nowrap">${item.project_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_tables_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_table.table_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${item.data}">
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.data)}">
                           ${item.data.length > 15 ? item.data.substring(0, 15) + "..." : item.data}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="jojoopopiopiopiopioipo">
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.user_table.table_structure)}">
                           ${item.user_table.table_structure.length > 15 ? item.user_table.table_structure.substring(0, 15) + "..." : item.user_table.table_structure}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -700,10 +738,10 @@ function createPostManagement() {
           // Add tooltip functionality
           $(".tooltip-trigger").hover(function () {
             const tooltip = $().create('<div class="tooltip"></div>');
-            const fullText = $(this).data("full-text");
+            const fullText = decodeURIComponent($(this).data("full-text"));
             console.log(fullText);
-            $(tooltip).text(fullText);
-            $(this).append(tooltip);
+            $(tooltip).text(fullText); // Pretty-print the JSON for better readability
+
             const triggerRect = $(this).offset();
             const tooltipRect = $(tooltip).offset();
             const top = triggerRect.top + window.scrollY - tooltipRect.height - 10;
@@ -714,14 +752,20 @@ function createPostManagement() {
               left: `${left}px`,
               background: "#333",
               color: "#fff",
-              padding: "5px",
+              padding: "10px",
               borderRadius: "5px",
-              maxWidth: "300px",
+              maxWidth: "400px",
+              maxHeight: "300px",
+              overflowY: "auto",
               wordWrap: "break-word",
-              zIndex: 1000
+              zIndex: 1000,
+              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+              fontSize: "14px",
+              lineHeight: "1.4"
             });
+            $(this).append(tooltip);
           }, function () {
-            $(this).find(".tooltip").remove();
+            $(".tooltip").remove();
           });
         } else {
           contentArea.html("<p>No data available.</p>");
@@ -729,6 +773,62 @@ function createPostManagement() {
       }).catch(error => {
         contentArea.html("<p>Error loading data.</p>");
         console.error("Error loading data:", error);
+      });
+    },
+    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
+      tableStructureService.getById(projectId, tableId).then(tableData => {
+        const tableStructure = JSON.parse(tableData.table_structure);
+        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        let formHTML = `
+          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
+          <form id="fillTableForm">
+            ${tableStructure.map(field => `
+              <div>
+                <label for="${field.name}">${field.name}</label>
+                <input type="${field.type}" id="${field.name}" name="${field.name}" 
+                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+              </div>
+            `).join("")}
+            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+          </form>
+        `;
+        contentArea.html(formHTML);
+        $("#fillTableForm").on("submit", async e => {
+          e.preventDefault();
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+          const updatedTableData = action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => index === rowIndex ? formData : item);
+          const requestData = {
+            user_tables_id: tableId,
+            data: JSON.stringify(updatedTableData)
+          };
+          try {
+            if (action === "first") {
+              await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
+            } else if (action === "second" && rowIndex !== null) {
+              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
+            }
+            // Можна додати повідомлення про успіх або інші дії після успішного виконання
+          } catch (error) {
+            console.error("Error updating table data:", error);
+            // Можна додати відображення помилки для користувача
+          }
+        });
+      });
+    },
+    createTableData: function (contentArea, projectId, tableStructureService, tableDataService, newData) {
+      tableDataService.create(projectId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+      });
+    },
+    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
+      tableDataService.update(projectId, tableId, newData).then(() => {
+        alert("Table data updated successfully");
+        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
       });
     },
     showPostForm: function (contentArea, projectId, postService, postId = null) {
@@ -844,6 +944,7 @@ function createRoleManagement() {
                 <tr>
                   <th class="text-left">Name</th>
                   <th class="text-left">Description</th>
+                  <th class="text-left">Permissions</th>
                   <th class="text-left">Actions</th>
                 </tr>
               </thead>
@@ -852,8 +953,10 @@ function createRoleManagement() {
                   <tr>
                     <td>${role.name}</td>
                     <td>${role.description || ""}</td>
+                    <td>${role.permissions ? role.permissions.map(p => p.name).join(", ") : ""}</td>
                     <td>
                       <button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 mr-2" data-id="${role.id}">Edit</button>
+                      <button class="managePermissionsBtn px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600 mr-2" data-id="${role.id}">Manage Permissions</button>
                       <button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete</button>
                     </td>
                   </tr>
@@ -869,6 +972,10 @@ function createRoleManagement() {
         $(".editRoleBtn").click(e => {
           const roleId = $(e.target).data("id");
           this.showForm(contentArea, projectId, roleService, roleId);
+        });
+        $(".managePermissionsBtn").click(e => {
+          const roleId = $(e.target).data("id");
+          this.showPermissionForm(contentArea, projectId, roleService, roleId);
         });
         $(".deleteRoleBtn").click(e => {
           const roleId = $(e.target).data("id");
@@ -887,35 +994,61 @@ function createRoleManagement() {
       });
     },
     showForm: function (contentArea, projectId, roleService, roleId = null) {
-      const title = roleId ? "Edit Role" : "Add Role";
-      const formHTML = `
-          <h2 class="text-xl mb-4">${title}</h2>
-          <form id="roleForm">
-            <input type="text" id="roleName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-            <textarea id="roleDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
+      // ... (залишається без змін)
+    },
+    showPermissionForm: function (contentArea, projectId, roleService, roleId) {
+      roleService.getById(projectId, roleId).then(role => {
+        let permissionFormHTML = `
+          <h2 class="text-xl mb-4">Manage Permissions for ${role.name}</h2>
+          <form id="permissionForm">
+            <div id="permissionList"></div>
+            <input type="text" id="newPermissionName" placeholder="New Permission Name" class="w-full p-2 mb-4 border rounded">
+            <textarea id="newPermissionDescription" placeholder="New Permission Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
+            <button type="button" id="addPermissionBtn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 mb-4">Add New Permission</button>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Save Permissions</button>
           </form>
         `;
-      contentArea.html(formHTML);
-      if (roleId) {
-        roleService.getById(projectId, roleId).then(role => {
-          $("#roleName").val(role.name);
-          $("#roleDescription").val(role.description);
+        contentArea.html(permissionFormHTML);
+        this.renderPermissionList(role.permissions || []);
+        $("#addPermissionBtn").click(() => {
+          const newPermName = $("#newPermissionName").val();
+          const newPermDesc = $("#newPermissionDescription").val();
+          if (newPermName) {
+            role.permissions = role.permissions || [];
+            role.permissions.push({
+              name: newPermName,
+              description: newPermDesc
+            });
+            this.renderPermissionList(role.permissions);
+            $("#newPermissionName").val("");
+            $("#newPermissionDescription").val("");
+          }
         });
-      }
-      $("#roleForm").on("submit", e => {
-        e.preventDefault();
-        const roleData = {
-          name: $("#roleName").val(),
-          description: $("#roleDescription").val()
-        };
-        const action = roleId ? roleService.update(projectId, roleId, roleData) : roleService.create(projectId, roleData);
-        action.then(() => {
-          notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
-          this.load(contentArea, projectId, roleService);
-        }).catch(error => {
-          notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
+        $("#permissionForm").on("submit", e => {
+          e.preventDefault();
+          roleService.update(projectId, roleId, {
+            permissions: role.permissions
+          }).then(() => {
+            notification.show("Permissions updated successfully", "success");
+            this.load(contentArea, projectId, roleService);
+          }).catch(error => {
+            notification.show(`Error updating permissions: ${error.message}`, "error");
+          });
         });
+      });
+    },
+    renderPermissionList: function (permissions) {
+      const permissionListHTML = permissions.map((perm, index) => `
+        <div class="flex items-center mb-2">
+          <input type="text" value="${perm.name}" class="p-2 border rounded mr-2" readonly>
+          <button type="button" class="deletePermBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-index="${index}">Delete</button>
+        </div>
+      `).join("");
+      $("#permissionList").html(permissionListHTML);
+      $(".deletePermBtn").click(e => {
+        const index = $(e.target).data("index");
+        permissions.splice(index, 1);
+        this.renderPermissionList(permissions);
       });
     },
     // Метод для виклику користувацьких подій
