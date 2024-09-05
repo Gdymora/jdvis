@@ -583,32 +583,44 @@ function createPermissionManagement() {
       const title = permissionId ? "Edit Permission" : "Add Permission";
       const page = 1,
         itemsPerPage = 10;
-      roleService.getAll(projectId, {
+      Promise.all([roleService.getAll(projectId, {
         page,
         itemsPerPage
-      }).then(rolesResponse => {
+      }), permissionService.getAllPermissions(projectId)]).then(([rolesResponse, allPermissions]) => {
         const roles = Array.isArray(rolesResponse.data) ? rolesResponse.data : [];
+        const permissions = allPermissions.data || [];
         const formHTML = `
-        <h2 class="text-xl mb-4">${title}</h2>
-        <form id="permissionForm">
-          <input type="text" id="permissionName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
-          <textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-          <div class="mb-4">
-            <label class="block mb-2">Assign to Roles:</label>
-            ${roles.map(role => `
-              <div>
-                <input type="checkbox" id="role_${role.id}" name="roles" value="${role.id}">
-                <label for="role_${role.id}">${role.name}</label>
+            <h2 class="text-xl mb-4">${title}</h2>
+            <form id="permissionForm">
+              <select id="permissionSelect" class="w-full p-2 mb-4 border rounded" required>
+                <option value="">Select a permission</option>
+                ${permissions.map(permission => `
+                  <option value="${permission.name}">${permission.label}</option>
+                `).join("")}
+              </select>
+              <textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
+              <div class="mb-4">
+                <label class="block mb-2">Assign to Roles:</label>
+                ${roles.map(role => `
+                  <div>
+                    <input type="checkbox" id="role_${role.id}" name="roles" value="${role.id}" />
+                    <label for="role_${role.id}">${role.name}</label>
+                  </div>
+                `).join("")}
               </div>
-            `).join("")}
-          </div>
-          <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
-        </form>
-      `;
+              <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
+            </form>          
+          `;
         contentArea.html(formHTML);
+        $("#permissionSelect").on("change", function () {
+          const selectedPermission = permissions.find(p => p.name === this.value);
+          if (selectedPermission) {
+            $("#permissionDescription").val(`Can ${selectedPermission.action} ${selectedPermission.model}`);
+          }
+        });
         if (permissionId) {
           permissionService.getById(projectId, permissionId).then(permission => {
-            $("#permissionName").val(permission.name);
+            $("#permissionSelect").val(permission.name);
             $("#permissionDescription").val(permission.description);
             if (Array.isArray(permission.roles)) {
               permission.roles.forEach(role => {
@@ -620,10 +632,9 @@ function createPermissionManagement() {
         $("#permissionForm").on("submit", e => {
           e.preventDefault();
           const permissionData = {
-            name: $("#permissionName").val(),
+            name: $("#permissionSelect").val(),
             description: $("#permissionDescription").val(),
             role_ids: $('input[name="roles"]:checked').map(function () {
-              console.log(this.value);
               return this.value;
             }).getElements()
           };
@@ -632,13 +643,13 @@ function createPermissionManagement() {
             notification.show(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
             this.load(contentArea, projectId, permissionService, roleService);
           }).catch(error => {
-            notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
+            notification.show(`Error ${permissionId ? "updating" : "creating"} permission: ${error.message}`, "error");
           });
         });
       }).catch(error => {
-        contentArea.html("<p>Error loading roles.</p>");
-        console.error("Error loading roles:", error);
-        notification.show("Error loading roles: " + error.message, "error");
+        contentArea.html("<p>Error loading data.</p>");
+        console.error("Error loading data:", error);
+        notification.show(`Error loading data: ${error.message}`, "error");
       });
     },
     // Метод для виклику користувацьких подій
@@ -959,9 +970,11 @@ function createRoleManagement() {
       Promise.all([roleService.getById(projectId, roleId), permissionService.getAll(projectId, {
         page,
         itemsPerPage
-      })]).then(([role, allPermissions]) => {
+      }), permissionService.getAllPermissions(projectId)]).then(([role, allPermissions, allNamePermissions]) => {
         const rolePermissions = role.permissions || [];
         const allPermissionsList = allPermissions.data || [];
+        const namePermissionsList = allNamePermissions.data || []; //Add New Permission
+
         let permissionFormHTML = `
           <h2 class="text-xl mb-4">Manage Permissions for ${role.name}</h2>
           <form id="permissionForm">
@@ -2192,6 +2205,27 @@ __webpack_require__.r(__webpack_exports__);
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.permission = function (baseUrl) {
   const tokenKey = _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.tokenKey;
   return {
+    /**
+     * Gets all existing permission names from which to create a rule
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @returns {Promise<Array>} A promise that resolves to an array of permissions.
+     * @throws {Error} If there's an error fetching the permissions.
+     */
+    getAllPermissions: async function (projectId) {
+      try {
+        const response = await fetch(`${baseUrl}/permissions`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          }
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        throw error;
+      }
+    },
     /**
      * Retrieves all permissions.
      * @async

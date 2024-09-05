@@ -129,9 +129,14 @@ export function createRoleManagement() {
       const page = 1,
         itemsPerPage = 10;
 
-      Promise.all([roleService.getById(projectId, roleId), permissionService.getAll(projectId, { page, itemsPerPage })]).then(([role, allPermissions]) => {
+      Promise.all([
+        roleService.getById(projectId, roleId),
+        permissionService.getAll(projectId, { page, itemsPerPage }),
+        permissionService.getAllPermissions(projectId),
+      ]).then(([role, allPermissions, allNamePermissions]) => {
         const rolePermissions = role.permissions || [];
         const allPermissionsList = allPermissions.data || [];
+        const namePermissionsList = allNamePermissions.data || []; //Add New Permission
 
         let permissionFormHTML = `
           <h2 class="text-xl mb-4">Manage Permissions for ${role.name}</h2>
@@ -182,25 +187,30 @@ export function createRoleManagement() {
           e.preventDefault();
           console.log($('input[name="role_permissions"]:checked'));
           const updatedPermissionIds = $('input[name="role_permissions"]:checked')
-            .map(function () { 
+            .map(function () {
               return this.value;
             })
             .getElements();
 
-            console.log($('input[name="roles"]:checked')
-            .map(function () {
-              console.log(this.value)
-              return this.value;
-            })
-            .getElements());
-            
-            console.log($('input[name="roles"]:checked')
-            .map(function () {
-              console.log(this.value)
-              return this.value;
-            })
-            .getElements(0));  
-            roleService.assignMultiplePermissions(projectId, roleId, { permission_ids: updatedPermissionIds })
+          console.log(
+            $('input[name="roles"]:checked')
+              .map(function () {
+                console.log(this.value);
+                return this.value;
+              })
+              .getElements()
+          );
+
+          console.log(
+            $('input[name="roles"]:checked')
+              .map(function () {
+                console.log(this.value);
+                return this.value;
+              })
+              .getElements(0)
+          );
+          roleService
+            .assignMultiplePermissions(projectId, roleId, { permission_ids: updatedPermissionIds })
             .then(() => {
               notification.show("Permissions updated successfully", "success");
               this.load(contentArea, projectId, roleService, permissionService);

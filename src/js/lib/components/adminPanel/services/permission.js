@@ -14,6 +14,28 @@ $.prototype.permission = function (baseUrl) {
   const tokenKey = $.prototype.tokenKey;
   return {
     /**
+     * Gets all existing permission names from which to create a rule
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @returns {Promise<Array>} A promise that resolves to an array of permissions.
+     * @throws {Error} If there's an error fetching the permissions.
+     */
+    getAllPermissions: async function (projectId) {
+      try {
+        const response = await fetch(`${baseUrl}/permissions`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        throw error;
+      }
+    },
+
+    /**
      * Retrieves all permissions.
      * @async
      * @param {string} projectId - The ID of the project.
