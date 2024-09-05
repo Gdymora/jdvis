@@ -138,7 +138,7 @@ $.prototype.role = function (baseUrl) {
     },
 
     /**
-     * Assigns a permission to a role.
+     * Assigns a permission to a role. додати один конкретний дозвіл до ролі який вже існує
      * @async
      * @param {string} projectId - The ID of the project.
      * @param {string} roleId - The ID of the role.
@@ -160,6 +160,36 @@ $.prototype.role = function (baseUrl) {
         return await response.json();
       } catch (error) {
         console.error("Error assigning permission:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Assigns multiple permissions to a role. додати масив дозволів до ролі який вже існує
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @param {string} roleId - The ID of the role.
+     * @param {Array<string>} permissionIds - An array of permission IDs to assign.
+     * @returns {Promise<Object>} A promise that resolves to the updated role with permissions.
+     * @throws {Error} If there's an error assigning the permissions.
+     */
+    assignMultiplePermissions: async function (projectId, roleId, permissionIds) {
+      try {
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}/assign-permissions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+          body: JSON.stringify({ permission_ids: permissionIds }),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error assigning multiple permissions:", error);
         throw error;
       }
     },

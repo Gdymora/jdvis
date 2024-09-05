@@ -83,7 +83,7 @@ $.prototype.tableData = function (baseUrl) {
         throw error;
       }
     },
-
+    
     /**
      * Updates specific table data.
      * @async

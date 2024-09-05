@@ -88,7 +88,8 @@ export function createPermissionManagement() {
 
     showForm: function (contentArea, projectId, permissionService, roleService, permissionId = null) {
       const title = permissionId ? "Edit Permission" : "Add Permission";
-      const page = 1, itemsPerPage = 10;
+      const page = 1,
+        itemsPerPage = 10;
 
       roleService
         .getAll(projectId, { page, itemsPerPage })
@@ -137,11 +138,11 @@ export function createPermissionManagement() {
               description: $("#permissionDescription").val(),
               role_ids: $('input[name="roles"]:checked')
                 .map(function () {
+                  console.log(this.value);
                   return this.value;
                 })
-                .get(),
+                .getElements(),
             };
-
             const action = permissionId
               ? permissionService.update(projectId, permissionId, permissionData)
               : permissionService.create(projectId, permissionData);

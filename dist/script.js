@@ -343,7 +343,7 @@ function initializeAdminPanel(context, user, options) {
           console.log("Roles case");
           if (await checkPermission(services, "view_roles", projectId)) {
             try {
-              components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+              components.roleManagement.load(contentArea, projectId, services.roleService, services.permissionService, loadOptions);
             } catch (error) {
               console.error("Error loading table management component:", error);
               contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
@@ -623,8 +623,9 @@ function createPermissionManagement() {
             name: $("#permissionName").val(),
             description: $("#permissionDescription").val(),
             role_ids: $('input[name="roles"]:checked').map(function () {
+              console.log(this.value);
               return this.value;
-            }).get()
+            }).getElements()
           };
           const action = permissionId ? permissionService.update(projectId, permissionId, permissionData) : permissionService.create(projectId, permissionData);
           action.then(() => {
@@ -683,6 +684,7 @@ function createPostManagement() {
         const data = response.data;
         if (data && data.length > 0) {
           const tableHTML = `
+              <h2 class="text-xl mb-4">Posts</h2>
               <div class="overflow-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
@@ -697,76 +699,43 @@ function createPostManagement() {
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-200">
-                    ${data.map((item, index) => `
+                    ${data.map(item => `
                       <tr class="text-black">
                         <td class="px-6 py-4 whitespace-nowrap">${item.id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.project_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_tables_id}</td>
                         <td class="px-6 py-4 whitespace-nowrap">${item.user_table.table_name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.data)}">
-                          ${item.data.length > 15 ? item.data.substring(0, 15) + "..." : item.data}
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(JSON.stringify(item.data))}">
+                          ${JSON.stringify(item.data).substring(0, 15)}...
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(item.user_table.table_structure)}">
-                          ${item.user_table.table_structure.length > 15 ? item.user_table.table_structure.substring(0, 15) + "..." : item.user_table.table_structure}
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(JSON.stringify(item.user_table.table_structure))}">
+                          ${JSON.stringify(item.user_table.table_structure).substring(0, 15)}...
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                          <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${index}">Edit</button>
-                          <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${index}">Delete</button>
+                          <button class="addPostBtn bg-green-500 text-white px-2 py-1 rounded mr-2" data-id="${item.id}">Add</button>
+                          <button class="editPostBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-id="${item.id}">Edit</button>
+                          <button class="deletePostBtn bg-red-500 text-white px-2 py-1 rounded" data-id="${item.id}">Delete</button>
                         </td>
                       </tr>
                     `).join("")}
                   </tbody>
                 </table>
               </div>
-              <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
             `;
           contentArea.html(tableHTML);
-
-          // Add event listeners
-          $(".editRowBtn").click(event => {
-            const rowIndex = $(event.currentTarget).data("row-index");
-            this.openModalUpdate(data[rowIndex], rowIndex);
+          $(".addPostBtn").click(e => {
+            const rowId = $(e.target).data("id");
+            this.showPostForm(contentArea, projectId, postService, rowId, 'add');
           });
-          $(".deleteRowBtn").click(event => {
-            const rowIndex = $(event.currentTarget).data("row-index");
-            if (confirm("Are you sure you want to delete this row?")) {
-              this.handleDeleteRow(rowIndex);
-            }
+          $(".editPostBtn").click(e => {
+            const rowId = $(e.target).data("id");
+            this.showPostForm(contentArea, projectId, postService, rowId, 'edit');
           });
-          $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, postService, data[0].user_tables_id, "first"));
-
-          // Add tooltip functionality
-          $(".tooltip-trigger").hover(function () {
-            const tooltip = $().create('<div class="tooltip"></div>');
-            const fullText = decodeURIComponent($(this).data("full-text"));
-            console.log(fullText);
-            $(tooltip).text(fullText); // Pretty-print the JSON for better readability
-
-            const triggerRect = $(this).offset();
-            const tooltipRect = $(tooltip).offset();
-            const top = triggerRect.top + window.scrollY - tooltipRect.height - 10;
-            const left = triggerRect.left + window.scrollX;
-            $(tooltip).css({
-              position: "absolute",
-              top: `${top}px`,
-              left: `${left}px`,
-              background: "#333",
-              color: "#fff",
-              padding: "10px",
-              borderRadius: "5px",
-              maxWidth: "400px",
-              maxHeight: "300px",
-              overflowY: "auto",
-              wordWrap: "break-word",
-              zIndex: 1000,
-              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-              fontSize: "14px",
-              lineHeight: "1.4"
-            });
-            $(this).append(tooltip);
-          }, function () {
-            $(".tooltip").remove();
+          $(".deletePostBtn").click(e => {
+            const rowId = $(e.target).data("id");
+            this.deletePost(contentArea, projectId, postService, rowId);
           });
+          this.addTooltipFunctionality();
         } else {
           contentArea.html("<p>No data available.</p>");
         }
@@ -775,124 +744,83 @@ function createPostManagement() {
         console.error("Error loading data:", error);
       });
     },
-    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
-      tableStructureService.getById(projectId, tableId).then(tableData => {
-        const tableStructure = JSON.parse(tableData.table_structure);
-        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+    showPostForm: function (contentArea, projectId, postService, rowId, mode) {
+      postService.getById(projectId, rowId).then(row => {
+        const tableStructure = JSON.parse(row.user_table.table_structure);
+        const rowData = mode === 'edit' ? JSON.parse(row.data) : {};
         let formHTML = `
-          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
-          <form id="fillTableForm">
+          <h2 class="text-xl mb-4">${mode === 'edit' ? 'Edit' : 'Add'} Post for ${row.user_table.table_name}</h2>
+          <form id="postForm">
             ${tableStructure.map(field => `
-              <div>
-                <label for="${field.name}">${field.name}</label>
+              <div class="mb-4">
+                <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
                 <input type="${field.type}" id="${field.name}" name="${field.name}" 
-                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+     <!--TODO-->             value="${mode === 'edit' ? rowData[0][field.name] || "" : ""}"
+                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
               </div>
             `).join("")}
-            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save</button>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+              ${mode === 'edit' ? 'Update' : 'Add'} Post
+            </button>
           </form>
         `;
         contentArea.html(formHTML);
-        $("#fillTableForm").on("submit", async e => {
+        $("#postForm").on('submit', e => {
           e.preventDefault();
-          const formData = tableStructure.reduce((acc, field) => {
-            acc[field.name] = $(`#${field.name}`).val();
-            return acc;
-          }, {});
-          const updatedTableData = action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => index === rowIndex ? formData : item);
-          const requestData = {
-            user_tables_id: tableId,
-            data: JSON.stringify(updatedTableData)
-          };
-          try {
-            if (action === "first") {
-              await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
-            } else if (action === "second" && rowIndex !== null) {
-              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
-            }
-            // Можна додати повідомлення про успіх або інші дії після успішного виконання
-          } catch (error) {
-            console.error("Error updating table data:", error);
-            // Можна додати відображення помилки для користувача
-          }
+          const formData = {};
+          tableStructure.forEach(field => {
+            formData[field.name] = $(`#${field.name}`).val();
+          });
+          const action = mode === 'edit' ? postService.update(projectId, rowId, formData) : postService.create(projectId, rowId, formData);
+          action.then(() => {
+            notification.show(`Post ${mode === 'edit' ? "updated" : "created"} successfully`, "success");
+            this.load(contentArea, projectId, postService);
+          }).catch(error => {
+            notification.show(`Error ${mode === 'edit' ? "updating" : "creating"} post: ${error.message}`, "error");
+          });
         });
       });
     },
-    createTableData: function (contentArea, projectId, tableStructureService, tableDataService, newData) {
-      tableDataService.create(projectId, newData).then(() => {
-        alert("Table data updated successfully");
-        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
-      });
-    },
-    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
-      tableDataService.update(projectId, tableId, newData).then(() => {
-        alert("Table data updated successfully");
-        this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
-      });
-    },
-    showPostForm: function (contentArea, projectId, postService, postId = null) {
-      const title = postId ? "Edit Post" : "Create New Post";
-      const formHTML = `
-        <h2 class="text-xl mb-4">${title}</h2>
-        <form id="postForm">
-          <input type="text" id="postTitle" placeholder="Post Title" class="w-full p-2 mb-4 border rounded" required>
-          <textarea id="postContent" placeholder="Post Content" class="w-full p-2 mb-4 border rounded" rows="6" required></textarea>
-          <button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${postId ? "Update" : "Create"} Post</button>
-        </form>
-      `;
-      contentArea.html(formHTML);
-      if (postId) {
-        postService.getById(projectId, postId).then(post => {
-          $("#postTitle").val(post.title);
-          $("#postContent").val(post.content);
-        });
-      }
-      const self = this;
-      $("#postForm").submit(function (e) {
-        e.preventDefault();
-        const postData = {
-          title: $("#postTitle").val(),
-          content: $("#postContent").val()
-        };
-        const action = postId ? postService.update(projectId, postId, postData) : postService.create(projectId, postData);
-        action.then(() => {
-          notification.show(`Post ${postId ? "updated" : "created"} successfully`, "success");
-          self.load(contentArea, projectId, postService);
-        }).catch(error => {
-          notification.show(`Error ${postId ? "updating" : "creating"} post: ${error.message}`, "error");
-        });
-      });
-    },
-    viewPost: function (contentArea, projectId, postService, postId) {
-      postService.getById(projectId, postId).then(post => {
-        let postHTML = `
-          <h2 class="text-xl mb-4">${post.title}</h2>
-          <p><strong>Created at:</strong> ${post.created_at}</p>
-          <p><strong>Updated at:</strong> ${post.updated_at}</p>
-          <div class="mt-4">
-            ${post.content}
-          </div>
-          <div class="mt-4">
-            <button id="editPostBtn" class="bg-blue-500 text-white px-4 py-2 rounded mr-2">Edit</button>
-            <button id="deletePostBtn" class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
-          </div>
-        `;
-        contentArea.html(postHTML);
-        const self = this;
-        $("#editPostBtn").click(() => self.showPostForm(contentArea, projectId, postService, postId));
-        $("#deletePostBtn").click(() => self.deletePost(contentArea, projectId, postService, postId));
-      });
-    },
-    deletePost: function (contentArea, projectId, postService, postId) {
-      if (confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-        postService.delete(projectId, postId).then(() => {
+    deletePost: function (contentArea, projectId, postService, rowId) {
+      if (confirm("Are you sure you want to delete this post?")) {
+        postService.delete(projectId, rowId).then(() => {
           notification.show("Post deleted successfully", "success");
           this.load(contentArea, projectId, postService);
         }).catch(error => {
           notification.show(`Error deleting post: ${error.message}`, "error");
         });
       }
+    },
+    addTooltipFunctionality: function () {
+      $(".tooltip-trigger").hover(function () {
+        const tooltip = $().create('<div class="tooltip"></div>');
+        const fullText = decodeURIComponent($(this).data("full-text"));
+        $(tooltip).text(fullText);
+        const triggerRect = $(this).offset();
+        const tooltipRect = $(tooltip).offset();
+        const top = triggerRect.top + window.scrollY - tooltipRect.height - 10;
+        const left = triggerRect.left + window.scrollX;
+        $(tooltip).css({
+          position: "absolute",
+          top: `${top}px`,
+          left: `${left}px`,
+          background: "#333",
+          color: "#fff",
+          padding: "10px",
+          borderRadius: "5px",
+          maxWidth: "400px",
+          maxHeight: "300px",
+          overflowY: "auto",
+          wordWrap: "break-word",
+          zIndex: 1000,
+          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+          fontSize: "14px",
+          lineHeight: "1.4"
+        });
+        $(this).append(tooltip);
+      }, function () {
+        $(".tooltip").remove();
+      });
     },
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
@@ -925,7 +853,7 @@ function createRoleManagement() {
     duration: 3000
   });
   return {
-    load: function (contentArea, projectId, roleService, options = {}) {
+    load: function (contentArea, projectId, roleService, permissionService, options = {}) {
       const {
         page = 1,
         itemsPerPage = 10
@@ -968,21 +896,21 @@ function createRoleManagement() {
 
         // Render pagination
         $("#paginationArea").pagination(totalPages, page);
-        $("#addRoleBtn").click(() => this.showForm(contentArea, projectId, roleService));
+        $("#addRoleBtn").click(() => this.showForm(contentArea, projectId, roleService, permissionService));
         $(".editRoleBtn").click(e => {
           const roleId = $(e.target).data("id");
-          this.showForm(contentArea, projectId, roleService, roleId);
+          this.showForm(contentArea, projectId, roleService, permissionService, roleId);
         });
         $(".managePermissionsBtn").click(e => {
           const roleId = $(e.target).data("id");
-          this.showPermissionForm(contentArea, projectId, roleService, roleId);
+          this.showPermissionForm(contentArea, projectId, roleService, permissionService, roleId);
         });
         $(".deleteRoleBtn").click(e => {
           const roleId = $(e.target).data("id");
           if (confirm("Are you sure you want to delete this role?")) {
             roleService.delete(projectId, roleId).then(() => {
               notification.show("Role deleted successfully", "success");
-              this.load(contentArea, projectId, roleService, options);
+              this.load(contentArea, projectId, roleService, permissionService, options);
             }).catch(error => {
               notification.show(`Error deleting role: ${error.message}`, "error");
             });
@@ -993,63 +921,121 @@ function createRoleManagement() {
         notification.show(`Error loading roles: ${error.message}`, "error");
       });
     },
-    showForm: function (contentArea, projectId, roleService, roleId = null) {
-      // ... (залишається без змін)
+    showForm: function (contentArea, projectId, roleService, permissionService, roleId = null) {
+      const title = roleId ? "Edit Role" : "Add Role";
+      const formHTML = `
+          <h2 class="text-xl mb-4">${title}</h2>
+          <form id="roleForm">
+            <input type="text" id="roleName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
+            <textarea id="roleDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}</button>
+          </form>
+        `;
+      contentArea.html(formHTML);
+      if (roleId) {
+        roleService.getById(projectId, roleId).then(role => {
+          $("#roleName").val(role.name);
+          $("#roleDescription").val(role.description);
+        });
+      }
+      $("#roleForm").on("submit", e => {
+        e.preventDefault();
+        const roleData = {
+          name: $("#roleName").val(),
+          description: $("#roleDescription").val()
+        };
+        const action = roleId ? roleService.update(projectId, roleId, roleData) : roleService.create(projectId, roleData);
+        action.then(() => {
+          notification.show(`Role ${roleId ? "updated" : "created"} successfully`, "success");
+          this.load(contentArea, projectId, roleService, permissionService);
+        }).catch(error => {
+          notification.show(`Error ${roleId ? "updating" : "creating"} role: ${error.message}`, "error");
+        });
+      });
     },
-    showPermissionForm: function (contentArea, projectId, roleService, roleId) {
-      roleService.getById(projectId, roleId).then(role => {
+    showPermissionForm: function (contentArea, projectId, roleService, permissionService, roleId) {
+      const page = 1,
+        itemsPerPage = 10;
+      Promise.all([roleService.getById(projectId, roleId), permissionService.getAll(projectId, {
+        page,
+        itemsPerPage
+      })]).then(([role, allPermissions]) => {
+        const rolePermissions = role.permissions || [];
+        const allPermissionsList = allPermissions.data || [];
         let permissionFormHTML = `
           <h2 class="text-xl mb-4">Manage Permissions for ${role.name}</h2>
           <form id="permissionForm">
-            <div id="permissionList"></div>
-            <input type="text" id="newPermissionName" placeholder="New Permission Name" class="w-full p-2 mb-4 border rounded">
-            <textarea id="newPermissionDescription" placeholder="New Permission Description" class="w-full p-2 mb-4 border rounded" rows="3"></textarea>
-            <button type="button" id="addPermissionBtn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 mb-4">Add New Permission</button>
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Save Permissions</button>
+            <div id="permissionList" class="mb-4">
+              <h3 class="text-lg mb-2">Current Permissions:</h3>
+              ${this.renderPermissionList(rolePermissions, true)}
+            </div>
+            <div id="availablePermissionList" class="mb-4">
+              <h3 class="text-lg mb-2">Available Permissions:</h3>
+              ${this.renderPermissionList(allPermissionsList.filter(p => !rolePermissions.some(rp => rp.id === p.id)), false)}
+            </div>
+            <div class="mb-4">
+              <h3 class="text-lg mb-2">Add New Permission:</h3>
+              <input type="text" id="newPermissionName" placeholder="New Permission Name" class="w-full p-2 mb-2 border rounded">
+              <textarea id="newPermissionDescription" placeholder="New Permission Description" class="w-full p-2 mb-2 border rounded" rows="3"></textarea>
+              <button type="button" id="addNewPermissionBtn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Add New Permission</button>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Save Changes</button>
           </form>
         `;
         contentArea.html(permissionFormHTML);
-        this.renderPermissionList(role.permissions || []);
-        $("#addPermissionBtn").click(() => {
+        $("#addNewPermissionBtn").click(() => {
           const newPermName = $("#newPermissionName").val();
           const newPermDesc = $("#newPermissionDescription").val();
           if (newPermName) {
-            role.permissions = role.permissions || [];
-            role.permissions.push({
+            permissionService.create(projectId, {
               name: newPermName,
-              description: newPermDesc
+              description: newPermDesc,
+              role_ids: [roleId]
+            }).then(newPermission => {
+              rolePermissions.push(newPermission);
+              this.renderPermissionList(rolePermissions, true);
+              $("#newPermissionName").val("");
+              $("#newPermissionDescription").val("");
+              notification.show("New permission added successfully", "success");
+            }).catch(error => {
+              notification.show("Error adding new permission: " + error.message, "error");
             });
-            this.renderPermissionList(role.permissions);
-            $("#newPermissionName").val("");
-            $("#newPermissionDescription").val("");
           }
         });
         $("#permissionForm").on("submit", e => {
           e.preventDefault();
-          roleService.update(projectId, roleId, {
-            permissions: role.permissions
+          console.log($('input[name="role_permissions"]:checked'));
+          const updatedPermissionIds = $('input[name="role_permissions"]:checked').map(function () {
+            return this.value;
+          }).getElements();
+          console.log($('input[name="roles"]:checked').map(function () {
+            console.log(this.value);
+            return this.value;
+          }).getElements());
+          console.log($('input[name="roles"]:checked').map(function () {
+            console.log(this.value);
+            return this.value;
+          }).getElements(0));
+          roleService.assignMultiplePermissions(projectId, roleId, {
+            permission_ids: updatedPermissionIds
           }).then(() => {
             notification.show("Permissions updated successfully", "success");
-            this.load(contentArea, projectId, roleService);
+            this.load(contentArea, projectId, roleService, permissionService);
           }).catch(error => {
             notification.show(`Error updating permissions: ${error.message}`, "error");
           });
         });
       });
     },
-    renderPermissionList: function (permissions) {
-      const permissionListHTML = permissions.map((perm, index) => `
+    renderPermissionList: function (permissions, isAssigned) {
+      const permissionListHTML = permissions;
+      return permissions.map(perm => `
         <div class="flex items-center mb-2">
-          <input type="text" value="${perm.name}" class="p-2 border rounded mr-2" readonly>
-          <button type="button" class="deletePermBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-index="${index}">Delete</button>
+          <input type="checkbox" id="perm_${perm.id}" name="role_permissions" value="${perm.id}" 
+                 ${isAssigned ? "checked" : ""} class="mr-2">
+          <label for="perm_${perm.id}">${perm.name} - ${perm.description || ""}</label>
         </div>
       `).join("");
-      $("#permissionList").html(permissionListHTML);
-      $(".deletePermBtn").click(e => {
-        const index = $(e.target).data("index");
-        permissions.splice(index, 1);
-        this.renderPermissionList(permissions);
-      });
     },
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
@@ -1081,6 +1067,75 @@ function createTableManagement() {
     position: "top-right",
     duration: 3000
   });
+  function sanitizeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;"
+    })[tag] || tag);
+  }
+  function sanitizeHTML(str) {
+    const temp = document.createElement("div");
+    temp.textContent = str;
+    return temp.innerHTML;
+  }
+  const fieldOptions = {
+    type: [{
+      value: "text",
+      label: "Text"
+    }, {
+      value: "number",
+      label: "Number"
+    }, {
+      value: "date",
+      label: "Date"
+    }, {
+      value: "markdown",
+      label: "Markdown"
+    } // Додано новий тип
+    ],
+    tag: [{
+      value: "",
+      label: "Select tag"
+    }, {
+      value: "img",
+      label: "Image"
+    }, {
+      value: "p",
+      label: "Text"
+    }, {
+      value: "div",
+      label: "Div"
+    }]
+  };
+
+  // Функція для генерації опцій select
+  function generateSelectOptions(options, selectedValue) {
+    return options.map(option => `<option value="${option.value}" ${option.value === selectedValue ? "selected" : ""}>${option.label}</option>`).join("");
+  }
+
+  // Функція для генерації рядка поля
+  function generateFieldRow(field, index) {
+    return `
+    <div class="field-row mt-2">
+      <input type="text" name="fieldName" value="${field.name}" class="px-2 py-1 border rounded mr-2">
+      <select name="fieldType" class="px-2 py-1 border rounded mr-2">
+        ${generateSelectOptions(fieldOptions.type, field.type)}
+      </select>
+      <select name="fieldTag" class="px-2 py-1 border rounded mr-2">
+        ${generateSelectOptions(fieldOptions.tag, field.tag)}
+      </select>
+      ${index === 0 ? `
+          <label>
+            <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
+          </label>
+          ` : ""}
+      <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded">Remove</button>
+    </div>
+  `;
+  }
   return {
     load: function (contentArea, projectId, tableStructureService, tableDataService, options = {}) {
       const {
@@ -1116,11 +1171,11 @@ function createTableManagement() {
                 ${tables.map((table, index) => `
                   <tr class="text-black">
                     <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.id)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.table_name)}</td>
                   <!--  
-                    <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.created_at)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.updated_at)}</td>
                    -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       ${table.table_data && table.table_data.length > 0 && JSON.parse(table.table_data[0].data).length > 0 ? `
@@ -1214,29 +1269,16 @@ function createTableManagement() {
         tag: "",
         filter: null
       }];
+      function getFieldValues() {
+        return fields.map((field, index) => ({
+          name: $("input[name='fieldName']").eq(index).val() || field.name,
+          type: $("select[name='fieldType']").eq(index).val() || field.type,
+          tag: $("select[name='fieldTag']").eq(index).val() || field.tag,
+          filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : field.filter
+        }));
+      }
       function renderFields() {
-        $("#tableFields").html(fields.map((field, index) => `
-            <div class="field-row mb-2">
-              <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
-              <select name="fieldType" class="p-2 border rounded mr-2">
-                <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-                <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-                <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-              </select>
-              <select name="fieldTag" class="p-2 border rounded mr-2">
-                <option value="">Select tag</option>
-                <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-                <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-                <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-              </select>
-              ${index === 0 ? `
-                <label>
-                  <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-                </label>
-              ` : ""}
-              <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
-            </div>
-          `).join(""));
+        $("#tableFields").html(fields.map(generateFieldRow).join(""));
         $(".removeFieldBtn").click(function () {
           const index = $(this).closest(".field-row").index();
           fields.splice(index, 1);
@@ -1245,6 +1287,7 @@ function createTableManagement() {
       }
       renderFields();
       $("#addFieldBtn").click(() => {
+        fields = getFieldValues();
         fields.push({
           name: "",
           type: "text",
@@ -1263,13 +1306,9 @@ function createTableManagement() {
       $("#tableStructureForm").on("submit", e => {
         e.preventDefault();
         const tableData = {
+          project_id: projectId,
           table_name: $("#tableName").val(),
-          table_structure: fields.map((_, index) => ({
-            name: $("input[name='fieldName']").eq(index).val(),
-            type: $("select[name='fieldType']").eq(index).val(),
-            tag: $("select[name='fieldTag']").eq(index).val(),
-            filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : null
-          }))
+          table_structure: getFieldValues()
         };
         const action = tableId ? tableStructureService.update(projectId, tableId, tableData) : tableStructureService.create(projectId, tableData);
         action.then(() => {
@@ -1290,7 +1329,7 @@ function createTableManagement() {
           try {
             return JSON.parse(jsonString);
           } catch (error) {
-            console.error('Error parsing JSON:', error);
+            console.error("Error parsing JSON:", error);
             return [];
           }
         };
@@ -1363,28 +1402,7 @@ function createTableManagement() {
         contentArea.html(formHTML);
         let fields = JSON.parse(table.table_structure);
         function renderFields() {
-          $("#tableFields").html(fields.map((field, index) => `
-              <div class="field-row mt-2">
-                <input type="text" name="fieldName" value="${field.name}" class="px-2 py-1 border rounded mr-2">
-                <select name="fieldType" class="px-2 py-1 border rounded mr-2">
-                  <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-                  <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-                  <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-                </select>
-                <select name="fieldTag" class="px-2 py-1 border rounded mr-2">
-                  <option value="">Select tag</option>
-                  <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-                  <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-                  <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-                </select>
-                ${index === 0 ? `
-                  <label>
-                    <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-                  </label>
-                ` : ""}
-                <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded">Remove</button>
-              </div>
-            `).join(""));
+          $("#tableFields").html(fields.map((field, index) => generateFieldRow(field, index)).join(""));
           $(".removeFieldBtn").click(function () {
             fields.splice($(this).closest(".field-row").index(), 1);
             renderFields();
@@ -2449,7 +2467,7 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
       }
     },
     /**
-     * Assigns a permission to a role.
+     * Assigns a permission to a role. додати один конкретний дозвіл до ролі який вже існує
      * @async
      * @param {string} projectId - The ID of the project.
      * @param {string} roleId - The ID of the role.
@@ -2473,6 +2491,37 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.role = function (baseUrl
         return await response.json();
       } catch (error) {
         console.error("Error assigning permission:", error);
+        throw error;
+      }
+    },
+    /**
+     * Assigns multiple permissions to a role. додати масив дозволів до ролі який вже існує
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @param {string} roleId - The ID of the role.
+     * @param {Array<string>} permissionIds - An array of permission IDs to assign.
+     * @returns {Promise<Object>} A promise that resolves to the updated role with permissions.
+     * @throws {Error} If there's an error assigning the permissions.
+     */
+    assignMultiplePermissions: async function (projectId, roleId, permissionIds) {
+      try {
+        const response = await fetch(`${baseUrl}/project-roles/${roleId}/assign-permissions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId
+          },
+          body: JSON.stringify({
+            permission_ids: permissionIds
+          })
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error("Error assigning multiple permissions:", error);
         throw error;
       }
     },
@@ -5724,6 +5773,69 @@ _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.show = function () {
  */
 _core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.hide = function () {
   return this.css("display", "none");
+};
+
+/**
+ * Ітерує через кожен елемент у колекції і виконує функцію зворотного виклику.
+ *
+ * @param {function(this:Element, Element, number, Element[])} callback - Функція, яка виконується для кожного елемента.
+ *   Вона отримує поточний елемент, індекс та всю колекцію як аргументи.
+ * @returns {Object} Поточний об'єкт для ланцюжка викликів.
+ * @example
+ * $('div').each(function(element, index) {
+ *   console.log(`Div ${index}:`, element.textContent);
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.each = function (callback) {
+  for (let i = 0; i < this.length; i++) {
+    callback.call(this[i], this[i], i, this);
+  }
+  return this;
+};
+
+/**
+ * Створює новий об'єкт з результатами виклику наданої функції для кожного елемента колекції.
+ *
+ * @param {function(this:Element, Element, number): *} callback - Функція, яка виробляє елемент нового об'єкту.
+ * @returns {Object} Новий об'єкт з результатами мапінгу.
+ * @example
+ * const values = $('input[name="role_permissions"]:checked').map(function() {
+ *   return this.value;
+ * });
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.map = function (callback) {
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    const mappedValue = callback.call(this[i], this[i], i);
+    if (mappedValue != null) {
+      // Пропускаємо null і undefined, як це робить jQuery
+      result.push(mappedValue);
+    }
+  }
+  return (0,_core__WEBPACK_IMPORTED_MODULE_0__["default"])(result); // Повертаємо новий об'єкт $
+};
+
+/**
+ * Отримує елементи колекції у вигляді масиву або окремий елемент за індексом.
+ *
+ * @param {number} [index] - Якщо вказано, повертає елемент за цим індексом.
+ * @returns {Array|*} Масив елементів або окремий елемент, якщо вказано індекс.
+ * @example
+ * // Отримати всі значення
+ * const allValues = $('input[name="role_permissions"]:checked')
+ *   .map(function() { return this.value; })
+ *   .getElements();
+ *
+ * // Отримати перше значення
+ * const firstValue = $('input[name="role_permissions"]:checked')
+ *   .map(function() { return this.value; })
+ *   .getElements(0);
+ */
+_core__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.getElements = function (index) {
+  if (index != null) {
+    return index < 0 ? this[this.length + index] : this[index];
+  }
+  return Array.prototype.slice.call(this)[0];
 };
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_core__WEBPACK_IMPORTED_MODULE_0__["default"]);
 

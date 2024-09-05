@@ -409,4 +409,67 @@ $.prototype.hide = function () {
   return this.css("display", "none");
 };
 
+/**
+ * Ітерує через кожен елемент у колекції і виконує функцію зворотного виклику.
+ *
+ * @param {function(this:Element, Element, number, Element[])} callback - Функція, яка виконується для кожного елемента.
+ *   Вона отримує поточний елемент, індекс та всю колекцію як аргументи.
+ * @returns {Object} Поточний об'єкт для ланцюжка викликів.
+ * @example
+ * $('div').each(function(element, index) {
+ *   console.log(`Div ${index}:`, element.textContent);
+ * });
+ */
+$.prototype.each = function (callback) {
+  for (let i = 0; i < this.length; i++) {
+    callback.call(this[i], this[i], i, this);
+  }
+  return this;
+};
+
+/**
+ * Створює новий об'єкт з результатами виклику наданої функції для кожного елемента колекції.
+ *
+ * @param {function(this:Element, Element, number): *} callback - Функція, яка виробляє елемент нового об'єкту.
+ * @returns {Object} Новий об'єкт з результатами мапінгу.
+ * @example
+ * const values = $('input[name="role_permissions"]:checked').map(function() {
+ *   return this.value;
+ * });
+ */
+$.prototype.map = function (callback) {
+  const result = [];
+  for (let i = 0; i < this.length; i++) {
+    const mappedValue = callback.call(this[i], this[i], i);
+    if (mappedValue != null) {
+      // Пропускаємо null і undefined, як це робить jQuery
+      result.push(mappedValue);
+    }
+  }
+  return $(result); // Повертаємо новий об'єкт $
+};
+
+/**
+ * Отримує елементи колекції у вигляді масиву або окремий елемент за індексом.
+ *
+ * @param {number} [index] - Якщо вказано, повертає елемент за цим індексом.
+ * @returns {Array|*} Масив елементів або окремий елемент, якщо вказано індекс.
+ * @example
+ * // Отримати всі значення
+ * const allValues = $('input[name="role_permissions"]:checked')
+ *   .map(function() { return this.value; })
+ *   .getElements();
+ *
+ * // Отримати перше значення
+ * const firstValue = $('input[name="role_permissions"]:checked')
+ *   .map(function() { return this.value; })
+ *   .getElements(0);
+ */
+$.prototype.getElements = function (index) {
+  if (index != null) {
+    return index < 0 ? this[this.length + index] : this[index];
+  }
+  return Array.prototype.slice.call(this)[0];
+};
+
 export default $;

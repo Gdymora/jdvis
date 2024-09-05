@@ -5,6 +5,71 @@ export function createTableManagement() {
     position: "top-right",
     duration: 3000,
   });
+
+  function sanitizeHTML(str) {
+    return str.replace(
+      /[&<>'"]/g,
+      (tag) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "'": "&#39;",
+          '"': "&quot;",
+        }[tag] || tag)
+    );
+  }
+
+  function sanitizeHTML(str) {
+    const temp = document.createElement("div");
+    temp.textContent = str;
+    return temp.innerHTML;
+  }
+  const fieldOptions = {
+    type: [
+      { value: "text", label: "Text" },
+      { value: "number", label: "Number" },
+      { value: "date", label: "Date" },
+      { value: "markdown", label: "Markdown" }, // Додано новий тип
+    ],
+    tag: [
+      { value: "", label: "Select tag" },
+      { value: "img", label: "Image" },
+      { value: "p", label: "Text" },
+      { value: "div", label: "Div" },
+    ],
+  };
+
+  // Функція для генерації опцій select
+  function generateSelectOptions(options, selectedValue) {
+    return options.map((option) => `<option value="${option.value}" ${option.value === selectedValue ? "selected" : ""}>${option.label}</option>`).join("");
+  }
+
+  // Функція для генерації рядка поля
+  function generateFieldRow(field, index) {
+    return `
+    <div class="field-row mt-2">
+      <input type="text" name="fieldName" value="${field.name}" class="px-2 py-1 border rounded mr-2">
+      <select name="fieldType" class="px-2 py-1 border rounded mr-2">
+        ${generateSelectOptions(fieldOptions.type, field.type)}
+      </select>
+      <select name="fieldTag" class="px-2 py-1 border rounded mr-2">
+        ${generateSelectOptions(fieldOptions.tag, field.tag)}
+      </select>
+      ${
+        index === 0
+          ? `
+          <label>
+            <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
+          </label>
+          `
+          : ""
+      }
+      <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded">Remove</button>
+    </div>
+  `;
+  }
+
   return {
     load: function (contentArea, projectId, tableStructureService, tableDataService, options = {}) {
       const { page = 1, itemsPerPage = 15 } = options;
@@ -39,11 +104,11 @@ export function createTableManagement() {
                     (table, index) => `
                   <tr class="text-black">
                     <td class="px-6 py-4 whitespace-nowrap">${index + 1}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.table_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.id)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.table_name)}</td>
                   <!--  
-                    <td class="px-6 py-4 whitespace-nowrap">${table.created_at}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">${table.updated_at}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.created_at)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${sanitizeHTML(table.updated_at)}</td>
                    -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       ${
@@ -144,39 +209,16 @@ export function createTableManagement() {
 
       let fields = [{ name: "", type: "text", tag: "", filter: null }];
 
+      function getFieldValues() {
+        return fields.map((field, index) => ({
+          name: $("input[name='fieldName']").eq(index).val() || field.name,
+          type: $("select[name='fieldType']").eq(index).val() || field.type,
+          tag: $("select[name='fieldTag']").eq(index).val() || field.tag,
+          filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : field.filter,
+        }));
+      }
       function renderFields() {
-        $("#tableFields").html(
-          fields
-            .map(
-              (field, index) => `
-            <div class="field-row mb-2">
-              <input type="text" name="fieldName" placeholder="Field Name" value="${field.name}" class="p-2 border rounded mr-2" required>
-              <select name="fieldType" class="p-2 border rounded mr-2">
-                <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-                <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-                <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-              </select>
-              <select name="fieldTag" class="p-2 border rounded mr-2">
-                <option value="">Select tag</option>
-                <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-                <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-                <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-              </select>
-              ${
-                index === 0
-                  ? `
-                <label>
-                  <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-                </label>
-              `
-                  : ""
-              }
-              <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove</button>
-            </div>
-          `
-            )
-            .join("")
-        );
+        $("#tableFields").html(fields.map(generateFieldRow).join(""));
 
         $(".removeFieldBtn").click(function () {
           const index = $(this).closest(".field-row").index();
@@ -188,6 +230,7 @@ export function createTableManagement() {
       renderFields();
 
       $("#addFieldBtn").click(() => {
+        fields = getFieldValues();
         fields.push({ name: "", type: "text", tag: "", filter: null });
         renderFields();
       });
@@ -203,13 +246,9 @@ export function createTableManagement() {
       $("#tableStructureForm").on("submit", (e) => {
         e.preventDefault();
         const tableData = {
+          project_id: projectId,
           table_name: $("#tableName").val(),
-          table_structure: fields.map((_, index) => ({
-            name: $("input[name='fieldName']").eq(index).val(),
-            type: $("select[name='fieldType']").eq(index).val(),
-            tag: $("select[name='fieldTag']").eq(index).val(),
-            filter: index === 0 ? $("input[name='fieldFilter']").prop("checked") : null,
-          })),
+          table_structure: getFieldValues(),
         };
 
         const action = tableId ? tableStructureService.update(projectId, tableId, tableData) : tableStructureService.create(projectId, tableData);
@@ -229,36 +268,42 @@ export function createTableManagement() {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
         const tableDataParsed = tableData.table_data && tableData.table_data.length > 0 ? tableData.table_data : [];
-    
+
         // Функція для розпарсювання JSON-рядка
         const parseJSON = (jsonString) => {
           try {
             return JSON.parse(jsonString);
           } catch (error) {
-            console.error('Error parsing JSON:', error);
+            console.error("Error parsing JSON:", error);
             return [];
           }
         };
-    
+
         // Функція для рендерингу рядка таблиці
         const renderTableRow = (rowData, rowIndex) => {
           const parsedData = parseJSON(rowData.data);
-          
-          return parsedData.map((item, itemIndex) => `
+
+          return parsedData
+            .map(
+              (item, itemIndex) => `
             <tr class="text-black">
               ${tableStructure
-                .map(column => `
+                .map(
+                  (column) => `
                   <td class="px-6 py-4 whitespace-nowrap">${item[column.name] || ""}</td>
-                `)
+                `
+                )
                 .join("")}
               <td class="px-6 py-4 whitespace-nowrap">
                 <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Edit</button>
                 <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Delete</button>
               </td>
             </tr>
-          `).join("");
+          `
+            )
+            .join("");
         };
-    
+
         let tableHTML = `
           <h2 class="text-lg font-semibold m-4">${tableData.table_name} (ID: ${tableData.id})</h2>
           <table class="min-w-full divide-y divide-gray-200">
@@ -284,9 +329,9 @@ export function createTableManagement() {
           </table>
           <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
         `;
-    
+
         contentArea.html(tableHTML);
-    
+
         // Add event listeners
         $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "first"));
         $(".editRowBtn").click((event) => {
@@ -321,38 +366,7 @@ export function createTableManagement() {
         let fields = JSON.parse(table.table_structure);
 
         function renderFields() {
-          $("#tableFields").html(
-            fields
-              .map(
-                (field, index) => `
-              <div class="field-row mt-2">
-                <input type="text" name="fieldName" value="${field.name}" class="px-2 py-1 border rounded mr-2">
-                <select name="fieldType" class="px-2 py-1 border rounded mr-2">
-                  <option value="text" ${field.type === "text" ? "selected" : ""}>Text</option>
-                  <option value="number" ${field.type === "number" ? "selected" : ""}>Number</option>
-                  <option value="date" ${field.type === "date" ? "selected" : ""}>Date</option>
-                </select>
-                <select name="fieldTag" class="px-2 py-1 border rounded mr-2">
-                  <option value="">Select tag</option>
-                  <option value="img" ${field.tag === "img" ? "selected" : ""}>image</option>
-                  <option value="p" ${field.tag === "p" ? "selected" : ""}>text</option>
-                  <option value="div" ${field.tag === "div" ? "selected" : ""}>div</option>
-                </select>
-                ${
-                  index === 0
-                    ? `
-                  <label>
-                    <input type="checkbox" name="fieldFilter" ${field.filter ? "checked" : ""}> Filter
-                  </label>
-                `
-                    : ""
-                }
-                <button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded">Remove</button>
-              </div>
-            `
-              )
-              .join("")
-          );
+          $("#tableFields").html(fields.map((field, index) => generateFieldRow(field, index)).join(""));
 
           $(".removeFieldBtn").click(function () {
             fields.splice($(this).closest(".field-row").index(), 1);

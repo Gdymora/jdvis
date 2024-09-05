@@ -196,7 +196,7 @@ export function initializeAdminPanel(context, user, options) {
           console.log("Roles case");
           if (await checkPermission(services, "view_roles", projectId)) {
             try {
-              components.roleManagement.load(contentArea, projectId, services.roleService, loadOptions);
+              components.roleManagement.load(contentArea, projectId, services.roleService, services.permissionService, loadOptions);
             } catch (error) {
               console.error("Error loading table management component:", error);
               contentArea.html('<h2 class="text-xl mb-4">Error</h2><p>An error occurred while loading the tables component.</p>');
