@@ -169,7 +169,7 @@ export function initializeAdminPanel(context, user, options) {
           break;
         case "users":
           console.log("Users case");
-          if (await checkPermission(services, "view_users", projectId)) {
+          if (await checkPermission(services, "viewAny_project_user", projectId)) {
             try {
               components.userManagement.load(contentArea, projectId, services.userService, services.roleService, loadOptions);
             } catch (error) {
@@ -194,7 +194,7 @@ export function initializeAdminPanel(context, user, options) {
           break;
         case "roles":
           console.log("Roles case");
-          if (await checkPermission(services, "view_roles", projectId)) {
+          if (await checkPermission(services, "view_project_roles", projectId)) {
             try {
               components.roleManagement.load(contentArea, projectId, services.roleService, services.permissionService, loadOptions);
             } catch (error) {
@@ -207,7 +207,7 @@ export function initializeAdminPanel(context, user, options) {
           break;
         case "permissions":
           console.log("Permissions case");
-          if (await checkPermission(services, "view_permissions", projectId)) {
+          if (await checkPermission(services, "viewAny_project_permission", projectId)) {
             try {
               components.permissionManagement.load(contentArea, projectId, services.permissionService, services.roleService, loadOptions);
             } catch (error) {
@@ -220,7 +220,7 @@ export function initializeAdminPanel(context, user, options) {
           break;
         case "tables":
           console.log("Tables case");
-          if (await checkPermission(services, "view_tables", projectId)) {
+          if (await checkPermission(services, "viewAny_project_table_structure", projectId)) {
             try {
               components.tableManagement.load(contentArea, projectId, services.tableStructureService, services.tableDataService, loadOptions);
             } catch (error) {
@@ -233,7 +233,7 @@ export function initializeAdminPanel(context, user, options) {
           break;
         case "posts":
           console.log("Posts case");
-          if (await checkPermission(services, "view_posts", projectId)) {
+          if (await checkPermission(services, "viewAny_project_table_data", projectId)) {
             try {
               components.postManagement.load(contentArea, projectId, services.tableDataService, loadOptions);
             } catch (error) {
