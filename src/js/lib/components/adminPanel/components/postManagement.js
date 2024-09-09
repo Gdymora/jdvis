@@ -42,7 +42,9 @@ export function createPostManagement() {
                         <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(JSON.stringify(item.data))}">
                           ${JSON.stringify(item.data).substring(0, 15)}...
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(JSON.stringify(item.user_table.table_structure))}">
+                        <td class="px-6 py-4 whitespace-nowrap tooltip-trigger" data-full-text="${encodeURIComponent(
+                          JSON.stringify(item.user_table.table_structure)
+                        )}">
                           ${JSON.stringify(item.user_table.table_structure).substring(0, 15)}...
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -63,11 +65,11 @@ export function createPostManagement() {
 
             $(".addPostBtn").click((e) => {
               const rowId = $(e.target).data("id");
-              this.showPostForm(contentArea, projectId, postService, rowId, 'add');
+              this.showPostForm(contentArea, projectId, postService, rowId, "add");
             });
             $(".editPostBtn").click((e) => {
               const rowId = $(e.target).data("id");
-              this.showPostForm(contentArea, projectId, postService, rowId, 'edit');
+              this.showPostForm(contentArea, projectId, postService, rowId, "edit");
             });
             $(".deletePostBtn").click((e) => {
               const rowId = $(e.target).data("id");
@@ -88,45 +90,85 @@ export function createPostManagement() {
     showPostForm: function (contentArea, projectId, postService, rowId, mode) {
       postService.getById(projectId, rowId).then((row) => {
         const tableStructure = JSON.parse(row.user_table.table_structure);
-        const rowData = mode === 'edit' ? JSON.parse(row.data) : {};
+        const rowData = mode === "edit" ? JSON.parse(row.data) : {};
 
         let formHTML = `
-          <h2 class="text-xl mb-4">${mode === 'edit' ? 'Edit' : 'Add'} Post for ${row.user_table.table_name}</h2>
-          <form id="postForm">
-            ${tableStructure.map((field) => `
-              <div class="mb-4">
-                <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
-                <input type="${field.type}" id="${field.name}" name="${field.name}" 
-     <!--TODO-->             value="${mode === 'edit' ? (rowData[0][field.name] || "") : ""}"
-                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              </div>
-            `).join("")}
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-              ${mode === 'edit' ? 'Update' : 'Add'} Post
-            </button>
-          </form>
-        `;
+        <h2 class="text-xl mb-4">${mode === "edit" ? "Edit" : "Add"} Post for ${row.user_table.table_name}</h2>
+        <form id="postForm">
+          ${tableStructure
+            .map((field) => {
+              let inputField = "";
+              switch (field.type) {
+                case "text":
+                  inputField = `<textarea id="${field.name}" name="${
+                    field.name
+                  }" class="editor mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${
+                    mode === "edit" ? rowData[0][field.name] || "" : ""
+                  }</textarea>`;
+                  break;
+                case "markdown":
+                  inputField = `<textarea id="${field.name}" name="${
+                    field.name
+                  }" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="5">${
+                    mode === "edit" ? rowData[0][field.name] || "" : ""
+                  }</textarea>`;
+                  break;
+                case "number":
+                  inputField = `<input type="number" id="${field.name}" name="${field.name}" value="${
+                    mode === "edit" ? rowData[0][field.name] || "" : ""
+                  }" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+                  break;
+                default:
+                  inputField = `<input type="text" id="${field.name}" name="${field.name}" value="${
+                    mode === "edit" ? rowData[0][field.name] || "" : ""
+                  }" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+              }
+              return `
+                <div class="mb-4">
+                  <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
+                  ${inputField}
+                </div>
+              `;
+            })
+            .join("")}
+          <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            ${mode === "edit" ? "Update" : "Add"} Post
+          </button>
+        </form>
+      `;
 
         contentArea.html(formHTML);
 
-        $("#postForm").on('submit', (e) => {
-          e.preventDefault();
-          const formData = {};
-          tableStructure.forEach((field) => {
-            formData[field.name] = $(`#${field.name}`).val();
-          });
+        // Ініціалізація редактора для полів типу 'text'
+        $(".editor").each(function () {
+          $(this).ckeditor({});
+        });
 
-          const action = mode === 'edit'
-            ? postService.update(projectId, rowId, formData)
-            : postService.create(projectId, rowId, formData);
+        $("#postForm").on("submit", (e) => {
+          e.preventDefault();
+          /*    const formData = {};
+           tableStructure.forEach((field) => {
+            formData[field.name] = $(`#${field.name}`).val();
+          }); */
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+         // const updatedTableData = mode === "edit" ? [...rowData, formData] : rowData.map((item, index) => (index === rowIndex ? formData : item));
+
+          const requestData = {
+            user_tables_id: row.user_table.id,
+            data:  JSON.stringify([formData]),
+          };
+          const action = mode === "edit" ? postService.update(projectId, rowId, requestData) : postService.create(projectId, rowId, requestData);
 
           action
             .then(() => {
-              notification.show(`Post ${mode === 'edit' ? "updated" : "created"} successfully`, "success");
+              notification.show(`Post ${mode === "edit" ? "updated" : "created"} successfully`, "success");
               this.load(contentArea, projectId, postService);
             })
             .catch((error) => {
-              notification.show(`Error ${mode === 'edit' ? "updating" : "creating"} post: ${error.message}`, "error");
+              notification.show(`Error ${mode === "edit" ? "updating" : "creating"} post: ${error.message}`, "error");
             });
         });
       });
@@ -146,7 +188,7 @@ export function createPostManagement() {
       }
     },
 
-    addTooltipFunctionality: function() {
+    addTooltipFunctionality: function () {
       $(".tooltip-trigger").hover(
         function () {
           const tooltip = $().create('<div class="tooltip"></div>');

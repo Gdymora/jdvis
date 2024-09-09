@@ -736,11 +736,11 @@ function createPostManagement() {
           contentArea.html(tableHTML);
           $(".addPostBtn").click(e => {
             const rowId = $(e.target).data("id");
-            this.showPostForm(contentArea, projectId, postService, rowId, 'add');
+            this.showPostForm(contentArea, projectId, postService, rowId, "add");
           });
           $(".editPostBtn").click(e => {
             const rowId = $(e.target).data("id");
-            this.showPostForm(contentArea, projectId, postService, rowId, 'edit');
+            this.showPostForm(contentArea, projectId, postService, rowId, "edit");
           });
           $(".deletePostBtn").click(e => {
             const rowId = $(e.target).data("id");
@@ -758,36 +758,65 @@ function createPostManagement() {
     showPostForm: function (contentArea, projectId, postService, rowId, mode) {
       postService.getById(projectId, rowId).then(row => {
         const tableStructure = JSON.parse(row.user_table.table_structure);
-        const rowData = mode === 'edit' ? JSON.parse(row.data) : {};
+        const rowData = mode === "edit" ? JSON.parse(row.data) : {};
         let formHTML = `
-          <h2 class="text-xl mb-4">${mode === 'edit' ? 'Edit' : 'Add'} Post for ${row.user_table.table_name}</h2>
-          <form id="postForm">
-            ${tableStructure.map(field => `
-              <div class="mb-4">
-                <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
-                <input type="${field.type}" id="${field.name}" name="${field.name}" 
-     <!--TODO-->             value="${mode === 'edit' ? rowData[0][field.name] || "" : ""}"
-                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-              </div>
-            `).join("")}
-            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
-              ${mode === 'edit' ? 'Update' : 'Add'} Post
-            </button>
-          </form>
-        `;
+        <h2 class="text-xl mb-4">${mode === "edit" ? "Edit" : "Add"} Post for ${row.user_table.table_name}</h2>
+        <form id="postForm">
+          ${tableStructure.map(field => {
+          let inputField = "";
+          switch (field.type) {
+            case "text":
+              inputField = `<textarea id="${field.name}" name="${field.name}" class="editor mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${mode === "edit" ? rowData[0][field.name] || "" : ""}</textarea>`;
+              break;
+            case "markdown":
+              inputField = `<textarea id="${field.name}" name="${field.name}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="5">${mode === "edit" ? rowData[0][field.name] || "" : ""}</textarea>`;
+              break;
+            case "number":
+              inputField = `<input type="number" id="${field.name}" name="${field.name}" value="${mode === "edit" ? rowData[0][field.name] || "" : ""}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+              break;
+            default:
+              inputField = `<input type="text" id="${field.name}" name="${field.name}" value="${mode === "edit" ? rowData[0][field.name] || "" : ""}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+          }
+          return `
+                <div class="mb-4">
+                  <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
+                  ${inputField}
+                </div>
+              `;
+        }).join("")}
+          <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+            ${mode === "edit" ? "Update" : "Add"} Post
+          </button>
+        </form>
+      `;
         contentArea.html(formHTML);
-        $("#postForm").on('submit', e => {
+
+        // Ініціалізація редактора для полів типу 'text'
+        $(".editor").each(function () {
+          $(this).ckeditor({});
+        });
+        $("#postForm").on("submit", e => {
           e.preventDefault();
-          const formData = {};
-          tableStructure.forEach(field => {
+          /*    const formData = {};
+           tableStructure.forEach((field) => {
             formData[field.name] = $(`#${field.name}`).val();
-          });
-          const action = mode === 'edit' ? postService.update(projectId, rowId, formData) : postService.create(projectId, rowId, formData);
+          }); */
+          const formData = tableStructure.reduce((acc, field) => {
+            acc[field.name] = $(`#${field.name}`).val();
+            return acc;
+          }, {});
+          // const updatedTableData = mode === "edit" ? [...rowData, formData] : rowData.map((item, index) => (index === rowIndex ? formData : item));
+
+          const requestData = {
+            user_tables_id: row.user_table.id,
+            data: JSON.stringify([formData])
+          };
+          const action = mode === "edit" ? postService.update(projectId, rowId, requestData) : postService.create(projectId, rowId, requestData);
           action.then(() => {
-            notification.show(`Post ${mode === 'edit' ? "updated" : "created"} successfully`, "success");
+            notification.show(`Post ${mode === "edit" ? "updated" : "created"} successfully`, "success");
             this.load(contentArea, projectId, postService);
           }).catch(error => {
-            notification.show(`Error ${mode === 'edit' ? "updating" : "creating"} post: ${error.message}`, "error");
+            notification.show(`Error ${mode === "edit" ? "updating" : "creating"} post: ${error.message}`, "error");
           });
         });
       });
@@ -1348,16 +1377,16 @@ function createTableManagement() {
         };
 
         // Функція для рендерингу рядка таблиці
-        const renderTableRow = (rowData, rowIndex) => {
+        const renderTableRow = (rowData, rowId) => {
           const parsedData = parseJSON(rowData.data);
-          return parsedData.map((item, itemIndex) => `
+          return parsedData.map(item => `
             <tr class="text-black">
               ${tableStructure.map(column => `
                   <td class="px-6 py-4 whitespace-nowrap">${item[column.name] || ""}</td>
                 `).join("")}
               <td class="px-6 py-4 whitespace-nowrap">
-                <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Edit</button>
-                <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowIndex}" data-item-index="${itemIndex}">Delete</button>
+                <button class="editRowBtn bg-blue-500 text-white px-2 py-1 rounded mr-2" data-row-index="${rowId}">Edit</button>
+                <button class="deleteRowBtn bg-red-500 text-white px-2 py-1 rounded" data-row-index="${rowId}">Delete</button>
               </td>
             </tr>
           `).join("");
@@ -1378,7 +1407,7 @@ function createTableManagement() {
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              ${tableDataParsed.map((row, index) => renderTableRow(row, index)).join("")}
+              ${tableDataParsed.map((row, index) => renderTableRow(row, row.id)).join("")}
             </tbody>
           </table>
           <button id="addRowBtn" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Add Row</button>
@@ -1388,16 +1417,12 @@ function createTableManagement() {
         // Add event listeners
         $("#addRowBtn").click(() => this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "first"));
         $(".editRowBtn").click(event => {
-          const rowIndex = $(event.currentTarget).data("row-index");
-          const itemIndex = $(event.currentTarget).data("item-index");
-          this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "second", rowIndex, itemIndex);
+          const rowId = $(event.currentTarget).data("row-index");
+          this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, "second", rowId);
         });
         $(".deleteRowBtn").click(event => {
-          const rowIndex = $(event.currentTarget).data("row-index");
-          const itemIndex = $(event.currentTarget).data("item-index");
-          if (confirm("Are you sure you want to delete this row?")) {
-            this.deleteTableRow(contentArea, projectId, tableStructureService, tableId, rowIndex, itemIndex);
-          }
+          const rowId = $(event.currentTarget).data("row-index");
+          this.deleteTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, rowId);
         });
       });
     },
@@ -1456,32 +1481,70 @@ function createTableManagement() {
     showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
       tableStructureService.getById(projectId, tableId).then(tableData => {
         const tableStructure = JSON.parse(tableData.table_structure);
-        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
+        let tableDataParsed = [];
+        if (tableData.table_data && tableData.table_data.length > 0) {
+          if (rowIndex) {
+            const targetId = parseInt(rowIndex, 10);
+            console.log("Searching for record with id:", targetId);
+            const targetRecord = tableData.table_data.find(record => record.id === targetId);
+            if (targetRecord) {
+              tableDataParsed = JSON.parse(targetRecord.data);
+            } else {
+              console.warn(`Record with id ${rowIndex} not found`);
+            }
+          } else {
+            // Якщо rowIndex не передано, парсимо всі записи
+            tableDataParsed = tableData.table_data.flatMap(record => JSON.parse(record.data));
+          }
+        }
         let formHTML = `
-          <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
-          <form id="fillTableForm">
-            ${tableStructure.map(field => `
-              <div>
-                <label for="${field.name}">${field.name}</label>
-                <input type="${field.type}" id="${field.name}" name="${field.name}" 
-                  value="${action === "second" && rowIndex !== null ? tableDataParsed[rowIndex][field.name] || "" : ""}"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500">
+        <h2>${action === "first" ? "Add" : "Edit"} Row</h2>
+        <form id="fillTableForm">
+        ${tableStructure.map(field => {
+          let inputField = "";
+          const fieldValue = action === "second" && tableDataParsed[0] ? tableDataParsed[0][field.name] || "" : "";
+          switch (field.type) {
+            case "text":
+              inputField = `<textarea id="${field.name}" name="${field.name}" class="editor mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${fieldValue}</textarea>`;
+              break;
+            case "markdown":
+              inputField = `<textarea id="${field.name}" name="${field.name}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="5">${fieldValue}</textarea>`;
+              break;
+            case "number":
+              inputField = `<input type="number" id="${field.name}" name="${field.name}" value="${fieldValue}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+              break;
+            default:
+              inputField = `<input type="text" id="${field.name}" name="${field.name}" value="${fieldValue}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">`;
+          }
+          return `
+              <div class="mb-4">
+                <label for="${field.name}" class="block text-sm font-medium text-gray-700">${field.name}</label>
+                ${inputField}
               </div>
-            `).join("")}
-            <button type="submit" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Save</button>
-          </form>
-        `;
+            `;
+        }).join("")}
+        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+          ${action === "second" ? "Update" : "Add"} Post
+        </button>
+      </form>
+      `;
         contentArea.html(formHTML);
+        $(".editor").each(function () {
+          $(this).ckeditor({});
+        });
         $("#fillTableForm").on("submit", async e => {
           e.preventDefault();
           const formData = tableStructure.reduce((acc, field) => {
             acc[field.name] = $(`#${field.name}`).val();
             return acc;
           }, {});
-          const updatedTableData = action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => index === rowIndex ? formData : item);
+
+          /*  const updatedTableData =
+            action === "first" ? [...tableDataParsed, formData] : tableDataParsed.map((item, index) => (index === rowIndex ? formData : item));
+          */
           const requestData = {
             user_tables_id: tableId,
-            data: JSON.stringify(updatedTableData)
+            data: JSON.stringify([formData])
           };
           try {
             if (action === "first") {
@@ -1597,12 +1660,17 @@ function createTableManagement() {
         this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
       });
     },
-    deleteTableRow: function (contentArea, projectId, tableStructureService, tableId, rowIndex) {
-      tableStructureService.getById(projectId, tableId).then(tableData => {
-        const tableDataParsed = tableData.table_data && tableData.table_data[0] ? JSON.parse(tableData.table_data[0].data) : [];
-        tableDataParsed.splice(rowIndex, 1);
-        //this.updateTableStructure(contentArea, projectId, tableStructureService, tableId, tableDataParsed);
-      });
+    deleteTableData: function (contentArea, projectId, tableStructureService, tableDataService, tablesId, dataId) {
+      if (confirm("Are you sure you want to delete this post?")) {
+        tableDataService.delete(projectId, dataId).then(() => {
+          notification.show("Post deleted successfully", "success");
+          this.viewTable(contentArea, projectId, tableStructureService, tableDataService, tablesId);
+
+          //  this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
+        }).catch(error => {
+          notification.show(`Error deleting post: ${error.message}`, "error");
+        });
+      }
     },
     // Метод для виклику користувацьких подій
     trigger: function (eventName, data) {
