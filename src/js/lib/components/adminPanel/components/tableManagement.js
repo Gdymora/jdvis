@@ -156,20 +156,56 @@ export function createTableManagement() {
 
           // Add event listeners
           $("#addTableBtn").click(() => this.showForm(contentArea, projectId, tableStructureService));
+
           $(".viewTableBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
             this.viewTable(contentArea, projectId, tableStructureService, tableDataService, tableId);
           });
+
           $(".fillTableBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
             const action = $(e.currentTarget).data("action");
-            this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId, action);
+            this.showFillTableForm(contentArea, projectId, tableStructureService, tableDataService, tableId);
           });
+
           $(".excelImportBtn").click((e) => {
-            const tableId = $(e.currentTarget).data("id");
+            const tableId = Number($(e.currentTarget).data("id"));
             const action = $(e.currentTarget).data("action");
-            this.showExcelImportForm(contentArea, projectId, tableStructureService, tableId, action);
+
+            if (!tableId || !action) {
+              console.error("Missing table ID or action");
+              return;
+            }
+
+            const table = tables.find((table) => table.id === tableId);
+            if (!table) {
+              console.error(`Table with id ${tableId} not found`);
+              return;
+            }
+
+            let tableStructure = table.table_structure;
+            if (!tableStructure) {
+              console.error(`Table structure for table ${tableId} is missing`);
+              return;
+            }
+
+            // Перевірка та обробка table_structure
+            if (typeof tableStructure === "string") {
+              try {
+                // Перевіряємо, чи це валідний JSON-рядок
+                tableStructure = JSON.parse(tableStructure);
+              } catch (e) {
+                console.error(`Invalid JSON string in table_structure for table ${tableId}`);
+                return;
+              }
+            } else {
+              console.error(`Unexpected type of table_structure for table ${tableId}`);
+              return;
+            }
+
+            this.showExcelImportForm(contentArea, projectId, tableStructureService, tableDataService, tableStructure, tableId);
           });
+
           $(".cloneTableBtn").click((e) => {
             const tableId = $(e.currentTarget).data("id");
             this.cloneTable(contentArea, projectId, tableStructureService, tableId);
@@ -380,8 +416,8 @@ export function createTableManagement() {
         $("#editTableStructureForm").on("submit", (e) => {
           e.preventDefault();
           const updatedTableData = {
-            user_id: table.project.super_user_id,
-            project_id: table.project.id,
+            user_id: table.user_id,
+            project_id: table.project_id,
             table_name: $("#tableName").val(),
             table_structure: fields.map((_, index) => ({
               name: $("input[name='fieldName']").eq(index).val(),
@@ -497,34 +533,24 @@ export function createTableManagement() {
       });
     },
 
-    showExcelImportForm: function (contentArea, projectId, tableStructureService, tableId) {
+    showExcelImportForm: function (contentArea, projectId, tableStructureService, tableDataService, tableStructure, tableId) {
       contentArea.html('<div id="fileParserContainer"></div>');
 
       $("#fileParserContainer").fileParser({
-        onParse: function (data) {
-          // Here you can handle the parsed data
-          console.log("Parsed data:", data);
-
-          // Example: update the table with the parsed data
-          tableStructureService
-            .update(projectId, tableId, { data: data })
-            .then(() => {
-              alert("Data imported successfully");
-              this.viewTable(contentArea, projectId, tableStructureService, tableId);
-            })
-            .catch((error) => {
-              alert("Error importing data: " + error.message);
-            });
+        onParse: (response)=> {
+          console.log("Import results:", response);
+          this.viewTable(contentArea, projectId, tableStructureService, tableDataService, tableId);
         },
         onError: function (error) {
           alert("Error: " + error);
         },
-        tableStructure: [
-          { name: "imgSrc", type: "text" },
-          { name: "Column2", type: "number" },
-          // ... інші колонки відповідно до вашої структури таблиці
-        ],
+        tableStructure: tableStructure,
+        tableId: tableId,
+        projectId: projectId,
         ignoreFormat: false,
+        updateFunction: (projectId, tableData) => {
+          return tableDataService.createExcel(projectId, tableData);
+        },
       });
     },
 

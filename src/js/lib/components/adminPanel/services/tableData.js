@@ -43,6 +43,33 @@ $.prototype.tableData = function (baseUrl) {
      * @returns {Promise<Object>} A promise that resolves to the created table data.
      * @throws {Error} If there's an error creating the table data.
      */
+    createExcel: async function (projectId, tableData) {
+      try {
+        const response = await fetch(`${baseUrl}/project-table-data/import-excel`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
+            "X-Project-ID": projectId,
+          },
+          body: JSON.stringify(tableData),
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("Error creating table data:", error);
+        throw error;
+      }
+    },
+
+    /**
+     * Creates new table data Excel for a project.
+     * @async
+     * @param {string} projectId - The ID of the project.
+     * @param {Object} tableData - The data to be created.
+     * @returns {Promise<Object>} A promise that resolves to the created table data.
+     * @throws {Error} If there's an error creating the table data.
+     */
+
     create: async function (projectId, tableData) {
       try {
         const response = await fetch(`${baseUrl}/project-table-data`, {
@@ -60,7 +87,6 @@ $.prototype.tableData = function (baseUrl) {
         throw error;
       }
     },
-
     /**
      * Retrieves specific table data by ID.
      * @async
@@ -83,7 +109,7 @@ $.prototype.tableData = function (baseUrl) {
         throw error;
       }
     },
-    
+
     /**
      * Updates specific table data.
      * @async
