@@ -65,15 +65,33 @@ $.prototype.children = function () {
  * @returns {Object} The ModernLib object for chaining.
  * @example
  * $('#myElement').append('<p>New content</p>');
+ * $('#myElement').append(dataContainer);        // Працює з jQuery-подібними об'єктами
+ * $('#myElement').append(dataContainer[0]);     // Працює з DOM-елементами
+ * $('#myElement').append('<div>New content</div>'); // Працює з HTML-рядками
  */
 $.prototype.append = function (content) {
-  if (typeof content === "string") {
-    for (let i = 0; i < this.length; i++) {
+  for (let i = 0; i < this.length; i++) {
+    if (content instanceof $) {
+      // Якщо content є jQuery-подібним об'єктом
+      for (let j = 0; j < content.length; j++) {
+        this[i].appendChild(content[j]);
+      }
+    } else if (content instanceof Node) {
+      // Якщо content є DOM-вузлом
+      this[i].appendChild(content);
+    } else if (typeof content === "string") {
+      // Якщо content є рядком HTML
       this[i].insertAdjacentHTML("beforeend", content);
-    }
-  } else if (content instanceof Node) {
-    for (let i = 0; i < this.length; i++) {
-      this[i].appendChild(content.cloneNode(true));
+    } else if (Array.isArray(content) || content instanceof NodeList) {
+      // Якщо content є масивом або NodeList
+      for (let j = 0; j < content.length; j++) {
+        if (content[j] instanceof Node) {
+          this[i].appendChild(content[j]);
+        }
+      }
+    } else if (typeof content === "object" && content.nodeType) {
+      // Якщо content є одиночним DOM-елементом
+      this[i].appendChild(content);
     }
   }
   return this;

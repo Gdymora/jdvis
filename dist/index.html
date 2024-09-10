@@ -297,7 +297,8 @@
       <script>
         function createCustomUserManagement() {
           return {
-            load: function (contentArea, projectId, userService, roleService) {
+            load: function (contentArea, projectId, userService, options = {}) {
+              const { page = 1, itemsPerPage = 10, helpers } = options;
               contentArea.html(`
                           <h2 class="text-xl mb-4">Custom User Management</h2>
                           <p>This is a custom implementation of user management.</p>
@@ -346,76 +347,114 @@
             load: function (contentArea, projectId, customService, options = {}) {
               const { page = 1, itemsPerPage = 10, helpers } = options;
 
-              // Використання вкладок
-              const tabsContainer = $('#customComponentTabs, div');
-              contentArea.append(tabsContainer);
+              // Створення базової структури
+              const componentHtml = `
+        <div class="custom-component">
+          <h2 class="text-xl mb-4">Custom Component</h2>
+          <div class="tab mt-20 block-center">
+            <div class="tab-panel" data-tabpanel>
+              <div class="tab-item tab-item--active">Data</div>
+              <div class="tab-item">Settings</div>
+              <div class="tab-item">Info</div>
+            </div>
+            <div class="tab-content tab-content--active" id="dataTab"></div>
+            <div class="tab-content" id="settingsTab">Settings content here</div>
+            <div class="tab-content" id="infoTab">Info content here</div>
+          </div>
+          <button id="openModalBtn" class="btn btn-primary mt-4">Open Modal</button>
+        </div>
+      `;
+              contentArea.html(componentHtml);
 
-              helpers.createTabs("#customComponentTabs", [
-                { title: "Tab 1", content: "Content for Tab 1" },
-                { title: "Tab 2", content: "Content for Tab 2" },
-                { title: "Tab 3", content: "Content for Tab 3" },
-              ]);
-
-              // Додавання кнопки для модального вікна
-              const modalButton = $('<button id="openModalBtn">Open Modal</button>');
-              contentArea.append(modalButton);
+              // Ініціалізація табів
+              if (typeof $().tab === "function") {
+                $("[data-tabpanel]").tab();
+              } else {
+                console.error("Tab initialization function is not available");
+              }
 
               // Створення модального вікна
-              const modal = helpers.createModal("customModal", {
-                title: "Custom Modal",
-                content: "This is the content of the custom modal.",
-                buttons: [
-                  { text: "Close", action: "close" },
-                  {
-                    text: "Save",
-                    action: () => {
-                      console.log("Save action");
-                      modal.close();
-                    },
-                  },
-                ],
-              });
+              const modalHtml = `
+        <div class="modal" id="customModal">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <button class="close" data-close>
+                <span>&times;</span>
+              </button>
+              <div class="modal-header">
+                <div class="modal-title">Custom Modal</div>
+              </div>
+              <div class="modal-body">
+                This is the content of the custom modal.
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-danger" data-close>Close</button>
+                <button class="btn btn-success" id="saveModalBtn">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+              $("body").append(modalHtml);
 
-              modalButton.on("click", () => modal.open());
+              // Ініціалізація модального вікна
+              if (typeof $().modal === "function") {
+                const modal = $("#customModal").modal();
+                $("#openModalBtn").on("click", () => modal.open());
+                $("#saveModalBtn").on("click", () => {
+                  console.log("Save action");
+                  modal.close();
+                });
+              } else {
+                console.error("Modal initialization function is not available");
+              }
 
               // Завантаження даних з використанням customService
               customService
                 .getAll(projectId, { page, itemsPerPage })
                 .then((data) => {
-                  // Відображення даних
-                  const dataContainer = $('<div id="customDataContainer"></div>');
-                  dataContainer.html(JSON.stringify(data));
-                  contentArea.append(dataContainer);
+                  const dataHtml = `
+            <h3 class="text-lg mb-2">Custom Data</h3>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+                  $("#dataTab").html(dataHtml);
                 })
                 .catch((error) => {
                   console.error("Error loading custom data:", error);
-                  contentArea.append("<p>Error loading data</p>");
+                  $("#dataTab").html("<p>Error loading data</p>");
                 });
             },
           };
         }
-        function customService() {
-          const baseUrl = "http://localhost:4000";
-          return {
-            getAll: async function (projectId, { page = 1, itemsPerPage = 15 }) {
-              try {
-                const response = await fetch(`${baseUrl}/project-roles?page=${page}&per_page=${itemsPerPage}`, {
-                  headers: {
-                    Authorization: `Bearer ${localStorage.getItem(tokenKey)}`,
-                    "X-Project-ID": projectId,
-                  },
-                });
-                if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return await response.json();
-              } catch (error) {
-                console.error("Error fetching roles:", error);
-                throw error;
+        const customService = {
+          baseUrl: "http://127.0.0.1:8005/api/v1",
+          getAll: async function (projectId, options = {}) {
+            const { page = 1, itemsPerPage = 15 } = options;
+            try {
+              if (!projectId) {
+                throw new Error("Project ID is required");
               }
-            },
-          };
-        }
+              const tokenKey = "project_user_token"; // Замініть на реальний ключ або передайте його через параметр
+              const token = localStorage.getItem(tokenKey);
+              if (!token) {
+                throw new Error("Authorization token is missing");
+              }
+              const response = await fetch(`${this.baseUrl}/project-roles?page=${page}&per_page=${itemsPerPage}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "X-Project-ID": projectId,
+                },
+              });
+              if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+              }
+              return await response.json();
+            } catch (error) {
+              console.error("Error fetching roles:", error);
+              throw error;
+            }
+          },
+        };
 
         $("#adminPanelContainer").html("<p>Hello</p>");
         // Спочатку налаштуємо глобальні параметри (опціонально)
@@ -459,7 +498,8 @@
             tabs: $().tab, // Якщо ви хочете використовувати компонент вкладок
             modal: $().modal, // Якщо ви хочете використовувати модальні вікна
           },
-          services: {
+          customServices: {
+            customManagementService: customService,
             customComponentService: customService,
             // ... інші сервіси
           },

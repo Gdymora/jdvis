@@ -102,13 +102,7 @@ export function initializeAdminPanel(context, user, options) {
     </div>
   `;
 
-  context.html(adminPanelHTML);
-
-  // Додаємо допоміжні функції до контексту адмін-панелі
-  const adminPanelHelpers = {
-    createTabs: (containerSelector, tabsConfig) => createTabs(containerSelector, tabsConfig),
-    createModal: (id, config) => createModal(id, config),
-  };
+  context.html(adminPanelHTML); 
 
   /**
    * Fires when the admin panel is initialized
@@ -144,7 +138,7 @@ export function initializeAdminPanel(context, user, options) {
      * @property {Object} contentArea - The content area element
      */
     context.trigger("beforeContentLoad", { menuId, contentArea });
-    const loadOptions = { page: 1, itemsPerPage: options.itemsPerPage, helpers: adminPanelHelpers };
+    const loadOptions = { page: 1, itemsPerPage: options.itemsPerPage };
 
     // Перевіряємо, чи є користувацький компонент для цього пункту меню
     if (customComponents[menuId]) {

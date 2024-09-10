@@ -8,7 +8,7 @@ import $ from "../../core";
 import { initServices } from "./services";
 import { initComponents } from "./components";
 import { showLoginForm } from "./adminPanelAuth";
-import { initializeAdminPanel } from "./adminPanelInit"; 
+import { initializeAdminPanel } from "./adminPanelInit";
 
 // Global settings
 $.adminSettings = {
@@ -38,6 +38,7 @@ $.prototype.adminPanel = function (options) {
     apiBaseUrl = $.adminSettings.apiBaseUrl,
     onMenuItemClick,
     components = {},
+    customServices = {},
     itemsPerPage = $.adminSettings.defaultItemsPerPage,
     menuItems = [
       { id: "dashboard", label: "Dashboard" },
@@ -49,7 +50,11 @@ $.prototype.adminPanel = function (options) {
     additionalComponents = {},
   } = options;
 
-  const services = initServices(apiBaseUrl, components);
+  const standardServices = initServices(apiBaseUrl, components);
+
+  // Об'єднуємо стандартні сервіси з користувацькими
+  const services = { ...standardServices, ...customServices };
+
   const initializedComponents = initComponents(components);
 
   const checkAuthAndInitialize = async () => {
