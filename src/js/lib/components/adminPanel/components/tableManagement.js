@@ -440,25 +440,25 @@ export function createTableManagement() {
       });
     },
 
-    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowIndex = null) {
+    showFillTableForm: async function (contentArea, projectId, tableStructureService, tableDataService, tableId, action, rowId = null) {
       tableStructureService.getById(projectId, tableId).then((tableData) => {
         const tableStructure = JSON.parse(tableData.table_structure);
 
         let tableDataParsed = [];
 
         if (tableData.table_data && tableData.table_data.length > 0) {
-          if (rowIndex) {
-            const targetId = parseInt(rowIndex, 10);
+          if (rowId) {
+            const targetId = parseInt(rowId, 10);
             console.log("Searching for record with id:", targetId);
             const targetRecord = tableData.table_data.find((record) => record.id === targetId);
 
             if (targetRecord) {
               tableDataParsed = JSON.parse(targetRecord.data);
             } else {
-              console.warn(`Record with id ${rowIndex} not found`);
+              console.warn(`Record with id ${rowId} not found`);
             }
           } else {
-            // Якщо rowIndex не передано, парсимо всі записи
+            // Якщо rowId не передано, парсимо всі записи
             tableDataParsed = tableData.table_data.flatMap((record) => JSON.parse(record.data));
           }
         }
@@ -521,8 +521,8 @@ export function createTableManagement() {
           try {
             if (action === "first") {
               await this.createTableData(contentArea, projectId, tableStructureService, tableDataService, requestData);
-            } else if (action === "second" && rowIndex !== null) {
-              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, tableId, requestData);
+            } else if (action === "second" && rowId !== null) {
+              await this.updateTableData(contentArea, projectId, tableStructureService, tableDataService, rowId, requestData);
             }
             // Можна додати повідомлення про успіх або інші дії після успішного виконання
           } catch (error) {
@@ -625,8 +625,8 @@ export function createTableManagement() {
       });
     },
 
-    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, tableId, newData) {
-      tableDataService.update(projectId, tableId, newData).then(() => {
+    updateTableData: function (contentArea, projectId, tableStructureService, tableDataService, rowId, newData) {
+      tableDataService.update(projectId, rowId, newData).then(() => {
         alert("Table data updated successfully");
         this.viewTable(contentArea, projectId, tableStructureService, tableDataService, newData.user_tables_id);
       });
