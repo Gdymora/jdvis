@@ -20,6 +20,7 @@
     "babel-loader": "^9.1.2",
     "browser-sync": "^2.29.3",
     "core-js": "^3.31.0",
+    "fibers": "^5.0.3",
     "gulp": "^4.0.2",
     "gulp-clean-css": "^4.3.0",
     "gulp-jsdoc3": "^3.0.0",
@@ -28,6 +29,7 @@
     "jsdoc": "^4.0.3",
     "sass": "^1.63.3",
     "taffydb": "^2.7.3",
+    "through2": "^4.0.2",
     "webpack": "^5.86.0",
     "webpack-stream": "^7.0.0"
   },

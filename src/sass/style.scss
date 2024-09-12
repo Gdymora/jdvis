@@ -1,13 +1,6 @@
-
-@import "./general/base.scss";
-@import "./general/variables.scss";
-@import "./general/typography.scss";
+@import "./general/_base.scss";
+@import "./general/_variables.scss";
+@import "./general/_typography.scss";
 @import "./components/ui.scss";
 @import "./helpers/classes.scss";
-
-$fa-font-path: "../webfonts";
-
-@import "fontawesome";
-@import "solid";
-@import "regular";
-@import "brands";
+@import "./fontawesome.scss";

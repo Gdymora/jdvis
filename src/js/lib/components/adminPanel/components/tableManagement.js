@@ -28,6 +28,7 @@ export function createTableManagement() {
   const fieldOptions = {
     type: [
       { value: "text", label: "Text" },
+      { value: "string", label: "String" },
       { value: "number", label: "Number" },
       { value: "date", label: "Date" },
       { value: "markdown", label: "Markdown" }, // Додано новий тип
@@ -35,7 +36,8 @@ export function createTableManagement() {
     tag: [
       { value: "", label: "Select tag" },
       { value: "img", label: "Image" },
-      { value: "p", label: "Text" },
+      { value: "p", label: "String" },
+      { value: "div", label: "Text" },
       { value: "div", label: "Div" },
     ],
   };
@@ -471,6 +473,9 @@ export function createTableManagement() {
             let inputField = "";
             const fieldValue = action === "second" && tableDataParsed[0] ? tableDataParsed[0][field.name] || "" : "";
             switch (field.type) {
+              case "string":
+                inputField = `<textarea id="${field.name}" name="${field.name}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${fieldValue}</textarea>`;
+                break;
               case "text":
                 inputField = `<textarea id="${field.name}" name="${field.name}" class="editor mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">${fieldValue}</textarea>`;
                 break;

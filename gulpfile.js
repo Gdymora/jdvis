@@ -1,5 +1,4 @@
 "use strict";
-
 const gulp = require("gulp");
 const webpack = require("webpack-stream");
 const browsersync = require("browser-sync");
@@ -8,7 +7,10 @@ const autoprefixer = require("autoprefixer");
 const cleanCSS = require("gulp-clean-css");
 const postcss = require("gulp-postcss");
 const jsdoc = require("gulp-jsdoc3");
-const fontAwesomePath =  require('@fortawesome/fontawesome-free').cssPath;
+const through2 = require('through2');
+const fs = require('fs');
+const path = require('path'); 
+const fontAwesomePath = require("@fortawesome/fontawesome-free");
 // const dist = "/Applications/MAMP/htdocs/test"; // Ссылка на вашу папку на локальном сервере
 const dist = "./dist";
 // Шлях до Font Awesome
@@ -94,9 +96,32 @@ gulp.task("prod", () => {
   gulp
     .src("./src/sass/style.scss")
     .pipe(
+      through2.obj(function(file, enc, cb) {
+        const content = file.contents.toString();
+        const imports = content.match(/@import ['"](.*?)['"];/g);
+        if (imports) {
+          imports.forEach(imp => {
+            const fileName = imp.match(/@import ['"](.*)['"];/)[1];
+            const fullPath = path.resolve(path.dirname(file.path), fileName);
+            if (!fs.existsSync(fullPath)) {
+              console.error(`File not found: ${fullPath}`);
+            }
+          });
+        }
+        this.push(file);
+        cb();
+      })
+    )
+    .pipe(
       sass({
-        includePaths: [fontAwesomePath],
-      }).on("error", sass.logError)
+        includePaths: [fontAwesomePath, "node_modules"],
+      }).on("error", function (err) {
+        console.error("Sass error:", err);
+        console.error("Sass error:", err.message);
+        console.error("In file:", err.file);
+        console.error("On line:", err.line);
+        this.emit("end");
+      })
     )
     .pipe(postcss([autoprefixer()]))
     .pipe(cleanCSS())
