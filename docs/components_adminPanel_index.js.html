@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/adminPanel/index.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_adminPanel.html">components/adminPanel</a></li><li></li><li><a href="module-components_adminPanel_components.html">components/adminPanel/components</a></li><li><a href="module-components_adminPanel_init.html">components/adminPanel/init</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_init.html#.initializeAdminPanel">initializeAdminPanel</a></li><li data-type='method'><a href="module-components_adminPanel_init.html#~checkPermission">checkPermission</a></li></ul></li><li><a href="module-components_adminPanel_services.html">components/adminPanel/services</a></li><li><a href="module-components_adminPanel_services_tableStructure.html">components/adminPanel/services/tableStructure</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanel_services_user.html">components/adminPanel/services/user</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_user.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getCurrentUser">getCurrentUser</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasPermission">hasPermission</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasRole">hasRole</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanelAuth.html">components/adminPanelAuth</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanelAuth.html#.showLoginForm">showLoginForm</a></li></ul></li><li><a href="module-components_auth.html">components/auth</a><ul class='methods'><li data-type='method'><a href="module-components_auth.html#~getMe">getMe</a></li><li data-type='method'><a href="module-components_auth.html#~login">login</a></li><li data-type='method'><a href="module-components_auth.html#~logout">logout</a></li><li data-type='method'><a href="module-components_auth.html#~refreshToken">refreshToken</a></li><li data-type='method'><a href="module-components_auth.html#~setToken">setToken</a></li></ul></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_notification.html">components/notification</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_permission.html">components/permission</a><ul class='methods'><li data-type='method'><a href="module-components_permission.html#~create">create</a></li><li data-type='method'><a href="module-components_permission.html#~delete">delete</a></li><li data-type='method'><a href="module-components_permission.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_permission.html#~getAllPermissions">getAllPermissions</a></li><li data-type='method'><a href="module-components_permission.html#~getById">getById</a></li><li data-type='method'><a href="module-components_permission.html#~update">update</a></li></ul></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_projectComponent.html">components/projectComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectComponent.html#~createProject">createProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~deleteProject">deleteProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~getProjects">getProjects</a></li><li data-type='method'><a href="module-components_projectComponent.html#~updateProject">updateProject</a></li></ul></li><li><a href="module-components_projectRoleComponent.html">components/projectRoleComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignMultiplePermissions">assignMultiplePermissions</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignPermission">assignPermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~create">create</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~delete">delete</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getById">getById</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~removePermission">removePermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~update">update</a></li></ul></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-components_tableData.html">components/tableData</a><ul class='methods'><li data-type='method'><a href="module-components_tableData.html#~create">create</a></li><li data-type='method'><a href="module-components_tableData.html#~createExcel">createExcel</a></li><li data-type='method'><a href="module-components_tableData.html#~delete">delete</a></li><li data-type='method'><a href="module-components_tableData.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_tableData.html#~getById">getById</a></li><li data-type='method'><a href="module-components_tableData.html#~update">update</a></li></ul></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-domManipulation.html">domManipulation</a></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_jqueryLikeMethods.html">modules/jqueryLikeMethods</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul><h3>Events</h3><ul><li><a href="context.html#event:accessDenied">accessDenied</a></li><li><a href="context.html#event:adminPanelInitialized">adminPanelInitialized</a></li><li><a href="context.html#event:afterContentLoad">afterContentLoad</a></li><li><a href="context.html#event:beforeContentLoad">beforeContentLoad</a></li><li><a href="context.html#event:dashboardLoaded">dashboardLoaded</a></li><li><a href="context.html#event:logoutError">logoutError</a></li><li><a href="context.html#event:logoutSuccess">logoutSuccess</a></li><li><a href="context.html#event:pageNotFound">pageNotFound</a></li><li><a href="context.html#event:settingsLoaded">settingsLoaded</a></li><li><a href="context.html#event:usersLoaded">usersLoaded</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/adminPanel/index.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file index.js
+ * @description Main entry point for the admin panel module
+ * @module components/adminPanel
+ */
+
+import $ from "../../core";
+import { initServices } from "./services";
+import { initComponents } from "./components";
+import { showLoginForm } from "./adminPanelAuth";
+import { initializeAdminPanel } from "./adminPanelInit";
+
+// Global settings
+$.adminSettings = {
+  apiBaseUrl: "",
+  defaultItemsPerPage: 10,
+};
+
+/**
+ * Creates an advanced admin panel component with CRUD operations, pagination, search, filtering, and notifications.
+ * @memberof $.prototype
+ * @param {Object} options - Configuration options for the admin panel.
+ * @param {string} options.projectId - The ID of the current project.
+ * @param {string} [options.apiBaseUrl] - The base URL for the API (overrides global setting).
+ * @param {function} options.onMenuItemClick - Callback function when a menu item is clicked.
+ * @param {Object} [options.components] - Custom components to use (optional).
+ * @param {number} [options.itemsPerPage] - Number of items to display per page (default: 10).
+ * @param {Array} [options.menuItems] - Custom menu items (optional).
+ * @param {Object} [options.additionalComponents] - Additional UI components like tabs or modals.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+
+let isInitialized = false;
+
+$.prototype.adminPanel = function (options) {
+  const {
+    projectId,
+    apiBaseUrl = $.adminSettings.apiBaseUrl,
+    onMenuItemClick,
+    components = {},
+    customServices = {},
+    itemsPerPage = $.adminSettings.defaultItemsPerPage,
+    menuItems = [
+      { id: "dashboard", label: "Dashboard" },
+      { id: "users", label: "Users" },
+      { id: "roles", label: "Roles" },
+      { id: "permissions", label: "Permissions" },
+      { id: "tables", label: "Tables" },
+    ],
+    additionalComponents = {},
+  } = options;
+
+  const standardServices = initServices(apiBaseUrl, components);
+
+  // Об'єднуємо стандартні сервіси з користувацькими
+  const services = { ...standardServices, ...customServices };
+
+  const initializedComponents = initComponents(components);
+
+  const checkAuthAndInitialize = async () => {
+    if (isInitialized) {
+      console.log("Admin panel is already initialized");
+      return;
+    }
+
+    try {
+      const token = services.authService.getToken();
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      const user = await services.authService.getMe(projectId);
+      if (!user || !user.id) {
+        throw new Error("Invalid user data");
+      }
+
+      //initializeAdminPanel(this, user, options, services);
+      initializeAdminPanel(this, user, {
+        ...options,
+        services,
+        components: initializedComponents,
+      });
+
+      isInitialized = true;
+    } catch (error) {
+      console.error("Authentication error:", error);
+      services.authService.removeToken();
+      showLoginForm(this, services.authService, projectId, handleSuccessfulLogin);
+    }
+  };
+
+  const handleSuccessfulLogin = async (user) => {
+    if (!user || !user.id) {
+      console.error("Invalid user data after login");
+      services.authService.removeToken();
+      showLoginForm(this, services.authService, projectId, handleSuccessfulLogin);
+      return;
+    }
+
+    // initializeAdminPanel(this, user, options, services);
+    initializeAdminPanel(this, user, {
+      ...options,
+      services,
+      components: initializedComponents,
+    });
+    isInitialized = true;
+  };
+
+  // Start the authentication check and initialization process
+  checkAuthAndInitialize();
+
+  return this;
+};
+
+export default $;
+
+/*   services.authService
+    .getMe()
+    .then((user) => {
+      if (!user || !user.id) {
+        showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services));
+      } else {
+        initializeAdminPanel(this, user, options, services);
+      }
+    })
+    .catch(() => showLoginForm(this, services.authService, projectId, (context, user) => initializeAdminPanel(context, user, options, services))); */
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Wed Oct 02 2024 10:44:18 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

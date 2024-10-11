@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>modules/fileParser.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_adminPanel.html">components/adminPanel</a></li><li></li><li><a href="module-components_adminPanel_components.html">components/adminPanel/components</a></li><li><a href="module-components_adminPanel_init.html">components/adminPanel/init</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_init.html#.initializeAdminPanel">initializeAdminPanel</a></li><li data-type='method'><a href="module-components_adminPanel_init.html#~checkPermission">checkPermission</a></li></ul></li><li><a href="module-components_adminPanel_services.html">components/adminPanel/services</a></li><li><a href="module-components_adminPanel_services_tableStructure.html">components/adminPanel/services/tableStructure</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanel_services_user.html">components/adminPanel/services/user</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_user.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getCurrentUser">getCurrentUser</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasPermission">hasPermission</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasRole">hasRole</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanelAuth.html">components/adminPanelAuth</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanelAuth.html#.showLoginForm">showLoginForm</a></li></ul></li><li><a href="module-components_auth.html">components/auth</a><ul class='methods'><li data-type='method'><a href="module-components_auth.html#~getMe">getMe</a></li><li data-type='method'><a href="module-components_auth.html#~login">login</a></li><li data-type='method'><a href="module-components_auth.html#~logout">logout</a></li><li data-type='method'><a href="module-components_auth.html#~refreshToken">refreshToken</a></li><li data-type='method'><a href="module-components_auth.html#~setToken">setToken</a></li></ul></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_notification.html">components/notification</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_permission.html">components/permission</a><ul class='methods'><li data-type='method'><a href="module-components_permission.html#~create">create</a></li><li data-type='method'><a href="module-components_permission.html#~delete">delete</a></li><li data-type='method'><a href="module-components_permission.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_permission.html#~getAllPermissions">getAllPermissions</a></li><li data-type='method'><a href="module-components_permission.html#~getById">getById</a></li><li data-type='method'><a href="module-components_permission.html#~update">update</a></li></ul></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_projectComponent.html">components/projectComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectComponent.html#~createProject">createProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~deleteProject">deleteProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~getProjects">getProjects</a></li><li data-type='method'><a href="module-components_projectComponent.html#~updateProject">updateProject</a></li></ul></li><li><a href="module-components_projectRoleComponent.html">components/projectRoleComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignMultiplePermissions">assignMultiplePermissions</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignPermission">assignPermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~create">create</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~delete">delete</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getById">getById</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~removePermission">removePermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~update">update</a></li></ul></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-components_tableData.html">components/tableData</a><ul class='methods'><li data-type='method'><a href="module-components_tableData.html#~create">create</a></li><li data-type='method'><a href="module-components_tableData.html#~createExcel">createExcel</a></li><li data-type='method'><a href="module-components_tableData.html#~delete">delete</a></li><li data-type='method'><a href="module-components_tableData.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_tableData.html#~getById">getById</a></li><li data-type='method'><a href="module-components_tableData.html#~update">update</a></li></ul></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-domManipulation.html">domManipulation</a></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_jqueryLikeMethods.html">modules/jqueryLikeMethods</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul><h3>Events</h3><ul><li><a href="context.html#event:accessDenied">accessDenied</a></li><li><a href="context.html#event:adminPanelInitialized">adminPanelInitialized</a></li><li><a href="context.html#event:afterContentLoad">afterContentLoad</a></li><li><a href="context.html#event:beforeContentLoad">beforeContentLoad</a></li><li><a href="context.html#event:dashboardLoaded">dashboardLoaded</a></li><li><a href="context.html#event:logoutError">logoutError</a></li><li><a href="context.html#event:logoutSuccess">logoutSuccess</a></li><li><a href="context.html#event:pageNotFound">pageNotFound</a></li><li><a href="context.html#event:settingsLoaded">settingsLoaded</a></li><li><a href="context.html#event:usersLoaded">usersLoaded</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">modules/fileParser.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import $ from "../core";
+import Papa from "papaparse";
+import * as XLSX from "xlsx";
+
+/**
+ * Плагін fileParser для парсингу та імпорту CSV та Excel файлів.
+ * @param {Object} options - Налаштування для fileParser.
+ * @param {function} [options.onParse] - Callback-функція, яка викликається після успішного парсингу та імпорту даних.
+ * @param {function} [options.onError] - Callback-функція для обробки помилок.
+ * @param {boolean} [options.ignoreFormat=false] - Чи ігнорувати формат файлу.
+ * @param {Array} options.tableStructure - Структура таблиці для форматування даних.
+ * @param {string|number} options.projectId - ID проекту.
+ * @param {string|number} options.tableId - ID таблиці.
+ * @param {Object} [options.tableDataService] - Сервіс для роботи з даними таблиці.
+ * @param {function} [options.updateFunction] - Користувацька функція для оновлення даних.
+ * @returns {jQuery} Для підтримки ланцюжка викликів jQuery.
+ * @example
+ * $("#fileParserContainer").fileParser({
+ *   onParse: function(response) {
+ *     console.log("Import results:", response);
+ *     this.viewTable(contentArea, projectId, tableStructureService, tableId);
+ *   },
+ *   onError: function(error) {
+ *     alert("Error: " + error);
+ *   },
+ *   tableStructure: [
+ *     { name: "Column1", type: "string" },
+ *     { name: "Column2", type: "number" }
+ *   ],
+ *   tableId: "table1",
+ *   projectId: "project1",
+ *   ignoreFormat: false,
+ *   updateFunction: (projectId, data) => {
+ *     return tableDataService.createExcel(projectId, data);
+ *   },
+ *   tableDataService: tableDataService
+ * });
+ */
+
+$.prototype.fileParser = function (options) {
+  const defaults = {
+    onParse: () => {},
+    onError: () => {},
+    ignoreFormat: false,
+    tableStructure: [],
+    projectId: null,
+    tableId: null,
+    tableStructureService: null,
+    updateFunction: null, // Нова опція для користувацької функції оновлення
+  };
+
+  const settings = Object.assign({}, defaults, options);
+
+  return this.each(function () {
+    const container = this;
+    let parsedData = [];
+    let rawData = null;
+
+    // Створення елементів інтерфейсу
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = ".csv,.xlsx,.xls";
+
+    const ignoreFormatCheckbox = document.createElement("input");
+    ignoreFormatCheckbox.type = "checkbox";
+    ignoreFormatCheckbox.id = "ignoreFormat";
+    ignoreFormatCheckbox.checked = settings.ignoreFormat;
+
+    const ignoreFormatLabel = document.createElement("label");
+    ignoreFormatLabel.htmlFor = "ignoreFormat";
+    ignoreFormatLabel.textContent = "Ignore format";
+
+    const sendButton = document.createElement("button");
+    sendButton.type = "button";
+    sendButton.textContent = "Import Data";
+    sendButton.id = "send";
+    sendButton.style.display = "none";
+
+    const tableContainer = document.createElement("div");
+    tableContainer.id = "tableContainer";
+
+    const form = document.createElement("form");
+    form.appendChild(fileInput);
+    form.appendChild(ignoreFormatCheckbox);
+    form.appendChild(ignoreFormatLabel);
+    form.appendChild(tableContainer);
+    form.appendChild(sendButton);
+
+    container.appendChild(form);
+
+    // Обробники подій
+    $(fileInput).on("change", handleFileUpload);
+    $(ignoreFormatCheckbox).on("change", handleIgnoreFormatChange);
+    $(sendButton).on("click", handleSubmit);
+
+    /**
+     * Обробляє завантаження файлу.
+     * @param {Event} e - Об'єкт події.
+     */
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) {
+        settings.onError("No file selected");
+        return;
+      }
+
+      // Очищення попередніх даних
+      parsedData = [];
+      rawData = null;
+      tableContainer.innerHTML = "";
+      sendButton.style.display = "none";
+
+      const fileType = file.type;
+      if (fileType === "text/csv") {
+        parseCSV(file);
+      } else if (fileType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || fileType === "application/vnd.ms-excel") {
+        parseExcel(file);
+      } else {
+        settings.onError("Please upload a valid CSV or Excel file.");
+      }
+    }
+
+    /**
+     * Парсить CSV файл.
+     * @param {File} file - CSV файл для парсингу.
+     */
+    function parseCSV(file) {
+      Papa.parse(file, {
+        complete: (result) => {
+          rawData = result.data;
+          processData();
+        },
+        error: (error) => {
+          settings.onError("Error parsing CSV: " + error.message);
+        },
+      });
+    }
+
+    /**
+     * Парсить Excel файл.
+     * @param {File} file - Excel файл для парсингу.
+     */
+    function parseExcel(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        processData();
+      };
+      reader.onerror = (error) => {
+        settings.onError("Error reading Excel file: " + error);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    /**
+     * Обробляє дані після парсингу.
+     */
+    function processData() {
+      if (!rawData || rawData.length === 0) {
+        settings.onError("No data found in the file");
+        return;
+      }
+
+      parsedData = formatData(rawData);
+      renderTable(parsedData);
+    }
+
+    /**
+     * Обробляє зміну стану чекбоксу ігнорування формату.
+     */
+    function handleIgnoreFormatChange() {
+      settings.ignoreFormat = ignoreFormatCheckbox.checked;
+      if (rawData) {
+        processData();
+      }
+    }
+
+    /**
+     * Рендерить таблицю з даними.
+     * @param {Array} data - Дані для відображення в таблиці.
+     */
+    function renderTable(data) {
+      tableContainer.innerHTML = "";
+      const table = document.createElement("table");
+      table.className = "min-w-full divide-y divide-gray-200";
+
+      const thead = document.createElement("thead");
+      thead.className = "bg-gray-50";
+      const headerRow = document.createElement("tr");
+
+      settings.tableStructure.forEach((column) => {
+        const th = document.createElement("th");
+        th.className = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+        th.textContent = column.name;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+
+      const tbody = document.createElement("tbody");
+      tbody.className = "bg-white divide-y divide-gray-200";
+
+      data.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.className = "text-black";
+        settings.tableStructure.forEach((column, colIdx) => {
+          const td = document.createElement("td");
+          td.className = "px-6 py-4 whitespace-nowrap";
+          td.textContent = row[column.name] || "";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      tableContainer.appendChild(table);
+      sendButton.style.display = "block";
+    }
+
+    /**
+     * Обробляє відправку даних.
+     */
+    function handleSubmit() {
+      const tableData = {
+        user_tables_id: settings.tableId,
+        data: parsedData,
+      };
+
+      if (settings.updateFunction) {
+        settings
+          .updateFunction(settings.projectId, tableData)
+          .then((response) => {
+            displayImportResults(response);
+            settings.onParse(response);
+          })
+          .catch((error) => {
+            settings.onError("Error importing data: " + error.message);
+          });
+      } else if (settings.tableDataService &amp;&amp; settings.projectId) {
+        settings.tableDataService
+          .createExcel(settings.projectId, tableData)
+          .then((response) => {
+            displayImportResults(response);
+            settings.onParse(response);
+          })
+          .catch((error) => {
+            settings.onError("Error importing data: " + error.message);
+          });
+      } else {
+        settings.onParse(parsedData);
+      }
+    }
+
+    /**
+     * Відображає результати імпорту.
+     * @param {Object} response - Відповідь сервера з результатами імпорту.
+     */
+    function displayImportResults(response) {
+      const resultContainer = document.createElement("div");
+      resultContainer.innerHTML = `
+        &lt;h3>Import Results&lt;/h3>
+        &lt;p>Successfully imported: ${response.results.success || 0}&lt;/p>
+        &lt;p>Failed to import: ${response.results.failed || 0}&lt;/p>
+        &lt;p>Errors to import: ${response.results.errors || 0}&lt;/p>
+      `;
+
+      if (response.resultserrors &amp;&amp; response.results.errors.length > 0) {
+        const errorList = document.createElement("ul");
+        response.errors.forEach((error) => {
+          const li = document.createElement("li");
+          li.textContent = `Row ${error.row}: ${error.error}`;
+          errorList.appendChild(li);
+        });
+        resultContainer.appendChild(errorList);
+      }
+
+      tableContainer.appendChild(resultContainer);
+    }
+
+    /**
+     * Форматує дані відповідно до структури таблиці.
+     * @param {Array} data - Вихідні дані.
+     * @returns {Array} Відформатовані дані.
+     */
+    function formatData(data) {
+      if (settings.ignoreFormat) {
+        if (data[0].length &lt; settings.tableStructure.length) {
+          settings.onError("File format is incorrect: too few columns");
+          return [];
+        }
+        return data.slice(1).map((row) => {
+          const formattedRow = {};
+          settings.tableStructure.forEach((column, index) => {
+            formattedRow[column.name] = row[index] || "";
+          });
+          return formattedRow;
+        });
+      } else {
+        const headers = data[0];
+        if (headers.length !== settings.tableStructure.length) {
+          settings.onError("File format is incorrect: column count mismatch");
+          return [];
+        }
+        return data.slice(1).map((row) => {
+          const formattedRow = {};
+          settings.tableStructure.forEach((column, index) => {
+            formattedRow[column.name] = row[index] || "";
+          });
+          return formattedRow;
+        });
+      }
+    }
+  });
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Wed Oct 02 2024 10:44:18 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

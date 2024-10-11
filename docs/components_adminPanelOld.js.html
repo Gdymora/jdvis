@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>components/adminPanelOld.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ModernLib.html">ModernLib</a></li><li><a href="module-components_accordion.html">components/accordion</a></li><li><a href="module-components_adminPanel.html">components/adminPanel</a></li><li></li><li><a href="module-components_adminPanel_components.html">components/adminPanel/components</a></li><li><a href="module-components_adminPanel_init.html">components/adminPanel/init</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_init.html#.initializeAdminPanel">initializeAdminPanel</a></li><li data-type='method'><a href="module-components_adminPanel_init.html#~checkPermission">checkPermission</a></li></ul></li><li><a href="module-components_adminPanel_services.html">components/adminPanel/services</a></li><li><a href="module-components_adminPanel_services_tableStructure.html">components/adminPanel/services/tableStructure</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_tableStructure.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanel_services_user.html">components/adminPanel/services/user</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanel_services_user.html#~create">create</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~delete">delete</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getById">getById</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~getCurrentUser">getCurrentUser</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasPermission">hasPermission</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~hasRole">hasRole</a></li><li data-type='method'><a href="module-components_adminPanel_services_user.html#~update">update</a></li></ul></li><li><a href="module-components_adminPanelAuth.html">components/adminPanelAuth</a><ul class='methods'><li data-type='method'><a href="module-components_adminPanelAuth.html#.showLoginForm">showLoginForm</a></li></ul></li><li><a href="module-components_auth.html">components/auth</a><ul class='methods'><li data-type='method'><a href="module-components_auth.html#~getMe">getMe</a></li><li data-type='method'><a href="module-components_auth.html#~login">login</a></li><li data-type='method'><a href="module-components_auth.html#~logout">logout</a></li><li data-type='method'><a href="module-components_auth.html#~refreshToken">refreshToken</a></li><li data-type='method'><a href="module-components_auth.html#~setToken">setToken</a></li></ul></li><li><a href="module-components_cardGenerator.html">components/cardGenerator</a></li><li><a href="module-components_carousel.html">components/carousel</a></li><li><a href="module-components_carouselBlog.html">components/carouselBlog</a></li><li><a href="module-components_dropdown.html">components/dropdown</a></li><li><a href="module-components_loadPosts.html">components/loadPosts</a></li><li><a href="module-components_loadPostsLocal.html">components/loadPostsLocal</a></li><li><a href="module-components_modal.html">components/modal</a></li><li><a href="module-components_navigation.html">components/navigation</a></li><li><a href="module-components_notification.html">components/notification</a></li><li><a href="module-components_pagination.html">components/pagination</a></li><li><a href="module-components_permission.html">components/permission</a><ul class='methods'><li data-type='method'><a href="module-components_permission.html#~create">create</a></li><li data-type='method'><a href="module-components_permission.html#~delete">delete</a></li><li data-type='method'><a href="module-components_permission.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_permission.html#~getAllPermissions">getAllPermissions</a></li><li data-type='method'><a href="module-components_permission.html#~getById">getById</a></li><li data-type='method'><a href="module-components_permission.html#~update">update</a></li></ul></li><li><a href="module-components_postGenerator.html">components/postGenerator</a></li><li><a href="module-components_projectComponent.html">components/projectComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectComponent.html#~createProject">createProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~deleteProject">deleteProject</a></li><li data-type='method'><a href="module-components_projectComponent.html#~getProjects">getProjects</a></li><li data-type='method'><a href="module-components_projectComponent.html#~updateProject">updateProject</a></li></ul></li><li><a href="module-components_projectRoleComponent.html">components/projectRoleComponent</a><ul class='methods'><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignMultiplePermissions">assignMultiplePermissions</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~assignPermission">assignPermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~create">create</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~delete">delete</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~getById">getById</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~removePermission">removePermission</a></li><li data-type='method'><a href="module-components_projectRoleComponent.html#~update">update</a></li></ul></li><li><a href="module-components_tab.html">components/tab</a></li><li><a href="module-components_tableData.html">components/tableData</a><ul class='methods'><li data-type='method'><a href="module-components_tableData.html#~create">create</a></li><li data-type='method'><a href="module-components_tableData.html#~createExcel">createExcel</a></li><li data-type='method'><a href="module-components_tableData.html#~delete">delete</a></li><li data-type='method'><a href="module-components_tableData.html#~getAll">getAll</a></li><li data-type='method'><a href="module-components_tableData.html#~getById">getById</a></li><li data-type='method'><a href="module-components_tableData.html#~update">update</a></li></ul></li><li><a href="module-core.html">core</a><ul class='methods'><li data-type='method'><a href="module-core.html#~$">$</a></li></ul></li><li><a href="module-domManipulation.html">domManipulation</a></li><li><a href="module-modules_actions.html">modules/actions</a></li><li><a href="module-modules_attributes.html">modules/attributes</a></li><li><a href="module-modules_classes.html">modules/classes</a></li><li><a href="module-modules_display.html">modules/display</a></li><li><a href="module-modules_effects.html">modules/effects</a></li><li><a href="module-modules_handlers.html">modules/handlers</a></li><li><a href="module-modules_jqueryLikeMethods.html">modules/jqueryLikeMethods</a></li><li><a href="module-modules_objectUtils.html">modules/objectUtils</a></li><li><a href="module-modules_url.html">modules/url</a></li><li><a href="module-services_request.html">services/request</a></li></ul><h3>Events</h3><ul><li><a href="context.html#event:accessDenied">accessDenied</a></li><li><a href="context.html#event:adminPanelInitialized">adminPanelInitialized</a></li><li><a href="context.html#event:afterContentLoad">afterContentLoad</a></li><li><a href="context.html#event:beforeContentLoad">beforeContentLoad</a></li><li><a href="context.html#event:dashboardLoaded">dashboardLoaded</a></li><li><a href="context.html#event:logoutError">logoutError</a></li><li><a href="context.html#event:logoutSuccess">logoutSuccess</a></li><li><a href="context.html#event:pageNotFound">pageNotFound</a></li><li><a href="context.html#event:settingsLoaded">settingsLoaded</a></li><li><a href="context.html#event:usersLoaded">usersLoaded</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">components/adminPanelOld.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file adminPanel.js
+ * @description Advanced admin panel component for ModernLib.
+ * @module components/adminPanel
+ */
+
+import $ from "../core";
+
+// Global settings
+$.adminSettings = {
+  apiBaseUrl: "",
+  defaultItemsPerPage: 10,
+};
+
+/**
+ * Creates an advanced admin panel component with CRUD operations, pagination, search, filtering, and notifications.
+ * @memberof $.prototype
+ * @param {Object} options - Configuration options for the admin panel.
+ * @param {string} options.projectId - The ID of the current project.
+ * @param {string} [options.apiBaseUrl] - The base URL for the API (overrides global setting).
+ * @param {function} options.onMenuItemClick - Callback function when a menu item is clicked.
+ * @param {Object} [options.components] - Custom components to use (optional).
+ * @param {number} [options.itemsPerPage] - Number of items to display per page (default: 10).
+ * @param {Array} [options.menuItems] - Custom menu items (optional).
+ * @param {Object} [options.additionalComponents] - Additional UI components like tabs or modals.
+ * @returns {Object} The ModernLib object for chaining.
+ */
+$.prototype.adminPanel = function (options) {
+  const {
+    projectId,
+    apiBaseUrl = $.adminSettings.apiBaseUrl,
+    onMenuItemClick,
+    components = {},
+    itemsPerPage = $.adminSettings.defaultItemsPerPage,
+    menuItems = [
+      { id: "dashboard", label: "Dashboard" },
+      { id: "users", label: "Users" },
+      { id: "roles", label: "Roles" },
+      { id: "permissions", label: "Permissions" },
+      { id: "tables", label: "Tables" },
+    ],
+    additionalComponents = {},
+  } = options;
+
+  const authComponent = components.auth || $().projectAuthComponent(apiBaseUrl);
+  const userComponent = components.user || $().projectUserComponent(apiBaseUrl);
+  const roleComponent = components.role || $().projectRoleComponent(apiBaseUrl);
+  const permissionComponent = components.permission || $().projectPermissionComponent(apiBaseUrl);
+  const tableStructureComponent = components.tableStructure || $().projectTableStructureComponent(apiBaseUrl);
+
+  let currentPage = 1;
+  let currentSearchTerm = "";
+  let currentFilters = {};
+
+  // Check authentication
+  authComponent
+    .getMe()
+    .then((user) => {
+      if (!user || !user.id) {
+        showLoginForm();
+      } else {
+        initializeAdminPanel(user);
+      }
+    })
+    .catch(() => showLoginForm());
+
+  const showLoginForm = () => {
+    const loginHTML = `
+          &lt;div class="flex items-center justify-center h-screen bg-gray-100">
+            &lt;div class="bg-white p-8 rounded shadow-md w-96">
+              &lt;h2 class="text-2xl font-bold mb-4">Admin Login&lt;/h2>
+              &lt;form id="loginForm">
+                &lt;input type="email" id="email" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
+                &lt;input type="password" id="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" required>
+                &lt;button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Login&lt;/button>
+              &lt;/form>
+            &lt;/div>
+          &lt;/div>
+        `;
+    this.html(loginHTML);
+
+    $("#loginForm").on("submit", function (e) {
+      e.preventDefault();
+      const email = $("#email").val();
+      const password = $("#password").val();
+      authComponent
+        .login({ email, password, project_id: projectId })
+        .then(() => {
+          authComponent.getMe().then((user) => initializeAdminPanel(user));
+        })
+        .catch(() => alert("Login failed. Please try again."));
+    });
+  };
+
+  const initializeAdminPanel = (user) => {
+    const menuItems = [
+      { id: "dashboard", label: "Dashboard" },
+      { id: "users", label: "Users" },
+      { id: "roles", label: "Roles" },
+      { id: "permissions", label: "Permissions" },
+      { id: "tables", label: "Tables" },
+    ];
+
+    const createMenuItem = (item) => `
+          &lt;a href="#" data-menu-id="${item.id}" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100">
+            ${item.label}
+          &lt;/a>
+        `;
+
+    const createSidebar = () => `
+          &lt;div class="w-64 bg-white shadow-md">
+            &lt;div class="p-4 bg-blue-600 text-white font-bold">
+              Admin Panel
+            &lt;/div>
+            &lt;div class="p-4">
+              &lt;p>Welcome, ${user.name}&lt;/p>
+              &lt;button id="logoutBtn" class="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Logout&lt;/button>
+            &lt;/div>
+            &lt;nav class="mt-4">
+              ${menuItems.map(createMenuItem).join("")}
+            &lt;/nav>
+          &lt;/div>
+        `;
+
+    const createMainContent = () => `
+          &lt;div class="flex-1 p-8">
+            &lt;h1 class="text-2xl font-bold mb-4">Welcome to Admin Panel&lt;/h1>
+            &lt;div id="contentArea">
+              &lt;!-- Dynamic content will be loaded here -->
+            &lt;/div>
+          &lt;/div>
+        `;
+
+    const adminPanelHTML = `
+          &lt;div class="flex h-screen bg-gray-100">
+            ${createSidebar()}
+            ${createMainContent()}
+          &lt;/div>
+        `;
+
+    this.html(adminPanelHTML);
+
+    // Add event listeners
+    this.find("nav a").click(function (e) {
+      e.preventDefault();
+      const menuId = this.getAttribute("data-menu-id");
+      onMenuItemClick(menuId);
+
+      // Update active menu item
+      $("nav a").removeClass("bg-blue-100");
+      $(this).addClass("bg-blue-100");
+
+      // Load content based on menu item
+      const contentArea = $("#contentArea");
+      switch (menuId) {
+        case "dashboard":
+          contentArea.html('&lt;h2 class="text-xl mb-4">Dashboard&lt;/h2>&lt;p>Welcome to your dashboard.&lt;/p>');
+          break;
+        case "users":
+          loadUsers(contentArea);
+          break;
+        case "roles":
+          loadRoles(contentArea);
+          break;
+        case "permissions":
+          loadPermissions(contentArea);
+          break;
+        case "tables":
+          loadTables(contentArea);
+          break;
+      }
+    });
+
+    $("#logoutBtn").click(function () {
+      authComponent.logout().then(() => showLoginForm());
+    });
+  };
+
+  const loadUsers = (contentArea) => {
+    userComponent
+      .getAll(projectId)
+      .then((users) => {
+        let usersHTML = `
+              &lt;h2 class="text-xl mb-4">Users&lt;/h2>
+              &lt;button id="addUserBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add User&lt;/button>
+              &lt;table class="w-full">
+                &lt;thead>
+                  &lt;tr>
+                    &lt;th class="text-left">Name&lt;/th>
+                    &lt;th class="text-left">Email&lt;/th>
+                    &lt;th class="text-left">Actions&lt;/th>
+                  &lt;/tr>
+                &lt;/thead>
+                &lt;tbody>
+                  ${users
+                    .map(
+                      (user) => `
+                    &lt;tr>
+                      &lt;td>${user.name}&lt;/td>
+                      &lt;td>${user.email}&lt;/td>
+                      &lt;td>
+                        &lt;button class="editUserBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${user.id}">Edit&lt;/button>
+                        &lt;button class="deleteUserBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${user.id}">Delete&lt;/button>
+                      &lt;/td>
+                    &lt;/tr>
+                  `
+                    )
+                    .join("")}
+                &lt;/tbody>
+              &lt;/table>
+            `;
+        contentArea.html(usersHTML);
+
+        $("#addUserBtn").click(() => showUserForm());
+        $(".editUserBtn").click(function () {
+          const userId = $(this).data("id");
+          showUserForm(userId);
+        });
+        $(".deleteUserBtn").click(function () {
+          const userId = $(this).data("id");
+          if (confirm("Are you sure you want to delete this user?")) {
+            userComponent
+              .delete(projectId, userId)
+              .then(() => loadUsers(contentArea))
+              .catch((error) => alert("Error deleting user: " + error.message));
+          }
+        });
+      })
+      .catch((error) => {
+        contentArea.html("&lt;p>Error loading users.&lt;/p>");
+        console.error("Error loading users:", error);
+      });
+  };
+
+  const showUserForm = (userId = null) => {
+    const title = userId ? "Edit User" : "Add User";
+    const formHTML = `
+          &lt;h2 class="text-xl mb-4">${title}&lt;/h2>
+          &lt;form id="userForm">
+            &lt;input type="text" id="userName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
+            &lt;input type="email" id="userEmail" placeholder="Email" class="w-full p-2 mb-4 border rounded" required>
+            &lt;input type="password" id="userPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded" ${userId ? "" : "required"}>
+            &lt;button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}&lt;/button>
+          &lt;/form>
+        `;
+    $("#contentArea").html(formHTML);
+
+    if (userId) {
+      userComponent.getById(projectId, userId).then((user) => {
+        $("#userName").val(user.name);
+        $("#userEmail").val(user.email);
+      });
+    }
+
+    $("#userForm").submit(function (e) {
+      e.preventDefault();
+      const userData = {
+        name: $("#userName").val(),
+        email: $("#userEmail").val(),
+        password: $("#userPassword").val(),
+      };
+
+      const action = userId ? userComponent.update(projectId, userId, userData) : userComponent.create(projectId, userData);
+
+      action.then(() => loadUsers($("#contentArea"))).catch((error) => alert("Error saving user: " + error.message));
+    });
+  };
+
+  const loadRoles = (contentArea, page) => {
+    $("#searchArea").show();
+    $("#filterArea").hide();
+
+    roleComponent
+      .getAll(projectId, { page, itemsPerPage, search: currentSearchTerm })
+      .then((response) => {
+        const { roles, totalPages } = response;
+        let rolesHTML = `
+          &lt;h2 class="text-xl mb-4">Roles&lt;/h2>
+          &lt;button id="addRoleBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Role&lt;/button>
+          &lt;table class="w-full">
+            &lt;thead>
+              &lt;tr>
+                &lt;th class="text-left">Name&lt;/th>
+                &lt;th class="text-left">Description&lt;/th>
+                &lt;th class="text-left">Actions&lt;/th>
+              &lt;/tr>
+            &lt;/thead>
+            &lt;tbody>
+              ${roles
+                .map(
+                  (role) => `
+                &lt;tr>
+                  &lt;td>${role.name}&lt;/td>
+                  &lt;td>${role.description}&lt;/td>
+                  &lt;td>
+                    &lt;button class="editRoleBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${role.id}">Edit&lt;/button>
+                    &lt;button class="deleteRoleBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${role.id}">Delete&lt;/button>
+                  &lt;/td>
+                &lt;/tr>
+              `
+                )
+                .join("")}
+            &lt;/tbody>
+          &lt;/table>
+        `;
+        contentArea.html(rolesHTML);
+
+        // Render pagination
+        $("#paginationArea").pagination(totalPages, page);
+
+        $("#addRoleBtn").click(() => showRoleForm());
+        $(".editRoleBtn").click(function () {
+          const roleId = $(this).data("id");
+          showRoleForm(roleId);
+        });
+        $(".deleteRoleBtn").click(function () {
+          const roleId = $(this).data("id");
+          if (confirm("Are you sure you want to delete this role?")) {
+            roleComponent
+              .delete(projectId, roleId)
+              .then(() => {
+                showNotification("Role deleted successfully", "success");
+                loadRoles(contentArea, currentPage);
+              })
+              .catch((error) => {
+                showNotification("Error deleting role: " + error.message, "error");
+              });
+          }
+        });
+      })
+      .catch((error) => {
+        contentArea.html("&lt;p>Error loading roles.&lt;/p>");
+        showNotification("Error loading roles: " + error.message, "error");
+      });
+  };
+
+  const showRoleForm = (roleId = null) => {
+    const title = roleId ? "Edit Role" : "Add Role";
+    const formHTML = `
+      &lt;h2 class="text-xl mb-4">${title}&lt;/h2>
+      &lt;form id="roleForm">
+        &lt;input type="text" id="roleName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
+        &lt;textarea id="roleDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3">&lt;/textarea>
+        &lt;button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}&lt;/button>
+      &lt;/form>
+    `;
+
+    if (additionalComponents.modal) {
+      $("body").createModal({
+        text: {
+          title: title,
+          body: formHTML,
+        },
+        btns: {
+          count: 1,
+          settings: [["Close", ["btn-danger"], true]],
+        },
+      });
+    } else {
+      $("#contentArea").html(formHTML);
+    }
+
+    if (roleId) {
+      roleComponent.getById(projectId, roleId).then((role) => {
+        $("#roleName").val(role.name);
+        $("#roleDescription").val(role.description);
+      });
+    }
+
+    $("#roleForm").submit(function (e) {
+      e.preventDefault();
+      const roleData = {
+        name: $("#roleName").val(),
+        description: $("#roleDescription").val(),
+      };
+
+      const action = roleId ? roleComponent.update(projectId, roleId, roleData) : roleComponent.create(projectId, roleData);
+
+      action
+        .then(() => {
+          showNotification(`Role ${roleId ? "updated" : "created"} successfully`, "success");
+          loadRoles($("#contentArea"), currentPage);
+          if (additionalComponents.modal) {
+            $(".modal").fadeOut(500);
+          }
+        })
+        .catch((error) => {
+          showNotification(`Error ${roleId ? "updating" : "creating"} role: ` + error.message, "error");
+        });
+    });
+  };
+
+  const loadPermissions = (contentArea, page) => {
+    $("#searchArea").show();
+    $("#filterArea").hide();
+
+    permissionComponent
+      .getAll(projectId, { page, itemsPerPage, search: currentSearchTerm })
+      .then((response) => {
+        const { permissions, totalPages } = response;
+        let permissionsHTML = `
+          &lt;h2 class="text-xl mb-4">Permissions&lt;/h2>
+          &lt;button id="addPermissionBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Permission&lt;/button>
+          &lt;table class="w-full">
+            &lt;thead>
+              &lt;tr>
+                &lt;th class="text-left">Name&lt;/th>
+                &lt;th class="text-left">Description&lt;/th>
+                &lt;th class="text-left">Actions&lt;/th>
+              &lt;/tr>
+            &lt;/thead>
+            &lt;tbody>
+              ${permissions
+                .map(
+                  (permission) => `
+                &lt;tr>
+                  &lt;td>${permission.name}&lt;/td>
+                  &lt;td>${permission.description}&lt;/td>
+                  &lt;td>
+                    &lt;button class="editPermissionBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${permission.id}">Edit&lt;/button>
+                    &lt;button class="deletePermissionBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${permission.id}">Delete&lt;/button>
+                  &lt;/td>
+                &lt;/tr>
+              `
+                )
+                .join("")}
+            &lt;/tbody>
+          &lt;/table>
+        `;
+        contentArea.html(permissionsHTML);
+
+        // Render pagination
+        $("#paginationArea").pagination(totalPages, page);
+
+        $("#addPermissionBtn").click(() => showPermissionForm());
+        $(".editPermissionBtn").click(function () {
+          const permissionId = $(this).data("id");
+          showPermissionForm(permissionId);
+        });
+        $(".deletePermissionBtn").click(function () {
+          const permissionId = $(this).data("id");
+          if (confirm("Are you sure you want to delete this permission?")) {
+            permissionComponent
+              .delete(projectId, permissionId)
+              .then(() => {
+                showNotification("Permission deleted successfully", "success");
+                loadPermissions(contentArea, currentPage);
+              })
+              .catch((error) => {
+                showNotification("Error deleting permission: " + error.message, "error");
+              });
+          }
+        });
+      })
+      .catch((error) => {
+        contentArea.html("&lt;p>Error loading permissions.&lt;/p>");
+        showNotification("Error loading permissions: " + error.message, "error");
+      });
+  };
+
+  const showPermissionForm = (permissionId = null) => {
+    const title = permissionId ? "Edit Permission" : "Add Permission";
+    const formHTML = `
+      &lt;h2 class="text-xl mb-4">${title}&lt;/h2>
+      &lt;form id="permissionForm">
+        &lt;input type="text" id="permissionName" placeholder="Name" class="w-full p-2 mb-4 border rounded" required>
+        &lt;textarea id="permissionDescription" placeholder="Description" class="w-full p-2 mb-4 border rounded" rows="3">&lt;/textarea>
+        &lt;button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">${title}&lt;/button>
+      &lt;/form>
+    `;
+
+    if (additionalComponents.modal) {
+      $("body").createModal({
+        text: {
+          title: title,
+          body: formHTML,
+        },
+        btns: {
+          count: 1,
+          settings: [["Close", ["btn-danger"], true]],
+        },
+      });
+    } else {
+      $("#contentArea").html(formHTML);
+    }
+
+    if (permissionId) {
+      permissionComponent.getById(projectId, permissionId).then((permission) => {
+        $("#permissionName").val(permission.name);
+        $("#permissionDescription").val(permission.description);
+      });
+    }
+
+    $("#permissionForm").submit(function (e) {
+      e.preventDefault();
+      const permissionData = {
+        name: $("#permissionName").val(),
+        description: $("#permissionDescription").val(),
+      };
+
+      const action = permissionId ? permissionComponent.update(projectId, permissionId, permissionData) : permissionComponent.create(projectId, permissionData);
+
+      action
+        .then(() => {
+          showNotification(`Permission ${permissionId ? "updated" : "created"} successfully`, "success");
+          loadPermissions($("#contentArea"), currentPage);
+          if (additionalComponents.modal) {
+            $(".modal").fadeOut(500);
+          }
+        })
+        .catch((error) => {
+          showNotification(`Error ${permissionId ? "updating" : "creating"} permission: ` + error.message, "error");
+        });
+    });
+  };
+
+  const loadTables = (contentArea, page) => {
+    $("#searchArea").show();
+    $("#filterArea").hide();
+
+    tableStructureComponent
+      .getAll(projectId, { page, itemsPerPage, search: currentSearchTerm })
+      .then((response) => {
+        const { tables, totalPages } = response;
+        let tablesHTML = `
+          &lt;h2 class="text-xl mb-4">Tables&lt;/h2>
+          &lt;button id="addTableBtn" class="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Add Table&lt;/button>
+          &lt;table class="w-full">
+            &lt;thead>
+              &lt;tr>
+                &lt;th class="text-left">Name&lt;/th>
+                &lt;th class="text-left">Actions&lt;/th>
+              &lt;/tr>
+            &lt;/thead>
+            &lt;tbody>
+              ${tables
+                .map(
+                  (table) => `
+                &lt;tr>
+                  &lt;td>${table.table_name}&lt;/td>
+                  &lt;td>
+                    &lt;button class="editTableBtn px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600" data-id="${table.id}">Edit&lt;/button>
+                    &lt;button class="deleteTableBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" data-id="${table.id}">Delete&lt;/button>
+                    &lt;button class="viewTableDataBtn px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600" data-id="${table.id}">View Data&lt;/button>
+                  &lt;/td>
+                &lt;/tr>
+              `
+                )
+                .join("")}
+            &lt;/tbody>
+          &lt;/table>
+        `;
+        contentArea.html(tablesHTML);
+
+        // Render pagination
+        $("#paginationArea").pagination(totalPages, page);
+
+        $("#addTableBtn").click(() => showTableForm());
+        $(".editTableBtn").click(function () {
+          const tableId = $(this).data("id");
+          showTableForm(tableId);
+        });
+        $(".deleteTableBtn").click(function () {
+          const tableId = $(this).data("id");
+          if (confirm("Are you sure you want to delete this table?")) {
+            tableStructureComponent
+              .delete(projectId, tableId)
+              .then(() => {
+                showNotification("Table deleted successfully", "success");
+                loadTables(contentArea, currentPage);
+              })
+              .catch((error) => {
+                showNotification("Error deleting table: " + error.message, "error");
+              });
+          }
+        });
+        $(".viewTableDataBtn").click(function () {
+          const tableId = $(this).data("id");
+          loadTableData(contentArea, tableId, 1);
+        });
+      })
+      .catch((error) => {
+        contentArea.html("&lt;p>Error loading tables.&lt;/p>");
+        showNotification("Error loading tables: " + error.message, "error");
+      });
+  };
+
+  const showTableForm = (tableId = null) => {
+    const title = tableId ? "Edit Table" : "Add Table";
+    const formHTML = `
+      &lt;h2 class="text-xl mb-4">${title}&lt;/h2>
+      &lt;form id="tableForm">
+        &lt;input type="text" id="tableName" placeholder="Table Name" class="w-full p-2 mb-4 border rounded" required>
+        &lt;div id="tableFields">
+          &lt;!-- Fields will be dynamically added here -->
+        &lt;/div>
+        &lt;button type="button" id="addFieldBtn" class="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Field&lt;/button>
+        &lt;button type="submit" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">${title}&lt;/button>
+      &lt;/form>
+    `;
+
+    if (additionalComponents.modal) {
+      $("body").createModal({
+        text: {
+          title: title,
+          body: formHTML,
+        },
+        btns: {
+          count: 1,
+          settings: [["Close", ["btn-danger"], true]],
+        },
+      });
+    } else {
+      $("#contentArea").html(formHTML);
+    }
+
+    let fieldCount = 0;
+
+    function addField(name = "", type = "text", required = false) {
+      const fieldHTML = `
+        &lt;div class="field-row mb-2">
+          &lt;input type="text" name="field_name[]" placeholder="Field Name" value="${name}" class="p-2 border rounded mr-2" required>
+          &lt;select name="field_type[]" class="p-2 border rounded mr-2">
+            &lt;option value="text" ${type === "text" ? "selected" : ""}>Text&lt;/option>
+            &lt;option value="number" ${type === "number" ? "selected" : ""}>Number&lt;/option>
+            &lt;option value="date" ${type === "date" ? "selected" : ""}>Date&lt;/option>
+            &lt;option value="boolean" ${type === "boolean" ? "selected" : ""}>Boolean&lt;/option>
+          &lt;/select>
+          &lt;label>
+            &lt;input type="checkbox" name="field_required[]" ${required ? "checked" : ""}> Required
+          &lt;/label>
+          &lt;button type="button" class="removeFieldBtn px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2">Remove&lt;/button>
+        &lt;/div>
+      `;
+      $("#tableFields").append(fieldHTML);
+      fieldCount++;
+    }
+
+    $("#addFieldBtn").click(() => addField());
+
+    $(document).on("click", ".removeFieldBtn", function () {
+      $(this).closest(".field-row").remove();
+      fieldCount--;
+    });
+
+    if (tableId) {
+      tableStructureComponent.getById(projectId, tableId).then((table) => {
+        $("#tableName").val(table.table_name);
+        table.table_structure.forEach((field) => {
+          addField(field.name, field.type, field.required);
+        });
+      });
+    } else {
+      addField(); // Add one empty field by default for new tables
+    }
+
+    $("#tableForm").submit(function (e) {
+      e.preventDefault();
+      const tableData = {
+        table_name: $("#tableName").val(),
+        table_structure: [],
+      };
+
+      $(".field-row").each(function () {
+        tableData.table_structure.push({
+          name: $(this).find('input[name="field_name[]"]').val(),
+          type: $(this).find('select[name="field_type[]"]').val(),
+          required: $(this).find('input[name="field_required[]"]').is(":checked"),
+        });
+      });
+
+      const action = tableId ? tableStructureComponent.update(projectId, tableId, tableData) : tableStructureComponent.create(projectId, tableData);
+
+      action
+        .then(() => {
+          showNotification(`Table ${tableId ? "updated" : "created"} successfully`, "success");
+          loadTables($("#contentArea"), currentPage);
+          if (additionalComponents.modal) {
+            $(".modal").fadeOut(500);
+          }
+        })
+        .catch((error) => {
+          showNotification(`Error ${tableId ? "updating" : "creating"} table: ` + error.message, "error");
+        });
+    });
+  };
+
+  const loadTableData = (contentArea, tableId, page) => {
+    // This function would be implemented to load and display the actual data in the table
+    // It would use a separate component for table data, which is not provided in the original context
+    // For now, we'll just show a placeholder message
+    contentArea.html(`&lt;p>Table data for table ID ${tableId} would be displayed here.&lt;/p>`);
+    showNotification("Table data loading is not implemented in this example.", "info");
+  };
+
+  // Similar functions for loadRoles, loadPermissions, and loadTables
+  // would be implemented here, following the same pattern as loadUsers
+
+  return this;
+};
+
+export default $;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.3</a> on Wed Oct 02 2024 10:44:18 GMT+0200 (GMT+02:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

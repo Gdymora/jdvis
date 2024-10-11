@@ -17,13 +17,13 @@ import $ from "../core";
  * $().get('https://api.example.com/data')
  *   .then(data => console.log('Received data:', data))
  *   .catch(error => console.error('Error:', error));
- * 
+ *
  * @example
  * // Fetching text data
  * $().get('https://api.example.com/text', 'text')
  *   .then(text => console.log('Received text:', text))
  *   .catch(error => console.error('Error:', error));
- * 
+ *
  * @example
  * // Fetching binary data (e.g., image)
  * $().get('https://api.example.com/image.jpg', 'blob')
@@ -34,6 +34,20 @@ import $ from "../core";
  *     document.body.appendChild(img);
  *   })
  *   .catch(error => console.error('Error:', error));
+ *
+ * @example
+ * // Using with async/await
+ * (async function() {
+ *   try {
+ *     const blob = await $().get('https://api.example.com/image.jpg', 'blob');
+ *     const imageUrl = URL.createObjectURL(blob);
+ *     const img = document.createElement('img');
+ *     img.src = imageUrl;
+ *     document.body.appendChild(img);
+ *   } catch (error) {
+ *     console.error('Error:', error);
+ *   }
+ * })();
  */
 $.prototype.get = async function (url, dataTypeAnswer = "json") {
   let res = await fetch(url);
@@ -64,7 +78,7 @@ $.prototype.get = async function (url, dataTypeAnswer = "json") {
  * $().post('https://api.example.com/submit', formData)
  *   .then(response => console.log('Response:', response))
  *   .catch(error => console.error('Error:', error));
- * 
+ *
  * @example
  * // Sending JSON data and expecting JSON response
  * const data = { name: 'John', age: 30 };
@@ -104,7 +118,7 @@ $.prototype.post = async function (url, data, dataTypeAnswer = "text") {
  *     });
  *   })
  *   .catch(error => console.error('Error:', error));
- * 
+ *
  * @example
  * // Using with async/await
  * async function loadPosts() {

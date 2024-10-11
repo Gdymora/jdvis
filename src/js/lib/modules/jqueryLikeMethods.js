@@ -103,25 +103,31 @@ $.prototype.append = function (content) {
  *
  * @param {string} key - The name of the data attribute (camelCase or kebab-case).
  * @param {*} [value] - The value to set. If omitted, gets the current value.
- * @returns {(*|Object)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
+ * @returns {(*|ModernLib)} The value of the data attribute if getting, or the ModernLib object for chaining if setting.
  *
  * @example
- * //  <input type="checkbox" data-role-id="${role.id}" />
+ * // HTML: <input type="checkbox" data-role-id="123" id="myElement" />
+ *
  * // Get data using kebab-case
  * const value = $('#myElement').data('role-id');
+ * console.log(value); // Output: "123"
  *
  * @example
  * // Get data using camelCase
  * const value = $('#myElement').data('roleId');
+ * console.log(value); // Output: "123"
  *
  * @example
  * // Set data using kebab-case
- * $('#myElement').data('role-id', 'value');
+ * $('#myElement').data('role-id', 'admin');
+ * console.log($('#myElement').data('role-id')); // Output: "admin"
  *
  * @example
  * // Set data using camelCase
- * $('#myElement').data('roleId', 'value');
+ * $('#myElement').data('roleId', 'admin');
+ * console.log($('#myElement').data('roleId')); // Output: "admin"
  */
+
 $.prototype.data = function (key, value) {
   const formattedKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 
