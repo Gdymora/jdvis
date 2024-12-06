@@ -1,5 +1,15 @@
 # display
 
+  <div id="loadUsersBtn">gcccccccccc</div>
+  <div class="active">gggggggg</div>
+    <script>
+       $('#loadUsersBtn').click(()=>$(".active").toggle());
+       OR
+        $("#loadUsersBtn").on("click", () => {
+          $(".active").toggle();
+        });
+    </script>
+
 $('.active').hide()
 $('.active').show();
 $('.active').toggle();

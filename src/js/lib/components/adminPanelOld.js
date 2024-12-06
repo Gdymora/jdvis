@@ -25,7 +25,7 @@ $.adminSettings = {
  * @param {Object} [options.additionalComponents] - Additional UI components like tabs or modals.
  * @returns {Object} The ModernLib object for chaining.
  */
-$.prototype.adminPanel = function (options) {
+$.prototype.adminPanelOld = function (options) {
   const {
     projectId,
     apiBaseUrl = $.adminSettings.apiBaseUrl,
